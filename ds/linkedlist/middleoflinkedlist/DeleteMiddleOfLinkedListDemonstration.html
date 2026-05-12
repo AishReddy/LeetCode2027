@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Middle — Linked List Debugger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #2a2f3f;
+    --text: #e2e4ec;
+    --muted: #6b7280;
+    --accent: #4f9cf9;
+    --accent-dim: rgba(79,156,249,0.12);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.12);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --slow-col: #34d399;
+    --fast-col: #f87171;
+    --prev-col: #fbbf24;
+    --mid-col: #a78bfa;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  h1 { font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #fff; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .panel-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 14px; font-family: var(--display); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  input[type="text"] {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: var(--mono); font-size: 14px; padding: 9px 14px;
+    flex: 1; min-width: 180px; outline: none; transition: border-color .2s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  button {
+    font-family: var(--display); font-size: 13px; font-weight: 600;
+    border-radius: 8px; padding: 9px 18px; cursor: pointer; border: none;
+    transition: opacity .15s, transform .1s;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); color: #0d1117; }
+  .btn-step    { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-reset   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-step:not(:disabled):hover  { border-color: var(--accent); color: var(--accent); }
+  .btn-reset:hover { color: var(--red); border-color: var(--red); }
+
+  /* Code panel */
+  .code-block {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; font-size: 12px; line-height: 2; overflow-x: auto;
+  }
+  .code-line { display: block; padding: 1px 8px; border-radius: 4px; transition: background .2s; white-space: pre; }
+  .code-line.active { background: rgba(79,156,249,0.15); border-left: 2px solid var(--accent); padding-left: 6px; }
+  .ck { color: #64a0cc; } .ct { color: #7ec8a0; } .cv { color: #e2e4ec; }
+  .cm { color: #6b7280; font-style: italic; } .ca { color: #fbbf24; } .cc { color: #f87171; }
+
+  /* List visualizer */
+  #list-visual {
+    display: flex; align-items: flex-end; gap: 0;
+    min-height: 110px; padding: 16px 0 8px; overflow-x: auto; flex-wrap: nowrap;
+  }
+
+  .node-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ptr-labels { display: flex; gap: 3px; min-height: 22px; justify-content: center; flex-wrap: wrap; }
+
+  .ptr-tag { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: var(--display); letter-spacing: .03em; }
+  .tag-slow   { background: var(--green-dim);  color: var(--slow-col); }
+  .tag-fast   { background: var(--red-dim);    color: var(--fast-col); }
+  .tag-prev   { background: var(--amber-dim);  color: var(--prev-col); }
+
+  .node-box {
+    width: 52px; height: 52px; border-radius: 10px;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 600; color: var(--text);
+    transition: border-color .3s, background .3s, color .3s, transform .3s, opacity .3s;
+  }
+
+  .node-box.is-slow   { border-color: var(--slow-col); box-shadow: 0 0 0 2px rgba(52,211,153,.2); }
+  .node-box.is-fast   { border-color: var(--fast-col); box-shadow: 0 0 0 2px rgba(248,113,113,.2); }
+  .node-box.is-prev   { border-color: var(--prev-col); box-shadow: 0 0 0 2px rgba(251,191,36,.2); }
+  .node-box.is-middle { background: var(--mid-col); color: #0d0f14; border-color: var(--mid-col); transform: scale(1.08); }
+  .node-box.is-deleted { opacity: .2; transform: scale(0.88); text-decoration: line-through; }
+
+  .arrow { display: flex; align-items: center; padding: 0 2px; padding-bottom: 28px; }
+  .arrow svg { width: 28px; height: 16px; }
+  .arrow.deleted line, .arrow.deleted path { stroke: #2a2f3f !important; }
+
+  /* State cards */
+  .state-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .state-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; transition: border-color .3s; }
+  .state-card.active-slow { border-color: var(--slow-col); }
+  .state-card.active-fast { border-color: var(--fast-col); }
+  .state-card.active-prev { border-color: var(--prev-col); }
+  .state-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; font-family: var(--display); }
+  .state-val { font-size: 20px; font-weight: 600; color: var(--text); }
+  .state-val.null-val { color: var(--muted); font-size: 15px; }
+
+  /* Log */
+  #log { max-height: 190px; overflow-y: auto; font-size: 12px; line-height: 1.9; color: var(--muted); }
+  .log-line { border-bottom: 1px solid var(--surface2); padding: 3px 0; }
+  .log-line:last-child { color: var(--text); }
+  .sn { color: var(--accent); margin-right: 8px; }
+  .lk { color: var(--purple); } .lv { color: var(--amber); }
+  .lok { color: var(--green); } .lwarn { color: var(--red); }
+
+  #result-bar { display: none; background: var(--green-dim); border: 1px solid var(--green); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--green); font-weight: 600; margin-top: 12px; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .iter-badge { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; color: var(--muted); align-self: center; }
+</style>
+</head>
+<body>
+
+<h1>Linked List Debugger</h1>
+<p class="subtitle">Delete Middle Node — no dummy node version</p>
+
+<!-- Input -->
+<div class="panel">
+  <div class="panel-label">Input</div>
+  <div class="input-row">
+    <input type="text" id="list-input" value="1,2,3,4,5" placeholder="e.g. 1,2,3,4,5">
+    <button class="btn-primary" onclick="init()">Build List</button>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-top:8px;">Try: &nbsp;1,2,3,4,5 &nbsp;|&nbsp; 1,2,3,4 &nbsp;|&nbsp; 1,2 &nbsp;|&nbsp; 1</div>
+</div>
+
+<!-- Code panel -->
+<div class="panel">
+  <div class="panel-label">Your Code</div>
+  <div class="code-block" id="code-view">
+    <span class="code-line" id="cl-edge"><span class="ck">if</span> (head == <span class="ck">null</span> || head.next == <span class="ck">null</span>) <span class="ck">return null</span>;</span>
+    <span class="code-line" id="cl-init"><span class="ct">ListNode</span> <span class="ca">prev</span> = <span class="ck">null</span>; &nbsp;<span class="ct">ListNode</span> <span class="cv">slow</span> = head; &nbsp;<span class="ct">ListNode</span> <span class="cc">fast</span> = head;</span>
+    <span class="code-line" id="cl-while"><span class="ck">while</span> (<span class="cc">fast</span> != <span class="ck">null</span> &amp;&amp; <span class="cc">fast</span>.next != <span class="ck">null</span>) {</span>
+    <span class="code-line" id="cl-prev">&nbsp;&nbsp;&nbsp;&nbsp;<span class="ca">prev</span>  = <span class="cv">slow</span>;</span>
+    <span class="code-line" id="cl-slow">&nbsp;&nbsp;&nbsp;&nbsp;<span class="cv">slow</span>  = <span class="cv">slow</span>.next;</span>
+    <span class="code-line" id="cl-fast">&nbsp;&nbsp;&nbsp;&nbsp;<span class="cc">fast</span>  = <span class="cc">fast</span>.next.next;</span>
+    <span class="code-line" id="cl-end">}</span>
+    <span class="code-line" id="cl-del"><span class="ca">prev</span>.next = <span class="cv">slow</span>.next; &nbsp;<span class="cm">// unlink middle</span></span>
+    <span class="code-line" id="cl-ret"><span class="ck">return</span> head;</span>
+  </div>
+</div>
+
+<!-- Visualizer -->
+<div class="panel">
+  <div class="panel-label">List Visualisation</div>
+  <div id="list-visual"></div>
+  <div id="result-bar"></div>
+  <div class="controls">
+    <button class="btn-step" onclick="step()" id="btn-step">▶ Next Step</button>
+    <button class="btn-step" onclick="runAll()" id="btn-run">⚡ Run All</button>
+    <button class="btn-reset" onclick="init()">↺ Reset</button>
+    <span class="iter-badge" id="iter-badge">Iteration: 0</span>
+  </div>
+</div>
+
+<!-- State cards -->
+<div class="panel">
+  <div class="panel-label">Pointer State</div>
+  <div class="state-grid">
+    <div class="state-card" id="card-prev">
+      <div class="state-name">prev</div>
+      <div class="state-val null-val" id="val-prev">null</div>
+    </div>
+    <div class="state-card" id="card-slow">
+      <div class="state-name">slow</div>
+      <div class="state-val" id="val-slow">—</div>
+    </div>
+    <div class="state-card" id="card-fast">
+      <div class="state-name">fast</div>
+      <div class="state-val" id="val-fast">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- Log -->
+<div class="panel">
+  <div class="panel-label">Execution Log</div>
+  <div id="log"><div style="color:var(--muted);font-size:12px;">Build a list and press Next Step.</div></div>
+</div>
+
+<script>
+  let nodes = [];
+  // Pointer indices: -1 = null
+  let pPrev, pSlow, pFast;
+  let phase;       // 'edge' | 'init' | 'loop' | 'delete' | 'done'
+  let iteration;
+  let middleIdx;
+
+  const ALL_LINES = ['cl-edge','cl-init','cl-while','cl-prev','cl-slow','cl-fast','cl-end','cl-del','cl-ret'];
+
+  function highlight(id) {
+    ALL_LINES.forEach(l => document.getElementById(l).classList.remove('active'));
+    if (id) document.getElementById(id).classList.add('active');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  function init() {
+    const raw = document.getElementById('list-input').value;
+    const vals = raw.split(',').map(s => s.trim()).filter(Boolean).map(Number);
+    if (!vals.length) { alert('Enter at least one number.'); return; }
+
+    nodes = vals.map((v, i) => ({ val: v, id: i }));
+    pPrev = -1;  // null
+    pSlow = 0;
+    pFast = 0;
+    phase = 'init';
+    iteration = 0;
+    middleIdx = -99;
+
+    document.getElementById('result-bar').style.display = 'none';
+    document.getElementById('btn-step').disabled = false;
+    document.getElementById('btn-run').disabled = false;
+    document.getElementById('iter-badge').textContent = 'Iteration: 0';
+
+    clearLog();
+    logLine(`<span class="lk">// List:</span> [${vals.join(' → ')}]`);
+
+    // Edge case check
+    if (vals.length === 1) {
+      highlight('cl-edge');
+      logLine(`<span class="lwarn">Edge case:</span> single node → <span class="lok">return null</span>`);
+      middleIdx = 0;
+      phase = 'done';
+      renderList(true);
+      updateCards();
+      showResult([]);
+      document.getElementById('btn-step').disabled = true;
+      document.getElementById('btn-run').disabled = true;
+      return;
+    }
+
+    highlight('cl-init');
+    logLine(`<span class="lk">prev</span>=<span class="lv">null</span> &nbsp; <span class="lk">slow</span>=<span class="lv">${vals[0]}</span> &nbsp; <span class="lk">fast</span>=<span class="lv">${vals[0]}</span>`);
+    renderList();
+    updateCards();
+  }
+
+  // ── Step ─────────────────────────────────────────────────────
+  function step() {
+    if (phase === 'done') return;
+
+    // Check while condition
+    const fastNode     = pFast >= 0 && pFast < nodes.length ? nodes[pFast] : null;
+    const fastNextNode = fastNode && (pFast + 1) < nodes.length ? nodes[pFast + 1] : null;
+
+    if (phase === 'init' || phase === 'loop') {
+      highlight('cl-while');
+
+      if (fastNode && fastNextNode) {
+        phase = 'loop';
+        iteration++;
+        document.getElementById('iter-badge').textContent = `Iteration: ${iteration}`;
+
+        // prev = slow
+        pPrev = pSlow;
+        // slow = slow.next
+        pSlow = pSlow + 1;
+        // fast = fast.next.next
+        pFast = pFast + 2;
+        if (pFast >= nodes.length) pFast = nodes.length; // sentinel for null
+
+        const sv = pSlow < nodes.length ? nodes[pSlow].val : 'null';
+        const fv = pFast < nodes.length ? nodes[pFast].val : 'null';
+        const pv = pPrev >= 0 && pPrev < nodes.length ? nodes[pPrev].val : 'null';
+
+        highlight('cl-fast');
+        logLine(
+          `<span class="sn">[${iteration}]</span>` +
+          `<span class="lk">prev</span>=<span class="lv">${pv}</span> &nbsp;` +
+          `<span class="lk">slow</span>=<span class="lv">${sv}</span> &nbsp;` +
+          `<span class="lk">fast</span>=<span class="lv">${fv}</span>`
+        );
+        renderList();
+        updateCards();
+
+        // Check if next iteration will exit
+        const fn2     = pFast < nodes.length ? nodes[pFast] : null;
+        const fn2next = fn2 && (pFast + 1) < nodes.length ? nodes[pFast + 1] : null;
+        if (!fn2 || !fn2next) {
+          phase = 'delete';
+        }
+      } else {
+        // Condition false — go to delete
+        phase = 'delete';
+        doDelete();
+      }
+    } else if (phase === 'delete') {
+      doDelete();
+    }
+  }
+
+  function doDelete() {
+    phase = 'done';
+    middleIdx = pSlow;
+    highlight('cl-del');
+    logLine(`<span class="lk">// while exits</span> — middle = <span class="lv">${nodes[pSlow].val}</span>`);
+    logLine(`<span class="lok">prev.next = slow.next</span> → node <span class="lv">${nodes[pSlow].val}</span> deleted`);
+    renderList(true);
+    updateCards();
+
+    setTimeout(() => {
+      highlight('cl-ret');
+      const result = nodes.filter((_, i) => i !== middleIdx).map(n => n.val);
+      showResult(result);
+    }, 380);
+
+    document.getElementById('btn-step').disabled = true;
+    document.getElementById('btn-run').disabled = true;
+  }
+
+  function runAll() {
+    if (phase === 'done') return;
+    document.getElementById('btn-step').disabled = true;
+    document.getElementById('btn-run').disabled = true;
+    const iv = setInterval(() => {
+      if (phase === 'done') { clearInterval(iv); return; }
+      const fn = pFast >= 0 && pFast < nodes.length ? nodes[pFast] : null;
+      const fn2 = fn && (pFast + 1) < nodes.length ? nodes[pFast + 1] : null;
+      if (phase === 'delete' || !fn || !fn2) { clearInterval(iv); doDelete(); return; }
+      step();
+    }, 550);
+  }
+
+  // ── Render ────────────────────────────────────────────────────
+  function renderList(showMiddle = false) {
+    const vis = document.getElementById('list-visual');
+    vis.innerHTML = '';
+
+    nodes.forEach((n, i) => {
+      vis.appendChild(makeNodeWrap(n.val, i, showMiddle));
+      if (i < nodes.length - 1) {
+        const deleted = showMiddle && i === middleIdx;
+        vis.appendChild(makeArrow(deleted));
+      }
+    });
+
+    // null sentinel
+    const nullWrap = document.createElement('div');
+    nullWrap.className = 'node-wrap';
+    nullWrap.innerHTML = `<div class="ptr-labels"></div><div style="font-size:13px;color:var(--muted);padding:0 12px;padding-bottom:6px;">null</div>`;
+    vis.appendChild(makeArrow(false));
+    vis.appendChild(nullWrap);
+  }
+
+  function makeNodeWrap(val, idx, showMiddle) {
+    const wrap = document.createElement('div');
+    wrap.className = 'node-wrap';
+
+    const labels = document.createElement('div');
+    labels.className = 'ptr-labels';
+
+    // prev pointer (null shown as no tag on any node, matches pPrev = -1)
+    if (idx === pPrev) labels.innerHTML += `<span class="ptr-tag tag-prev">prev</span>`;
+    if (idx === pSlow)  labels.innerHTML += `<span class="ptr-tag tag-slow">slow</span>`;
+    if (idx === pFast && pFast < nodes.length) labels.innerHTML += `<span class="ptr-tag tag-fast">fast</span>`;
+
+    const box = document.createElement('div');
+    box.className = 'node-box';
+    box.textContent = val;
+
+    if (idx === pPrev) box.classList.add('is-prev');
+    if (idx === pSlow)  box.classList.add('is-slow');
+    if (idx === pFast && pFast < nodes.length) box.classList.add('is-fast');
+    if (showMiddle && idx === middleIdx) box.classList.add('is-middle');
+    if (phase === 'done' && idx === middleIdx) box.classList.add('is-deleted');
+
+    wrap.appendChild(labels);
+    wrap.appendChild(box);
+    return wrap;
+  }
+
+  function makeArrow(faded = false) {
+    const d = document.createElement('div');
+    d.className = 'arrow';
+    const stroke = faded ? '#2a2f3f' : '#3d4455';
+    d.innerHTML = `<svg viewBox="0 0 28 16" fill="none">
+      <line x1="2" y1="8" x2="22" y2="8" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M18 4 L24 8 L18 12" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>`;
+    return d;
+  }
+
+  // ── Cards ─────────────────────────────────────────────────────
+  function updateCards() {
+    const prevNode = pPrev >= 0 && pPrev < nodes.length ? nodes[pPrev] : null;
+    const slowNode = pSlow >= 0 && pSlow < nodes.length ? nodes[pSlow] : null;
+    const fastNode = pFast >= 0 && pFast < nodes.length ? nodes[pFast] : null;
+    setCard('prev', prevNode, 'active-prev');
+    setCard('slow', slowNode, 'active-slow');
+    setCard('fast', fastNode, 'active-fast');
+  }
+
+  function setCard(name, node, cls) {
+    const card = document.getElementById(`card-${name}`);
+    const el   = document.getElementById(`val-${name}`);
+    card.className = 'state-card ' + (node ? cls : '');
+    if (node) { el.className = 'state-val'; el.textContent = node.val; }
+    else       { el.className = 'state-val null-val'; el.textContent = 'null'; }
+  }
+
+  // ── Log ───────────────────────────────────────────────────────
+  function clearLog() { document.getElementById('log').innerHTML = ''; }
+  function logLine(html) {
+    const log = document.getElementById('log');
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.innerHTML = html;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // ── Result ────────────────────────────────────────────────────
+  function showResult(arr) {
+    const bar = document.getElementById('result-bar');
+    bar.style.display = 'block';
+    bar.innerHTML = arr.length === 0
+      ? '✓ Result: <strong>null</strong> (single node — nothing left)'
+      : `✓ Result: <strong>[${arr.join(' → ')}]</strong>`;
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
