@@ -1,0 +1,74 @@
+/**
+ * Problem: Delete the Middle Node of a Linked List
+ * LeetCode #2095
+ *
+ * Approach: Slow & Fast Pointer (Floyd's Tortoise technique)
+ * ---------------------------------------------------------
+ * - Use two pointers: slow (1 step/iter) and fast (2 steps/iter).
+ * - When fast reaches the end, slow is exactly at the middle.
+ * - A 'prev' pointer (one behind slow) lets us unlink the middle node.
+ *
+ * Time Complexity  : O(n) — single pass through the list
+ * Space Complexity : O(1) — only three pointer variables, no extra space
+ */
+
+// Definition for singly-linked list.
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class Solution {
+
+    public ListNode deleteMiddle(ListNode head) {
+
+        // Edge case: 0 or 1 node — the only node IS the middle, so return null
+        if (head == null || head.next == null) return null;
+
+        ListNode prev = null;   // trails one step behind slow
+        ListNode slow = head;   // moves 1 step per iteration → lands on middle
+        ListNode fast = head;   // moves 2 steps per iteration → detects end
+
+        while (fast != null && fast.next != null) {
+            prev = slow;                // save the node just before middle
+            slow = slow.next;           // slow: 1 step
+            fast = fast.next.next;      // fast: 2 steps  ← KEY to the algorithm
+        }
+
+        // slow is now the middle node; unlink it by skipping over it
+        prev.next = slow.next;
+
+        // head is unchanged (middle is never the head after the edge case check)
+        return head;
+    }
+}
+
+/*
+ * ─────────────────────────────────────────────────
+ *  Dry Run: [1 → 2 → 3 → 4 → 5]
+ * ─────────────────────────────────────────────────
+ *  Iter | prev | slow | fast
+ * ------+------+------+------
+ *  start|  null|    1 |    1
+ *    1  |    1 |    2 |    3
+ *    2  |    2 |    3 |    5   ← fast.next == null → loop exits
+ *
+ *  slow = 3 (middle), prev = 2
+ *  prev.next = slow.next  →  2 → 4 → 5
+ *  Result: [1 → 2 → 4 → 5]  ✓
+ *
+ * ─────────────────────────────────────────────────
+ *  Dry Run: [1 → 2 → 3 → 4]   (even length)
+ * ─────────────────────────────────────────────────
+ *  Iter | prev | slow | fast
+ * ------+------+------+------
+ *  start|  null|    1 |    1
+ *    1  |    1 |    2 |    3
+ *    2  |    2 |    3 |  null  ← fast == null → loop exits
+ *
+ *  slow = 3 (floor middle per LeetCode), prev = 2
+ *  Result: [1 → 2 → 4]  ✓
+ */
