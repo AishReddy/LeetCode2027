@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorder List Debugger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700&display=swap');
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#0d0f14; --surface:#141720; --surface2:#1c2030; --border:#2a2f3f;
+    --text:#e2e4ec; --muted:#6b7280;
+    --accent:#4f9cf9; --accent-dim:rgba(79,156,249,0.13);
+    --green:#34d399;  --green-dim:rgba(52,211,153,0.13);
+    --amber:#fbbf24;  --amber-dim:rgba(251,191,36,0.13);
+    --red:#f87171;    --red-dim:rgba(248,113,113,0.13);
+    --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.13);
+    --teal:#2dd4bf;   --teal-dim:rgba(45,212,191,0.13);
+    --mono:'JetBrains Mono',monospace;
+    --display:'Syne',sans-serif;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--mono); min-height:100vh; padding:24px 16px; }
+  h1 { font-family:var(--display); font-size:21px; font-weight:700; letter-spacing:-0.02em; color:#fff; margin-bottom:3px; }
+  .subtitle { font-size:12px; color:var(--muted); margin-bottom:20px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:12px; }
+  .panel-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:10px; font-family:var(--display); }
+
+  /* Top controls */
+  .top-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .quick-btns { display:flex; gap:6px; flex-wrap:wrap; }
+  .qbtn { font-size:11px; font-family:var(--display); font-weight:600; padding:5px 12px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--surface2); color:var(--muted); transition:all .2s; }
+  .qbtn:hover { border-color:var(--accent); color:var(--accent); }
+  .qbtn.odd  { border-color:var(--amber);  color:var(--amber); }
+  .qbtn.even { border-color:var(--teal);   color:var(--teal); }
+  button { font-family:var(--display); font-size:13px; font-weight:600; border-radius:8px; padding:7px 14px; cursor:pointer; border:none; transition:all .15s; }
+  button:active { transform:scale(0.97); }
+  button:disabled { opacity:.3; cursor:not-allowed; }
+  .btn-primary { background:var(--accent); color:#0d1117; }
+  .btn-step    { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .btn-reset   { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .btn-step:not(:disabled):hover { border-color:var(--accent); color:var(--accent); }
+  .btn-reset:hover { color:var(--red); border-color:var(--red); }
+
+  /* Dual panel layout */
+  .dual { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:680px) { .dual { grid-template-columns:1fr; } }
+
+  .debug-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+  .dp-title { font-size:11px; font-weight:700; font-family:var(--display); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; padding:4px 10px; border-radius:6px; display:inline-block; }
+  .dp-title.odd  { background:var(--amber-dim);  color:var(--amber); }
+  .dp-title.even { background:var(--teal-dim);   color:var(--teal); }
+
+  /* Phase pills */
+  .phases { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .phase-pill { font-size:10px; font-weight:600; padding:3px 9px; border-radius:99px; font-family:var(--display); border:1px solid var(--border); color:var(--muted); background:var(--surface2); transition:all .25s; }
+  .phase-pill.active { color:#0d1117; border-color:transparent; }
+  .p1.active { background:var(--accent); }
+  .p2.active { background:var(--amber); color:#1a0f00 !important; }
+  .p3.active { background:var(--green); }
+  .pd.active { background:var(--purple); }
+
+  /* Code */
+  .code-block { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:11px; line-height:2; overflow-x:auto; margin-bottom:10px; }
+  .cl { display:block; padding:0 6px; border-radius:3px; white-space:pre; transition:background .2s; }
+  .cl.active { background:rgba(79,156,249,0.15); border-left:2px solid var(--accent); padding-left:4px; }
+  .ck{color:#64a0cc} .cv{color:#e2e4ec} .ca{color:#fbbf24} .cc{color:#f87171}
+  .cg{color:#34d399} .cp{color:#a78bfa} .ct{color:#2dd4bf} .lc{color:#6b7280;font-style:italic}
+
+  /* List rows */
+  .list-section { margin-bottom:6px; }
+  .lrl { font-size:9px; font-weight:600; color:var(--muted); font-family:var(--display); text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; }
+  .list-row { display:flex; align-items:flex-end; gap:0; min-height:82px; overflow-x:auto; padding-bottom:2px; }
+  .node-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ptr-labels { display:flex; gap:2px; min-height:18px; justify-content:center; flex-wrap:wrap; }
+  .ptr-tag { font-size:9px; font-weight:600; padding:1px 5px; border-radius:3px; font-family:var(--display); white-space:nowrap; }
+  .tag-slow { background:var(--accent-dim); color:var(--accent); }
+  .tag-fast { background:var(--red-dim);    color:var(--red); }
+  .tag-curr { background:var(--amber-dim);  color:var(--amber); }
+  .tag-prev { background:var(--purple-dim); color:var(--purple); }
+  .tag-fp   { background:var(--green-dim);  color:var(--green); }
+  .tag-sp   { background:var(--teal-dim);   color:var(--teal); }
+  .node-box {
+    width:42px; height:42px; border-radius:9px; background:var(--surface2);
+    border:1.5px solid var(--border); display:flex; align-items:center;
+    justify-content:center; font-size:15px; font-weight:600; color:var(--text); transition:all .3s;
+  }
+  .node-box.hi-slow { border-color:var(--accent); box-shadow:0 0 0 2px rgba(79,156,249,.2); }
+  .node-box.hi-fast { border-color:var(--red);    box-shadow:0 0 0 2px rgba(248,113,113,.2); }
+  .node-box.hi-curr { border-color:var(--amber);  box-shadow:0 0 0 2px rgba(251,191,36,.2); }
+  .node-box.hi-prev { border-color:var(--purple); box-shadow:0 0 0 2px rgba(167,139,250,.2); }
+  .node-box.hi-fp   { border-color:var(--green);  box-shadow:0 0 0 2px rgba(52,211,153,.2); }
+  .node-box.hi-sp   { border-color:var(--teal);   box-shadow:0 0 0 2px rgba(45,212,191,.2); }
+  .node-box.hi-mid  { background:var(--accent); color:#0d1117; border-color:var(--accent); }
+  .arrow { display:flex; align-items:center; padding-bottom:20px; }
+  .arrow svg { width:22px; height:12px; }
+  .divider { border:none; border-top:1px solid var(--border); margin:4px 0 8px; }
+
+  /* State cards */
+  .state-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px; }
+  .state-card { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; transition:border-color .3s; }
+  .sname { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:3px; font-family:var(--display); }
+  .sval  { font-size:16px; font-weight:600; color:var(--text); }
+  .sval.nv { color:var(--muted); font-size:12px; }
+
+  /* Log */
+  .dp-log { max-height:140px; overflow-y:auto; font-size:11px; line-height:1.8; color:var(--muted); }
+  .ll { border-bottom:1px solid var(--surface2); padding:2px 0; }
+  .ll:last-child { color:var(--text); }
+  .sn{color:var(--accent);margin-right:5px} .lk{color:var(--purple)} .lv{color:var(--amber)} .lok{color:var(--green)} .lwarn{color:var(--red)}
+
+  .result-bar { display:none; background:var(--green-dim); border:1px solid var(--green); border-radius:6px; padding:8px 12px; font-size:12px; color:var(--green); font-weight:600; margin-top:8px; }
+
+  /* Global controls */
+  .gcontrols { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+  .iter-badge { font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 10px; color:var(--muted); }
+
+  /* Diff highlight */
+  .diff-box { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12px; line-height:1.8; }
+  .diff-title { font-size:10px; font-weight:600; font-family:var(--display); text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:6px; }
+  .diff-row { display:flex; gap:8px; align-items:baseline; margin-bottom:2px; }
+  .diff-label { font-size:10px; color:var(--muted); min-width:80px; }
+  .diff-odd  { color:var(--amber); }
+  .diff-even { color:var(--teal); }
+</style>
+</head>
+<body>
+
+<h1>Reorder List Debugger</h1>
+<p class="subtitle">LeetCode #143 — odd vs even node count, side by side</p>
+
+<!-- Input + Quick select -->
+<div class="panel">
+  <div class="panel-label">Input</div>
+  <div class="top-row">
+    <div class="quick-btns">
+      <span style="font-size:11px;color:var(--muted);align-self:center">Quick:</span>
+      <button class="qbtn odd"  onclick="loadPreset('1,2,3,4,5')">1→5 (odd)</button>
+      <button class="qbtn even" onclick="loadPreset('1,2,3,4')">1→4 (even)</button>
+      <button class="qbtn odd"  onclick="loadPreset('1,2,3')">1→3 (odd)</button>
+      <button class="qbtn even" onclick="loadPreset('1,2')">1→2 (even)</button>
+    </div>
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+    Both panels always run simultaneously — odd list on the left, even on the right.
+  </div>
+</div>
+
+<!-- Diff explainer -->
+<div class="diff-box">
+  <div class="diff-title">Key difference: odd vs even</div>
+  <div class="diff-row">
+    <span class="diff-label">Middle node</span>
+    <span class="diff-odd">Odd [1,2,3,4,5]: slow stops at 3 (exact centre)</span>
+  </div>
+  <div class="diff-row">
+    <span class="diff-label"></span>
+    <span class="diff-even">Even [1,2,3,4]: slow stops at 2 (lower middle)</span>
+  </div>
+  <div class="diff-row" style="margin-top:4px">
+    <span class="diff-label">Leftover node</span>
+    <span class="diff-odd">Odd: middle node has no pair → appended at end</span>
+  </div>
+  <div class="diff-row">
+    <span class="diff-label"></span>
+    <span class="diff-even">Even: both halves equal → no leftover</span>
+  </div>
+</div>
+
+<!-- Global step controls -->
+<div class="gcontrols">
+  <button class="btn-step" id="gbtn-step" onclick="stepBoth()">▶ Next Step (both)</button>
+  <button class="btn-step" id="gbtn-run"  onclick="runBoth()">⚡ Run All</button>
+  <button class="btn-reset" onclick="resetBoth()">↺ Reset</button>
+  <span class="iter-badge" id="gbadge">Ready</span>
+</div>
+
+<!-- Dual debug panels -->
+<div class="dual">
+
+  <!-- ODD panel -->
+  <div class="debug-panel" id="panel-odd">
+    <div class="dp-title odd">Odd nodes</div>
+    <div class="phases">
+      <span class="phase-pill p1" id="odd-ph1">① Middle</span>
+      <span class="phase-pill p2" id="odd-ph2">② Reverse</span>
+      <span class="phase-pill p3" id="odd-ph3">③ Merge</span>
+      <span class="phase-pill pd" id="odd-ph4">✓</span>
+    </div>
+    <div class="code-block">
+<span class="cl" id="odd-cl-sinit"><span class="ca">slow</span>=head; <span class="cc">fast</span>=head;</span>
+<span class="cl" id="odd-cl-sloop"><span class="ck">while</span>(<span class="cc">fast</span>!=null &amp;&amp; <span class="cc">fast</span>.next!=null)</span>
+<span class="cl" id="odd-cl-smove">  <span class="ca">slow</span>=slow.next; <span class="cc">fast</span>=fast.next.next;</span>
+<span class="cl" id="odd-cl-cut">secondHalf=<span class="ca">slow</span>.next; <span class="ca">slow</span>.next=null;</span>
+<span class="cl" id="odd-cl-rinit"><span class="cp">prev</span>=null; <span class="cv">curr</span>=secondHalf;</span>
+<span class="cl" id="odd-cl-rloop"><span class="ck">while</span>(<span class="cv">curr</span>!=null)</span>
+<span class="cl" id="odd-cl-rmove">  nextNode=<span class="cv">curr</span>.next; <span class="cv">curr</span>.next=<span class="cp">prev</span>; <span class="cp">prev</span>=<span class="cv">curr</span>; <span class="cv">curr</span>=nextNode;</span>
+<span class="cl" id="odd-cl-minit"><span class="cg">firstPtr</span>=head; <span class="ct">secondPtr</span>=prev;</span>
+<span class="cl" id="odd-cl-mloop"><span class="ck">while</span>(<span class="cg">firstPtr</span>!=null &amp;&amp; <span class="ct">secondPtr</span>!=null)</span>
+<span class="cl" id="odd-cl-madv">  advance firstPtr &amp; secondPtr;</span>
+    </div>
+    <!-- Vis -->
+    <div class="list-section">
+      <div class="lrl">Full list</div>
+      <div class="list-row" id="odd-vis-full"></div>
+    </div>
+    <div class="list-section" id="odd-sec-second" style="display:none">
+      <hr class="divider">
+      <div class="lrl">Second half (reversing)</div>
+      <div class="list-row" id="odd-vis-second"></div>
+    </div>
+    <div class="list-section" id="odd-sec-result" style="display:none">
+      <hr class="divider">
+      <div class="lrl" style="color:var(--green)">Merged result</div>
+      <div class="list-row" id="odd-vis-result"></div>
+    </div>
+    <!-- State cards -->
+    <div class="state-grid">
+      <div class="state-card" id="odd-card-a"><div class="sname" id="odd-name-a">slow</div><div class="sval nv" id="odd-val-a">—</div></div>
+      <div class="state-card" id="odd-card-b"><div class="sname" id="odd-name-b">fast</div><div class="sval nv" id="odd-val-b">—</div></div>
+      <div class="state-card" id="odd-card-c"><div class="sname" id="odd-name-c">—</div><div class="sval nv" id="odd-val-c">—</div></div>
+    </div>
+    <!-- Log -->
+    <div class="dp-log" id="odd-log"><span style="color:var(--muted)">Press Next Step to begin.</span></div>
+    <div class="result-bar" id="odd-result"></div>
+  </div>
+
+  <!-- EVEN panel -->
+  <div class="debug-panel" id="panel-even">
+    <div class="dp-title even">Even nodes</div>
+    <div class="phases">
+      <span class="phase-pill p1" id="even-ph1">① Middle</span>
+      <span class="phase-pill p2" id="even-ph2">② Reverse</span>
+      <span class="phase-pill p3" id="even-ph3">③ Merge</span>
+      <span class="phase-pill pd" id="even-ph4">✓</span>
+    </div>
+    <div class="code-block">
+<span class="cl" id="even-cl-sinit"><span class="ca">slow</span>=head; <span class="cc">fast</span>=head;</span>
+<span class="cl" id="even-cl-sloop"><span class="ck">while</span>(<span class="cc">fast</span>!=null &amp;&amp; <span class="cc">fast</span>.next!=null)</span>
+<span class="cl" id="even-cl-smove">  <span class="ca">slow</span>=slow.next; <span class="cc">fast</span>=fast.next.next;</span>
+<span class="cl" id="even-cl-cut">secondHalf=<span class="ca">slow</span>.next; <span class="ca">slow</span>.next=null;</span>
+<span class="cl" id="even-cl-rinit"><span class="cp">prev</span>=null; <span class="cv">curr</span>=secondHalf;</span>
+<span class="cl" id="even-cl-rloop"><span class="ck">while</span>(<span class="cv">curr</span>!=null)</span>
+<span class="cl" id="even-cl-rmove">  nextNode=<span class="cv">curr</span>.next; <span class="cv">curr</span>.next=<span class="cp">prev</span>; <span class="cp">prev</span>=<span class="cv">curr</span>; <span class="cv">curr</span>=nextNode;</span>
+<span class="cl" id="even-cl-minit"><span class="cg">firstPtr</span>=head; <span class="ct">secondPtr</span>=prev;</span>
+<span class="cl" id="even-cl-mloop"><span class="ck">while</span>(<span class="cc">fast</span>!=null &amp;&amp; <span class="ct">secondPtr</span>!=null)</span>
+<span class="cl" id="even-cl-madv">  advance firstPtr &amp; secondPtr;</span>
+    </div>
+    <!-- Vis -->
+    <div class="list-section">
+      <div class="lrl">Full list</div>
+      <div class="list-row" id="even-vis-full"></div>
+    </div>
+    <div class="list-section" id="even-sec-second" style="display:none">
+      <hr class="divider">
+      <div class="lrl">Second half (reversing)</div>
+      <div class="list-row" id="even-vis-second"></div>
+    </div>
+    <div class="list-section" id="even-sec-result" style="display:none">
+      <hr class="divider">
+      <div class="lrl" style="color:var(--green)">Merged result</div>
+      <div class="list-row" id="even-vis-result"></div>
+    </div>
+    <!-- State cards -->
+    <div class="state-grid">
+      <div class="state-card" id="even-card-a"><div class="sname" id="even-name-a">slow</div><div class="sval nv" id="even-val-a">—</div></div>
+      <div class="state-card" id="even-card-b"><div class="sname" id="even-name-b">fast</div><div class="sval nv" id="even-val-b">—</div></div>
+      <div class="state-card" id="even-card-c"><div class="sname" id="even-name-c">—</div><div class="sval nv" id="even-val-c">—</div></div>
+    </div>
+    <div class="dp-log" id="even-log"><span style="color:var(--muted)">Press Next Step to begin.</span></div>
+    <div class="result-bar" id="even-result"></div>
+  </div>
+
+</div>
+
+<script>
+// ── Debugger factory ──────────────────────────────────────────
+// Creates an independent state machine for one panel (odd or even)
+function makeDebugger(id, inputVals) {
+  const d = {
+    id, vals: inputVals,
+    phase: 'p1',
+    midIdx: -1,
+    pSlow: 0, pFast: 0,
+    secondVals: [], revBuilt: [], p2pos: 0,
+    firstVals: [], reversedVals: [], mergedVals: [],
+    mFi: 0, mSi: 0,
+    done: false,
+  };
+  return d;
+}
+
+const CLS = ['sinit','sloop','smove','cut','rinit','rloop','rmove','minit','mloop','madv'];
+
+function hl(id, cls) {
+  CLS.forEach(c => {
+    const el = document.getElementById(`${id}-cl-${c}`);
+    if (el) el.classList.remove('active');
+  });
+  const target = document.getElementById(`${id}-cl-${cls}`);
+  if (target) target.classList.add('active');
+}
+
+function setPhase(id, p) {
+  ['ph1','ph2','ph3','ph4'].forEach(x => {
+    const el = document.getElementById(`${id}-${x}`);
+    if (el) el.classList.remove('active');
+  });
+  const map = {p1:'ph1', p2:'ph2', p3:'ph3', done:'ph4'};
+  if (map[p]) document.getElementById(`${id}-${map[p]}`).classList.add('active');
+}
+
+function setCard(id, slot, name, val, col, isNull=false) {
+  const card = document.getElementById(`${id}-card-${slot}`);
+  const nm   = document.getElementById(`${id}-name-${slot}`);
+  const ve   = document.getElementById(`${id}-val-${slot}`);
+  nm.textContent = name;
+  nm.style.color = isNull ? 'var(--muted)' : col;
+  ve.textContent = isNull ? 'null' : String(val);
+  ve.className   = isNull ? 'sval nv' : 'sval';
+  ve.style.color = isNull ? '' : col;
+  card.style.borderColor = isNull ? 'var(--border)' : col;
+}
+
+function logLine(id, html) {
+  const log = document.getElementById(`${id}-log`);
+  const d = document.createElement('div'); d.className='ll'; d.innerHTML=html;
+  log.appendChild(d); log.scrollTop = log.scrollHeight;
+}
+function clearLog(id) { document.getElementById(`${id}-log`).innerHTML=''; }
+
+// ── Init one debugger ─────────────────────────────────────────
+function initDebugger(d) {
+  d.phase='p1'; d.midIdx=-1; d.pSlow=0; d.pFast=0;
+  d.secondVals=[]; d.revBuilt=[]; d.p2pos=0;
+  d.firstVals=[]; d.reversedVals=[]; d.mergedVals=[];
+  d.mFi=0; d.mSi=0; d.done=false;
+
+  document.getElementById(`${d.id}-sec-second`).style.display='none';
+  document.getElementById(`${d.id}-sec-result`).style.display='none';
+  document.getElementById(`${d.id}-result`).style.display='none';
+
+  setPhase(d.id, 'p1');
+  clearLog(d.id);
+  logLine(d.id, `<span class="lk">// [${d.vals.join('→')}] &nbsp;(${d.vals.length} nodes, ${d.vals.length%2===0?'even':'odd'})</span>`);
+  hl(d.id, 'sinit');
+
+  setCard(d.id,'a','slow', d.vals[0], 'var(--accent)');
+  setCard(d.id,'b','fast', d.vals[0], 'var(--red)');
+  setCard(d.id,'c','—','—','var(--muted)',true);
+
+  renderFull(d);
+}
+
+// ── Step one debugger ─────────────────────────────────────────
+function stepDebugger(d) {
+  if (d.done) return;
+  if (d.phase==='p1') stepP1(d);
+  else if (d.phase==='p2') stepP2(d);
+  else if (d.phase==='p3') stepP3(d);
+}
+
+function stepP1(d) {
+  const canLoop = d.pFast < d.vals.length && (d.pFast+1) < d.vals.length;
+  hl(d.id, 'sloop');
+  if (canLoop) {
+    d.pSlow++;
+    d.pFast = Math.min(d.pFast+2, d.vals.length);
+    const sv = d.pSlow < d.vals.length ? d.vals[d.pSlow] : 'null';
+    const fv = d.pFast < d.vals.length ? d.vals[d.pFast] : 'null';
+    hl(d.id,'smove');
+    logLine(d.id, `<span class="lk">slow</span>=<span class="lv">${sv}</span> <span class="lk">fast</span>=<span class="lv">${fv}</span>`);
+    setCard(d.id,'a','slow',sv,'var(--accent)',sv==='null');
+    setCard(d.id,'b','fast',fv,'var(--red)',fv==='null');
+    renderFull(d);
+    const willExit = d.pFast >= d.vals.length || (d.pFast+1) >= d.vals.length;
+    if (willExit) setTimeout(()=>doCut(d), 350);
+  } else {
+    doCut(d);
+  }
+}
+
+function doCut(d) {
+  d.midIdx = d.pSlow;
+  d.firstVals  = d.vals.slice(0, d.midIdx+1);
+  d.secondVals = d.vals.slice(d.midIdx+1);
+  hl(d.id,'cut');
+  logLine(d.id, `<span class="lok">Mid=${d.vals[d.midIdx]}</span> first:[${d.firstVals.join('→')}] second:[${d.secondVals.join('→')}]`);
+
+  // Key difference note
+  if (d.vals.length % 2 !== 0) {
+    logLine(d.id, `<span class="lk">// ODD: firstHalf(${d.firstVals.length}) > secondHalf(${d.secondVals.length}) → leftover node</span>`);
+  } else {
+    logLine(d.id, `<span class="lk">// EVEN: firstHalf(${d.firstVals.length}) = secondHalf(${d.secondVals.length}) → no leftover</span>`);
+  }
+
+  d.phase='p2'; d.p2pos=0; d.revBuilt=[];
+  setPhase(d.id,'p2');
+  setCard(d.id,'a','slow(mid)',d.vals[d.midIdx],'var(--accent)');
+  setCard(d.id,'b','prev','null','var(--purple)',true);
+  setCard(d.id,'c','curr',d.secondVals.length>0?d.secondVals[0]:'null','var(--amber)',d.secondVals.length===0);
+  document.getElementById(`${d.id}-sec-second`).style.display='block';
+  hl(d.id,'rinit');
+  renderFull(d);
+  renderSecond(d);
+}
+
+function stepP2(d) {
+  hl(d.id,'rloop');
+  if (d.p2pos < d.secondVals.length) {
+    d.revBuilt.unshift(d.secondVals[d.p2pos]);
+    d.p2pos++;
+    const pv = d.revBuilt[0];
+    const cv = d.p2pos < d.secondVals.length ? d.secondVals[d.p2pos] : 'null';
+    hl(d.id,'rmove');
+    logLine(d.id, `<span class="lk">prev</span>=<span class="lv">${pv}</span> <span class="lk">curr</span>=<span class="lv">${cv}</span>`);
+    setCard(d.id,'b','prev',pv,'var(--purple)');
+    setCard(d.id,'c','curr',cv,'var(--amber)',cv==='null');
+    renderSecond(d);
+    if (d.p2pos >= d.secondVals.length) setTimeout(()=>startMerge(d), 380);
+  } else {
+    startMerge(d);
+  }
+}
+
+function startMerge(d) {
+  d.reversedVals = [...d.revBuilt];
+  logLine(d.id, `<span class="lok">Reversed:</span> [${d.reversedVals.join('→')}]`);
+  d.phase='p3'; d.mFi=0; d.mSi=0; d.mergedVals=[];
+  setPhase(d.id,'p3');
+  hl(d.id,'minit');
+  setCard(d.id,'a','firstPtr', d.firstVals[0],    'var(--green)');
+  setCard(d.id,'b','secondPtr',d.reversedVals[0], 'var(--teal)');
+  setCard(d.id,'c','—','—','var(--muted)',true);
+  document.getElementById(`${d.id}-sec-result`).style.display='block';
+  renderFull(d);
+  renderResult(d);
+}
+
+function stepP3(d) {
+  hl(d.id,'mloop');
+  if (d.mFi < d.firstVals.length && d.mSi < d.reversedVals.length) {
+    d.mergedVals.push(d.firstVals[d.mFi], d.reversedVals[d.mSi]);
+    d.mFi++; d.mSi++;
+    const nf = d.mFi < d.firstVals.length ? d.firstVals[d.mFi] : 'null';
+    const ns = d.mSi < d.reversedVals.length ? d.reversedVals[d.mSi] : 'null';
+    hl(d.id,'madv');
+    logLine(d.id, `<span class="sn">merge</span><span class="lk">fp</span>=<span class="lv">${nf}</span> <span class="lk">sp</span>=<span class="lv">${ns}</span>`);
+    setCard(d.id,'a','firstPtr', nf,'var(--green)', nf==='null');
+    setCard(d.id,'b','secondPtr',ns,'var(--teal)',  ns==='null');
+    renderResult(d);
+    const done = d.mFi>=d.firstVals.length || d.mSi>=d.reversedVals.length;
+    if (done) setTimeout(()=>finishMerge(d), 380);
+  } else {
+    finishMerge(d);
+  }
+}
+
+function finishMerge(d) {
+  while (d.mFi < d.firstVals.length)    d.mergedVals.push(d.firstVals[d.mFi++]);
+  while (d.mSi < d.reversedVals.length) d.mergedVals.push(d.reversedVals[d.mSi++]);
+  d.done = true; d.phase='done';
+  setPhase(d.id,'done');
+  hl(d.id,'madv');
+  const res = d.mergedVals.join(' → ');
+  logLine(d.id, `<span class="lok">✓ [${res}]</span>`);
+
+  // Odd: note the leftover middle node
+  if (d.vals.length % 2 !== 0) {
+    logLine(d.id, `<span class="lk">// ODD: node ${d.firstVals[d.firstVals.length-1]} appended (no pair)</span>`);
+  }
+
+  renderResult(d, true);
+  const rb = document.getElementById(`${d.id}-result`);
+  rb.style.display='block';
+  rb.innerHTML = `✓ [${res}]`;
+}
+
+// ── Render helpers ────────────────────────────────────────────
+function renderFull(d) {
+  const row = document.getElementById(`${d.id}-vis-full`);
+  row.innerHTML='';
+  d.vals.forEach((v,i) => {
+    const w = nodeEl(v);
+    const box = w.querySelector('.node-box');
+    const lbl = w.querySelector('.ptr-labels');
+    if (d.phase==='p1') {
+      if (i===d.pSlow) { box.classList.add('hi-slow'); lbl.innerHTML+=ptag('slow','tag-slow'); }
+      if (i===d.pFast && d.pFast<d.vals.length) { box.classList.add('hi-fast'); lbl.innerHTML+=ptag('fast','tag-fast'); }
+    } else if (d.midIdx>=0) {
+      if (i===d.midIdx) { box.classList.add('hi-mid'); lbl.innerHTML+=ptag('mid','tag-slow'); }
+      if (i>d.midIdx) box.style.opacity='0.3';
+    }
+    row.appendChild(w);
+    if (i<d.vals.length-1) row.appendChild(arrEl());
+  });
+  row.appendChild(arrEl()); row.appendChild(nullEl());
+}
+
+function renderSecond(d) {
+  const row = document.getElementById(`${d.id}-vis-second`);
+  row.innerHTML='';
+  d.secondVals.forEach((v,i) => {
+    const w = nodeEl(v);
+    const box = w.querySelector('.node-box');
+    const lbl = w.querySelector('.ptr-labels');
+    if (i===d.p2pos)   { box.classList.add('hi-curr'); lbl.innerHTML+=ptag('curr','tag-curr'); }
+    if (i===d.p2pos-1) { box.classList.add('hi-prev'); lbl.innerHTML+=ptag('prev','tag-prev'); }
+    row.appendChild(w);
+    if (i<d.secondVals.length-1) row.appendChild(arrEl());
+  });
+  row.appendChild(arrEl()); row.appendChild(nullEl());
+}
+
+function renderResult(d, done=false) {
+  const row = document.getElementById(`${d.id}-vis-result`);
+  row.innerHTML='';
+  if (!d.mergedVals.length) {
+    row.innerHTML='<span style="color:var(--muted);font-size:11px;padding:4px 0">building...</span>';
+    return;
+  }
+  d.mergedVals.forEach((v,i) => {
+    const w = nodeEl(v);
+    row.appendChild(w);
+    if (i<d.mergedVals.length-1) row.appendChild(arrEl());
+  });
+  row.appendChild(arrEl()); row.appendChild(nullEl());
+}
+
+function nodeEl(val) {
+  const w = document.createElement('div'); w.className='node-wrap';
+  w.innerHTML=`<div class="ptr-labels"></div><div class="node-box">${val}</div>`;
+  return w;
+}
+function arrEl() {
+  const d = document.createElement('div'); d.className='arrow';
+  d.innerHTML=`<svg viewBox="0 0 22 12" fill="none"><line x1="2" y1="6" x2="18" y2="6" stroke="#3d4455" stroke-width="1.5" stroke-linecap="round"/><path d="M14 3 L20 6 L14 9" stroke="#3d4455" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+  return d;
+}
+function nullEl() {
+  const w = document.createElement('div'); w.className='node-wrap';
+  w.innerHTML=`<div class="ptr-labels"></div><div style="font-size:11px;color:var(--muted);padding:0 8px 3px">null</div>`;
+  return w;
+}
+function ptag(label,cls) { return `<span class="ptr-tag ${cls}">${label}</span>`; }
+
+// ── Global controls ───────────────────────────────────────────
+let dOdd, dEven;
+
+function loadPreset(oddInput) {
+  // derive even version: if odd, remove last element; if even, keep as even
+  const ov = oddInput.split(',').map(Number);
+  let ev;
+  if (ov.length % 2 !== 0) {
+    // odd input given — make even by removing last
+    ev = ov.slice(0, ov.length - 1);
+  } else {
+    // even input — make odd by adding next element
+    ev = ov;
+    ov.push(ov.length + 1);
+  }
+  // ensure ov is odd, ev is even
+  let oddVals = ov.length % 2 !== 0 ? ov : ov.concat([ov.length+1]);
+  let evenVals = ev.length % 2 === 0 ? ev : ev.slice(0, ev.length-1);
+
+  dOdd  = makeDebugger('odd',  oddVals);
+  dEven = makeDebugger('even', evenVals);
+  initDebugger(dOdd);
+  initDebugger(dEven);
+  document.getElementById('gbtn-step').disabled = false;
+  document.getElementById('gbtn-run').disabled  = false;
+  document.getElementById('gbadge').textContent = 'Ready — press Next Step';
+}
+
+function stepBoth() {
+  if (!dOdd || !dEven) return;
+  if (!dOdd.done)  stepDebugger(dOdd);
+  if (!dEven.done) stepDebugger(dEven);
+  if (dOdd.done && dEven.done) {
+    document.getElementById('gbtn-step').disabled = true;
+    document.getElementById('gbtn-run').disabled  = true;
+    document.getElementById('gbadge').textContent = '✓ Both complete';
+  }
+}
+
+function runBoth() {
+  if (!dOdd || !dEven) return;
+  document.getElementById('gbtn-step').disabled = true;
+  document.getElementById('gbtn-run').disabled  = true;
+  const iv = setInterval(() => {
+    if (dOdd.done && dEven.done) {
+      clearInterval(iv);
+      document.getElementById('gbadge').textContent = '✓ Both complete';
+      return;
+    }
+    if (!dOdd.done)  stepDebugger(dOdd);
+    if (!dEven.done) stepDebugger(dEven);
+  }, 480);
+}
+
+function resetBoth() {
+  if (dOdd)  initDebugger(dOdd);
+  if (dEven) initDebugger(dEven);
+  document.getElementById('gbtn-step').disabled = false;
+  document.getElementById('gbtn-run').disabled  = false;
+  document.getElementById('gbadge').textContent = 'Reset — press Next Step';
+}
+
+window.onload = () => loadPreset('1,2,3,4,5');
+</script>
+</body>
+</html>
