@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Sum — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #13151d;
+  --surface2: #1a1d28;
+  --surface3: #22263a;
+  --border: #272b3d;
+  --accent: #6175ff;
+  --accent-dim: #1e2560;
+  --accent-light: #a5b0ff;
+  --green: #3ddc84;
+  --green-dim: #0f2b1e;
+  --amber: #ffc04d;
+  --amber-dim: #2d1f05;
+  --red: #ff6b6b;
+  --red-dim: #2d1010;
+  --purple: #c084fc;
+  --purple-dim: #2a1245;
+  --text: #dde2f0;
+  --muted: #606880;
+  --muted2: #8892b0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ─── Layout ─────────────────────────────── */
+.page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+/* ─── Hero ───────────────────────────────── */
+.hero {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 32px;
+  margin-bottom: 40px;
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted2);
+  margin-bottom: 14px;
+  letter-spacing: .06em;
+}
+
+.tag.easy { border-color: var(--green); color: var(--green); }
+
+h1 {
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -.02em;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+
+h1 em { font-style: normal; color: var(--accent-light); }
+
+.subtitle {
+  color: var(--muted2);
+  font-size: 15px;
+  font-weight: 300;
+  max-width: 560px;
+}
+
+/* ─── Section titles ─────────────────────── */
+.section { margin-bottom: 40px; }
+
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── Problem statement ──────────────────── */
+.problem-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.problem-box p { color: var(--muted2); margin-bottom: 14px; }
+
+.example-block {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.example-block .lbl { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.example-block .io { color: var(--text); }
+.example-block .io span { color: var(--accent-light); }
+.example-block .explain { color: var(--muted2); font-size: 12px; margin-top: 6px; font-family: var(--sans); }
+
+/* ─── Approach cards ─────────────────────── */
+.approach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media(max-width:600px){ .approach-grid { grid-template-columns: 1fr; } }
+
+.approach-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.approach-card.optimal { border-color: var(--accent); }
+.approach-card.optimal::before {
+  content: 'Optimal';
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border: 1px solid var(--accent);
+}
+
+.approach-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.approach-card p {
+  font-size: 13px;
+  color: var(--muted2);
+  margin-bottom: 14px;
+  font-weight: 300;
+}
+
+.complexity-row { display: flex; gap: 8px; }
+
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted2);
+}
+
+.chip.time { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+.chip.space { border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
+.chip.bad { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+.chip.good { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+/* ─── Code panel ─────────────────────────── */
+.code-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.code-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.code-topbar .filename {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted2);
+}
+
+.copy-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+
+pre {
+  padding: 20px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.kw  { color: #a78bfa; }
+.ty  { color: #7dd3fc; }
+.fn  { color: #fbbf24; }
+.str { color: #86efac; }
+.cm  { color: var(--muted); font-style: italic; }
+.nm  { color: #f9a8d4; }
+.nu  { color: #fb923c; }
+
+/* ─── Algorithm steps ────────────────────── */
+.steps-list { display: flex; flex-direction: column; gap: 2px; }
+
+.step-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.step-item:last-child { border-bottom: none; }
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  font-family: var(--mono);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.step-body h4 { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.step-body p  { font-size: 13px; color: var(--muted2); font-weight: 300; }
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent-light);
+}
+
+/* ─── Complexity deep-dive ───────────────── */
+.complexity-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cx-row {
+  display: grid;
+  grid-template-columns: 120px 100px 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  align-items: stretch;
+}
+
+.cx-row:last-child { border-bottom: none; }
+.cx-row.header { background: var(--surface2); }
+
+.cx-cell {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-right: 1px solid var(--border);
+}
+
+.cx-cell:last-child { border-right: none; }
+.cx-row.header .cx-cell { color: var(--muted); font-size: 11px; font-family: var(--mono); letter-spacing: .06em; }
+
+.cx-cell .big {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.cx-cell .big.green { color: var(--green); }
+.cx-cell .big.amber { color: var(--amber); }
+.cx-cell .big.red   { color: var(--red); }
+.cx-cell p { font-size: 12.5px; color: var(--muted2); font-weight: 300; }
+
+/* ─── Interactive trace ──────────────────── */
+.trace-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.trace-input-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  flex-wrap: wrap;
+}
+
+.trace-input-bar label { font-family: var(--mono); font-size: 12px; color: var(--muted2); }
+
+input[type=text], input[type=number] {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  outline: none;
+}
+
+input[type=text] { width: 170px; }
+input[type=number] { width: 68px; }
+input:focus { border-color: var(--accent); }
+
+.run-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: 1px solid var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  cursor: pointer;
+  transition: all .15s;
+}
+.run-btn:hover { background: #2a3a8a; }
+
+.trace-body {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+}
+
+@media(max-width:640px){ .trace-body { grid-template-columns: 1fr; } }
+
+.trace-left {
+  border-right: 1px solid var(--border);
+}
+
+.trace-code { padding: 14px 0; }
+
+.tc-line {
+  display: flex;
+  align-items: center;
+  padding: 2px 14px;
+  gap: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+  transition: background .2s;
+}
+
+.tc-line .ln { width: 24px; color: var(--muted); font-size: 10px; flex-shrink: 0; }
+
+.tc-line.hl {
+  background: var(--accent-dim);
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+}
+.tc-line.hl .ln { color: var(--accent-light); }
+
+.trace-right { padding: 14px 16px; }
+
+/* array */
+.t-arr { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.t-cell {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: all .25s;
+}
+
+.t-cell .cv { font-family: var(--mono); font-size: 17px; font-weight: 600; color: var(--text); }
+.t-cell .ci { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+.t-cell.active { border-color: var(--accent); background: var(--accent-dim); }
+.t-cell.active .cv { color: var(--accent-light); }
+.t-cell.found  { border-color: var(--green); background: var(--green-dim); }
+.t-cell.found  .cv { color: var(--green); }
+
+/* vars */
+.t-vars { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+
+.t-var {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+
+.t-var .vl { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.t-var .vv { font-family: var(--mono); font-size: 17px; font-weight: 600; color: var(--text); }
+.vv.c-accent { color: var(--accent-light); }
+.vv.c-amber  { color: var(--amber); }
+.vv.c-green  { color: var(--green); }
+.vv.c-red    { color: var(--red); }
+
+/* map */
+.t-map-label { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-bottom: 6px; }
+.t-map { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; min-height: 30px; }
+
+.me {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  transition: all .25s;
+}
+
+.me.new  { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
+.me.hit  { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+
+/* status */
+.t-status {
+  font-size: 13px;
+  color: var(--muted2);
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  min-height: 44px;
+  line-height: 1.55;
+  border-left: 3px solid var(--border);
+}
+
+.t-status.ok { border-left-color: var(--green); }
+
+.result-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  padding: 3px 12px; border-radius: 20px;
+  background: var(--green-dim); border: 1px solid var(--green); color: var(--green);
+  margin-top: 6px;
+}
+
+.trace-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.t-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+}
+.t-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+.t-btn:disabled { opacity: .3; cursor: default; }
+.t-btn:disabled:hover { border-color: var(--border); color: var(--text); }
+
+.t-ctr {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* ─── Edge cases ─────────────────────────── */
+.edge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.edge-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.edge-card h4 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.edge-card p  { font-size: 12px; color: var(--muted2); font-weight: 300; line-height: 1.5; }
+.edge-card .eg { font-family: var(--mono); font-size: 11px; color: var(--accent-light); margin-top: 6px; }
+
+/* ─── Footer ─────────────────────────────── */
+.footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer span { font-family: var(--mono); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span class="tag easy">Easy</span>
+      <span class="tag">Array</span>
+      <span class="tag">Hash Map</span>
+      <span class="tag">LeetCode #1</span>
+    </div>
+    <h1>Two Sum <em>/ Java</em></h1>
+    <p class="subtitle">Given an array of integers and a target, return the indices of the two numbers that add up to the target.</p>
+  </div>
+
+  <!-- ── Problem ── -->
+  <div class="section">
+    <div class="section-title">Problem Statement</div>
+    <div class="problem-box">
+      <p>Given an array <code>nums</code> and an integer <code>target</code>, return indices <code>[i, j]</code> such that <code>nums[i] + nums[j] == target</code> and <code>i != j</code>. Exactly one valid answer always exists.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+        <div class="example-block">
+          <div class="lbl">Example 1</div>
+          <div class="io">Input:  <span>[2, 7, 11, 15]</span>, target = <span>9</span></div>
+          <div class="io">Output: <span>[0, 1]</span></div>
+          <div class="explain">Because nums[0] + nums[1] = 2 + 7 = 9</div>
+        </div>
+        <div class="example-block">
+          <div class="lbl">Example 2</div>
+          <div class="io">Input:  <span>[3, 2, 4]</span>, target = <span>6</span></div>
+          <div class="io">Output: <span>[1, 2]</span></div>
+          <div class="explain">Because nums[1] + nums[2] = 2 + 4 = 6</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Approaches ── -->
+  <div class="section">
+    <div class="section-title">Approaches</div>
+    <div class="approach-grid">
+      <div class="approach-card">
+        <h3>Brute Force</h3>
+        <p>Check every pair of elements using nested loops. For each element, scan all elements after it to find a matching complement.</p>
+        <div class="complexity-row">
+          <span class="chip bad">Time O(n²)</span>
+          <span class="chip good">Space O(1)</span>
+        </div>
+      </div>
+      <div class="approach-card optimal">
+        <h3>Hash Map (One Pass)</h3>
+        <p>Store each seen value and its index in a HashMap. For each element, check if its complement already exists — O(1) lookup.</p>
+        <div class="complexity-row">
+          <span class="chip good">Time O(n)</span>
+          <span class="chip time">Space O(n)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Code ── -->
+  <div class="section">
+    <div class="section-title">Solution Code</div>
+    <div class="code-panel">
+      <div class="code-topbar">
+        <span class="filename">TwoSum.java</span>
+        <button class="copy-btn" onclick="copyCode()">Copy</button>
+      </div>
+      <pre id="full-code"><span class="kw">import</span> java.util.HashMap;
+<span class="kw">import</span> java.util.Map;
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+
+    <span class="cm">/**
+     * Returns indices of two numbers that add up to target.
+     * Time  : O(n)  — single pass through the array
+     * Space : O(n)  — HashMap stores at most n entries
+     */</span>
+    <span class="kw">public</span> <span class="kw">int</span>[] <span class="fn">twoSum</span>(<span class="kw">int</span>[] <span class="nm">nums</span>, <span class="kw">int</span> <span class="nm">target</span>) {
+        Map&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; <span class="nm">seen</span> = <span class="kw">new</span> HashMap&lt;&gt;();
+
+        <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">i</span> = <span class="nu">0</span>; <span class="nm">i</span> &lt; <span class="nm">nums</span>.length; <span class="nm">i</span>++) {
+            <span class="kw">int</span> <span class="nm">comp</span> = <span class="nm">target</span> - <span class="nm">nums</span>[<span class="nm">i</span>];
+
+            <span class="kw">if</span> (<span class="nm">seen</span>.<span class="fn">containsKey</span>(<span class="nm">comp</span>)) {
+                <span class="kw">return</span> <span class="kw">new</span> <span class="kw">int</span>[]{<span class="nm">seen</span>.<span class="fn">get</span>(<span class="nm">comp</span>), <span class="nm">i</span>};
+            }
+
+            <span class="nm">seen</span>.<span class="fn">put</span>(<span class="nm">nums</span>[<span class="nm">i</span>], <span class="nm">i</span>);
+        }
+
+        <span class="kw">throw</span> <span class="kw">new</span> <span class="ty">IllegalArgumentException</span>(<span class="str">"No valid pair found"</span>);
+    }
+}</pre>
+    </div>
+  </div>
+
+  <!-- ── Algorithm walkthrough ── -->
+  <div class="section">
+    <div class="section-title">How It Works</div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Create a HashMap</h4>
+          <p>Initialise <code>seen</code> as a <code>Map&lt;Integer, Integer&gt;</code> mapping each <em>value</em> to its <em>index</em>. This gives O(1) average lookup time.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Iterate once through the array</h4>
+          <p>For every element at index <code>i</code>, compute its <strong>complement</strong>: <code>comp = target - nums[i]</code>. This is the value we <em>need</em> to have seen earlier.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Check the map — O(1) lookup</h4>
+          <p>Call <code>seen.containsKey(comp)</code>. If <code>true</code>, the complement was encountered in a previous iteration and its index is stored in the map.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Return immediately on match</h4>
+          <p>Return <code>[seen.get(comp), i]</code> — the index of the complement and the current index. We never need to look further.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Otherwise, record current element</h4>
+          <p>Store <code>seen.put(nums[i], i)</code> so future iterations can find this element as a complement. We store <em>after</em> the check to avoid using the same index twice.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Complexity ── -->
+  <div class="section">
+    <div class="section-title">Time &amp; Space Complexity</div>
+    <div class="complexity-table">
+      <div class="cx-row header">
+        <div class="cx-cell">Metric</div>
+        <div class="cx-cell">Value</div>
+        <div class="cx-cell">Explanation</div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Best</div>
+        <div class="cx-cell"><span class="big green">O(1)</span></div>
+        <div class="cx-cell"><p>The very first element's complement is already in the map (empty in practice — but if the answer is at index 0,1 the loop exits immediately).</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Average</div>
+        <div class="cx-cell"><span class="big green">O(n)</span></div>
+        <div class="cx-cell"><p>We traverse the array once. Each <code>containsKey</code> and <code>put</code> is O(1) amortised due to HashMap's hash-based bucketing.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Worst</div>
+        <div class="cx-cell"><span class="big amber">O(n)</span></div>
+        <div class="cx-cell"><p>Answer is at the last pair, so we scan all n elements. Still linear — not affected by sorting or nesting.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Space</div>
+        <div class="cx-cell"><span class="big amber">O(n)</span></div>
+        <div class="cx-cell"><p>The HashMap can hold at most n−1 entries before a match is found. In the worst case (answer at last pair) nearly all elements are stored.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">vs Brute Force</div>
+        <div class="cx-cell"><span class="big red">O(n²)</span></div>
+        <div class="cx-cell"><p>Nested loops check every pair. For n = 10,000 that's ~50 million comparisons vs ~10,000 with the hash map approach.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Interactive trace ── -->
+  <div class="section">
+    <div class="section-title">Interactive Trace</div>
+    <div class="trace-wrapper">
+      <div class="trace-input-bar">
+        <label>nums[]</label>
+        <input type="text"   id="inp-nums"   value="2, 7, 11, 15" />
+        <label>target</label>
+        <input type="number" id="inp-target" value="9" />
+        <button class="run-btn" onclick="buildTrace()">Run ▶</button>
+      </div>
+
+      <div class="trace-body">
+        <!-- code -->
+        <div class="trace-left">
+          <div class="trace-code" id="tc-code"></div>
+        </div>
+        <!-- state -->
+        <div class="trace-right">
+          <div class="t-arr" id="t-arr"></div>
+          <div class="t-vars">
+            <div class="t-var"><div class="vl">i</div><div class="vv" id="tv-i">—</div></div>
+            <div class="t-var"><div class="vl">nums[i]</div><div class="vv" id="tv-val">—</div></div>
+            <div class="t-var"><div class="vl">comp</div><div class="vv" id="tv-comp">—</div></div>
+            <div class="t-var"><div class="vl">containsKey?</div><div class="vv" id="tv-ck">—</div></div>
+          </div>
+          <div class="t-map-label">HashMap  seen  {value → index}</div>
+          <div class="t-map" id="t-map"></div>
+          <div class="t-status" id="t-status"></div>
+        </div>
+      </div>
+
+      <div class="trace-controls">
+        <button class="t-btn" id="btn-p" onclick="go(-1)">← Prev</button>
+        <button class="t-btn" id="btn-n" onclick="go(1)">Next →</button>
+        <button class="t-btn" onclick="buildTrace()">↺ Reset</button>
+        <span class="t-ctr" id="t-ctr"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edge cases ── -->
+  <div class="section">
+    <div class="section-title">Edge Cases</div>
+    <div class="edge-grid">
+      <div class="edge-card">
+        <h4>Duplicate values</h4>
+        <p>The same number appears twice and both are needed. Storing <em>after</em> the check ensures the same index isn't reused.</p>
+        <div class="eg">Input: [3, 3], target = 6 → [0, 1]</div>
+      </div>
+      <div class="edge-card">
+        <h4>Negative numbers</h4>
+        <p>Works naturally — HashMap keys can be any integer, and <code>target - nums[i]</code> handles negatives correctly.</p>
+        <div class="eg">Input: [-3, 4, 7], target = 4 → [0, 2]</div>
+      </div>
+      <div class="edge-card">
+        <h4>Answer at end</h4>
+        <p>Worst case for runtime — the matching pair is the last two elements. Still O(n), just processes the full array.</p>
+        <div class="eg">Input: [1, 2, 3, 4], target = 7 → [2, 3]</div>
+      </div>
+      <div class="edge-card">
+        <h4>Zero values</h4>
+        <p>Zeros are valid keys in a HashMap. <code>target - 0 = target</code>, so the algorithm searches for <code>target</code> itself.</p>
+        <div class="eg">Input: [0, 4, 0], target = 0 → [0, 2]</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Two Sum · LeetCode #1</span>
+    <span>O(n) time · O(n) space · HashMap approach</span>
+  </div>
+</div>
+
+<script>
+const TC_CODE = [
+  '<span class="kw">public</span> <span class="kw">int</span>[] <span class="fn">twoSum</span>(<span class="kw">int</span>[] <span class="nm">nums</span>, <span class="kw">int</span> <span class="nm">target</span>) {',
+  '    Map&lt;<span class="ty">Integer</span>,<span class="ty">Integer</span>&gt; <span class="nm">seen</span> = <span class="kw">new</span> <span class="fn">HashMap</span>&lt;&gt;();',
+  '    <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">i</span>=<span class="nu">0</span>; <span class="nm">i</span>&lt;<span class="nm">nums</span>.length; <span class="nm">i</span>++) {',
+  '        <span class="kw">int</span> <span class="nm">comp</span> = <span class="nm">target</span> - <span class="nm">nums</span>[<span class="nm">i</span>];',
+  '        <span class="kw">if</span> (<span class="nm">seen</span>.<span class="fn">containsKey</span>(<span class="nm">comp</span>)) {',
+  '            <span class="kw">return</span> <span class="kw">new</span> <span class="kw">int</span>[]{<span class="nm">seen</span>.<span class="fn">get</span>(<span class="nm">comp</span>), <span class="nm">i</span>};',
+  '        }',
+  '        <span class="nm">seen</span>.<span class="fn">put</span>(<span class="nm">nums</span>[<span class="nm">i</span>], <span class="nm">i</span>);',
+  '    }',
+  '    <span class="kw">throw</span> <span class="kw">new</span> <span class="ty">IllegalArgumentException</span>(...);',
+  '}',
+];
+
+let steps=[], cur=0, nums=[], target=0;
+
+function buildSteps(ns, tgt) {
+  const s=[], map={};
+  const push = o => s.push(o);
+  push({line:1,i:null,map:{},msg:'HashMap <code>seen</code> initialised as empty.',active:[],found:[]});
+  push({line:2,i:null,map:{},msg:'Loop starts at <code>i = 0</code>.',active:[],found:[]});
+  for(let i=0;i<ns.length;i++){
+    const val=ns[i], comp=tgt-val;
+    push({line:2,i,map:{...map},msg:`<code>i = ${i}</code> &nbsp;·&nbsp; <code>nums[${i}] = ${val}</code>`,active:[i],found:[]});
+    push({line:3,i,map:{...map},msg:`Compute complement: <code>comp = ${tgt} − ${val} = ${comp}</code>`,active:[i],found:[],comp});
+    if(comp in map){
+      push({line:4,i,map:{...map},msg:`<code>seen.containsKey(${comp})</code> → <b style="color:var(--green)">true ✓</b>`,active:[i],found:[],comp,inMap:true});
+      push({line:5,i,map:{...map},msg:`Match found! Return <code>[${map[comp]}, ${i}]</code>`,active:[],found:[map[comp],i],comp,result:[map[comp],i]});
+      return s;
+    }
+    push({line:4,i,map:{...map},msg:`<code>seen.containsKey(${comp})</code> → <b style="color:var(--red)">false</b>`,active:[i],found:[],comp,inMap:false});
+    push({line:7,i,map:{...map},msg:`Store <code>seen.put(${val}, ${i})</code> — record for future use.`,active:[i],found:[],newKey:val});
+    map[val]=i;
+    push({line:7,i,map:{...map},msg:`HashMap updated. Advance to <code>i = ${i+1}</code>.`,active:[i],found:[]});
+  }
+  push({line:9,i:null,map:{...map},msg:'No valid pair found — <code>IllegalArgumentException</code> thrown.',active:[],found:[]});
+  return s;
+}
+
+function renderCode(hl){
+  document.getElementById('tc-code').innerHTML = TC_CODE.map((t,idx)=>
+    `<div class="tc-line${idx===hl?' hl':''}"><span class="ln">${idx+1}</span>${t}</div>`
+  ).join('');
+}
+
+function renderArr(active,found){
+  document.getElementById('t-arr').innerHTML = nums.map((v,i)=>{
+    let c='t-cell';
+    if(found.includes(i)) c+=' found';
+    else if(active.includes(i)) c+=' active';
+    return `<div class="${c}"><span class="cv">${v}</span><span class="ci">[${i}]</span></div>`;
+  }).join('');
+}
+
+function renderMap(map,newKey,hitKey){
+  const el=document.getElementById('t-map');
+  const entries=Object.entries(map);
+  if(!entries.length){el.innerHTML='<span style="font-family:var(--mono);font-size:13px;color:var(--muted)">{}</span>';return;}
+  el.innerHTML=entries.map(([k,v])=>{
+    let c='me';
+    if(hitKey!==undefined&&parseInt(k)===hitKey) c+=' hit';
+    else if(newKey!==undefined&&parseInt(k)===newKey) c+=' new';
+    return `<span class="${c}">${k}→${v}</span>`;
+  }).join('');
+}
+
+function render(){
+  const s=steps[cur];
+  renderCode(s.line);
+  renderArr(s.active,s.found);
+
+  let hitKey;
+  if(s.result) hitKey=parseInt(Object.keys(s.map).find(k=>s.map[k]===s.result[0]));
+  renderMap(s.map,s.newKey,hitKey);
+
+  const setV=(id,txt,cls)=>{const e=document.getElementById(id);e.textContent=txt;e.className='vv'+(cls?' '+cls:'');};
+  setV('tv-i',   s.i!==null?s.i:'—',     s.i!==null?'c-accent':'');
+  setV('tv-val', s.i!==null?nums[s.i]:'—','');
+  setV('tv-comp',s.comp!==undefined?s.comp:'—', s.comp!==undefined?'c-amber':'');
+  if(s.inMap===true)  setV('tv-ck','true','c-green');
+  else if(s.inMap===false) setV('tv-ck','false','c-red');
+  else setV('tv-ck','—','');
+
+  const st=document.getElementById('t-status');
+  let html=s.msg;
+  if(s.result) html+=`<br><span class="result-tag">&#10003; [${s.result[0]}, ${s.result[1]}]</span>`;
+  st.innerHTML=html;
+  st.className='t-status'+(s.result?' ok':'');
+
+  document.getElementById('t-ctr').textContent=`${cur+1} / ${steps.length}`;
+  document.getElementById('btn-p').disabled=cur===0;
+  document.getElementById('btn-n').disabled=cur===steps.length-1;
+}
+
+function go(d){cur=Math.max(0,Math.min(steps.length-1,cur+d));render();}
+
+function buildTrace(){
+  const raw=document.getElementById('inp-nums').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+  const tgt=parseInt(document.getElementById('inp-target').value);
+  if(!raw.length||isNaN(tgt))return;
+  nums=raw;target=tgt;cur=0;
+  steps=buildSteps(nums,target);
+  render();
+}
+
+function copyCode(){
+  const text=document.getElementById('full-code').innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=document.querySelector('.copy-btn');
+    b.textContent='Copied!';
+    setTimeout(()=>b.textContent='Copy',1500);
+  });
+}
+
+buildTrace();
+</script>
+</body>
+</html>
