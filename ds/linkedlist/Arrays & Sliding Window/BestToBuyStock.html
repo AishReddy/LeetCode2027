@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Time to Buy and Sell Stock — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #13151d;
+  --surface2: #1a1d28;
+  --surface3: #22263a;
+  --border: #272b3d;
+  --accent: #6175ff;
+  --accent-dim: #1e2560;
+  --accent-light: #a5b0ff;
+  --green: #3ddc84;
+  --green-dim: #0f2b1e;
+  --amber: #ffc04d;
+  --amber-dim: #2d1f05;
+  --red: #ff6b6b;
+  --red-dim: #2d1010;
+  --purple: #c084fc;
+  --purple-dim: #2a1245;
+  --teal: #2dd4bf;
+  --teal-dim: #0a2520;
+  --text: #dde2f0;
+  --muted: #606880;
+  --muted2: #8892b0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+.hero {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 32px;
+  margin-bottom: 40px;
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted2);
+  margin-bottom: 14px;
+  letter-spacing: .06em;
+}
+.tag.easy { border-color: var(--green); color: var(--green); }
+
+h1 {
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -.02em;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+h1 em { font-style: normal; color: var(--accent-light); }
+
+.subtitle { color: var(--muted2); font-size: 15px; font-weight: 300; max-width: 580px; }
+
+.section { margin-bottom: 40px; }
+
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.problem-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.problem-box p { color: var(--muted2); margin-bottom: 14px; }
+
+.example-block {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.example-block .lbl { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.example-block .io { color: var(--text); }
+.example-block .io span { color: var(--accent-light); }
+.example-block .explain { color: var(--muted2); font-size: 12px; margin-top: 6px; font-family: var(--sans); }
+
+.approach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:600px){ .approach-grid { grid-template-columns:1fr; } }
+
+.approach-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.approach-card.optimal { border-color: var(--accent); }
+.approach-card.optimal::before {
+  content:'Optimal';
+  position: absolute; top:12px; right:12px;
+  font-size:10px; font-family:var(--mono);
+  padding: 2px 8px; border-radius:20px;
+  background:var(--accent-dim); color:var(--accent-light); border:1px solid var(--accent);
+}
+.approach-card h3 { font-size:14px; font-weight:500; color:var(--text); margin-bottom:8px; }
+.approach-card p  { font-size:13px; color:var(--muted2); margin-bottom:14px; font-weight:300; }
+.complexity-row { display:flex; gap:8px; }
+
+.chip {
+  font-family:var(--mono); font-size:12px;
+  padding:3px 10px; border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--surface2); color:var(--muted2);
+}
+.chip.good  { border-color:var(--green);  color:var(--green);  background:var(--green-dim); }
+.chip.time  { border-color:var(--amber);  color:var(--amber);  background:var(--amber-dim); }
+.chip.best  { border-color:var(--teal);   color:var(--teal);   background:var(--teal-dim); }
+.chip.bad   { border-color:var(--red);    color:var(--red);    background:var(--red-dim); }
+
+.code-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+
+.code-topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.code-topbar .filename { font-family:var(--mono); font-size:12px; color:var(--muted2); }
+
+.copy-btn {
+  font-family:var(--mono); font-size:11px;
+  padding:4px 12px; border-radius:6px;
+  border:1px solid var(--border);
+  background:transparent; color:var(--muted2);
+  cursor:pointer; transition:all .15s;
+}
+.copy-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+
+pre {
+  padding:20px; overflow-x:auto;
+  font-family:var(--mono); font-size:13px; line-height:1.85;
+}
+
+.kw   { color:#a78bfa; }
+.ty   { color:#7dd3fc; }
+.fn   { color:#fbbf24; }
+.str  { color:#86efac; }
+.cm   { color:var(--muted); font-style:italic; }
+.nm   { color:#f9a8d4; }
+.nu   { color:#fb923c; }
+
+.steps-list { display:flex; flex-direction:column; gap:2px; }
+
+.step-item {
+  display:flex; gap:16px; align-items:flex-start;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.step-item:last-child { border-bottom:none; }
+
+.step-num {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--accent-dim); border:1px solid var(--accent);
+  color:var(--accent-light); font-family:var(--mono); font-size:12px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:2px;
+}
+.step-body h4 { font-size:14px; font-weight:500; color:var(--text); margin-bottom:4px; }
+.step-body p  { font-size:13px; color:var(--muted2); font-weight:300; }
+
+code {
+  font-family:var(--mono); font-size:12px;
+  background:var(--surface3); padding:1px 6px;
+  border-radius:4px; color:var(--accent-light);
+}
+
+.complexity-table { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+
+.cx-row {
+  display:grid; grid-template-columns:130px 100px 1fr;
+  border-bottom:1px solid var(--border);
+}
+.cx-row:last-child { border-bottom:none; }
+.cx-row.header { background:var(--surface2); }
+
+.cx-cell { padding:12px 16px; font-size:13px; border-right:1px solid var(--border); }
+.cx-cell:last-child { border-right:none; }
+.cx-row.header .cx-cell { color:var(--muted); font-size:11px; font-family:var(--mono); letter-spacing:.06em; }
+
+.cx-cell .big { font-family:var(--mono); font-size:15px; font-weight:600; display:block; margin-bottom:2px; }
+.cx-cell .big.green  { color:var(--green); }
+.cx-cell .big.amber  { color:var(--amber); }
+.cx-cell .big.red    { color:var(--red); }
+.cx-cell .big.teal   { color:var(--teal); }
+.cx-cell p { font-size:12.5px; color:var(--muted2); font-weight:300; }
+
+/* ── Chart ── */
+.chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 20px 14px;
+  position: relative;
+}
+
+#price-chart { width:100%; display:block; }
+
+/* ── Trace ── */
+.trace-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+
+.trace-input-bar {
+  display:flex; gap:10px; align-items:center;
+  padding:12px 16px; border-bottom:1px solid var(--border);
+  background:var(--surface2); flex-wrap:wrap;
+}
+.trace-input-bar label { font-family:var(--mono); font-size:12px; color:var(--muted2); }
+
+input[type=text], input[type=number] {
+  font-family:var(--mono); font-size:13px;
+  padding:6px 10px; background:var(--surface3);
+  border:1px solid var(--border); border-radius:6px;
+  color:var(--text); outline:none;
+}
+input[type=text] { width:200px; }
+input:focus { border-color:var(--accent); }
+
+.run-btn {
+  font-family:var(--mono); font-size:12px;
+  padding:7px 16px; border-radius:7px;
+  border:1px solid var(--accent);
+  background:var(--accent-dim); color:var(--accent-light);
+  cursor:pointer; transition:all .15s;
+}
+.run-btn:hover { background:#2a3a8a; }
+
+.trace-body { display:grid; grid-template-columns:310px 1fr; }
+@media(max-width:660px){ .trace-body { grid-template-columns:1fr; } }
+
+.trace-left { border-right:1px solid var(--border); }
+.trace-code { padding:14px 0; }
+
+.tc-line {
+  display:flex; align-items:center; padding:2px 14px; gap:0;
+  font-family:var(--mono); font-size:12px; line-height:1.9; transition:background .2s;
+}
+.tc-line .ln { width:24px; color:var(--muted); font-size:10px; flex-shrink:0; }
+.tc-line.hl { background:var(--accent-dim); border-left:2px solid var(--accent); padding-left:12px; }
+.tc-line.hl .ln { color:var(--accent-light); }
+
+.trace-right { padding:14px 16px; }
+
+/* price bar */
+.price-bar { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+
+.p-cell {
+  width:50px; height:56px; border-radius:8px;
+  border:1.5px solid var(--border); background:var(--surface2);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:all .25s;
+}
+.p-cell .pv { font-family:var(--mono); font-size:16px; font-weight:600; color:var(--text); }
+.p-cell .pi { font-size:10px; color:var(--muted); font-family:var(--mono); }
+
+.p-cell.cur   { border-color:var(--accent); background:var(--accent-dim); }
+.p-cell.cur   .pv { color:var(--accent-light); }
+.p-cell.buy   { border-color:var(--green); background:var(--green-dim); }
+.p-cell.buy   .pv { color:var(--green); }
+.p-cell.sell  { border-color:var(--amber); background:var(--amber-dim); }
+.p-cell.sell  .pv { color:var(--amber); }
+.p-cell.both  { border-color:var(--teal); background:var(--teal-dim); }
+.p-cell.both  .pv { color:var(--teal); }
+
+/* vars */
+.t-vars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+
+.t-var { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; }
+.t-var .vl { font-family:var(--mono); font-size:10px; color:var(--muted); margin-bottom:3px; }
+.t-var .vv { font-family:var(--mono); font-size:17px; font-weight:600; color:var(--text); }
+.vv.c-accent { color:var(--accent-light); }
+.vv.c-amber  { color:var(--amber); }
+.vv.c-green  { color:var(--green); }
+.vv.c-teal   { color:var(--teal); }
+.vv.c-red    { color:var(--red); }
+
+.t-status {
+  font-size:13px; color:var(--muted2);
+  padding:10px 12px; background:var(--surface2);
+  border-radius:8px; min-height:44px; line-height:1.55;
+  border-left:3px solid var(--border);
+}
+.t-status.ok { border-left-color:var(--green); }
+
+.result-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:var(--mono); font-size:13px; font-weight:600;
+  padding:3px 12px; border-radius:20px;
+  background:var(--green-dim); border:1px solid var(--green); color:var(--green);
+  margin-top:6px;
+}
+
+.trace-controls {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 16px; border-top:1px solid var(--border);
+  background:var(--surface2);
+}
+
+.t-btn {
+  font-family:var(--mono); font-size:12px;
+  padding:6px 16px; border-radius:7px;
+  border:1px solid var(--border);
+  background:transparent; color:var(--text);
+  cursor:pointer; transition:all .15s;
+}
+.t-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+.t-btn:disabled { opacity:.3; cursor:default; }
+.t-btn:disabled:hover { border-color:var(--border); color:var(--text); }
+.t-ctr { font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:auto; }
+
+/* legend */
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+.leg-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted2); }
+.leg-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+/* edge cases */
+.edge-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+
+.edge-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; }
+.edge-card h4 { font-size:13px; font-weight:500; color:var(--text); margin-bottom:6px; }
+.edge-card p  { font-size:12px; color:var(--muted2); font-weight:300; line-height:1.5; }
+.edge-card .eg { font-family:var(--mono); font-size:11px; color:var(--accent-light); margin-top:6px; }
+
+.footer {
+  margin-top:56px; padding-top:24px;
+  border-top:1px solid var(--border);
+  font-size:12px; color:var(--muted);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+}
+.footer span { font-family:var(--mono); }
+
+/* inline chart bar */
+.bar-chart { display:flex; align-items:flex-end; gap:4px; height:80px; margin-top:8px; }
+.bar-col { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+.bar { width:100%; border-radius:4px 4px 0 0; background:var(--surface3); transition:all .3s; min-height:4px; }
+.bar-lbl { font-family:var(--mono); font-size:10px; color:var(--muted2); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span class="tag easy">Easy</span>
+      <span class="tag">Array</span>
+      <span class="tag">Sliding Window</span>
+      <span class="tag">Greedy</span>
+      <span class="tag">LeetCode #121</span>
+    </div>
+    <h1>Best Time to Buy &amp;<br>Sell Stock <em>/ Java</em></h1>
+    <p class="subtitle">Find the maximum profit achievable by buying on one day and selling on a later day. You may only complete one transaction.</p>
+  </div>
+
+  <!-- ── Problem ── -->
+  <div class="section">
+    <div class="section-title">Problem Statement</div>
+    <div class="problem-box">
+      <p>Given an array <code>prices</code> where <code>prices[i]</code> is the stock price on day <code>i</code>, return the <strong>maximum profit</strong> you can achieve. You must buy before you sell. If no profit is possible, return <code>0</code>.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+        <div class="example-block">
+          <div class="lbl">Example 1</div>
+          <div class="io">Input:  <span>[7, 1, 5, 3, 6, 4]</span></div>
+          <div class="io">Output: <span>5</span></div>
+          <div class="explain">Buy on day 2 (price=1), sell on day 5 (price=6). Profit = 6−1 = 5</div>
+        </div>
+        <div class="example-block">
+          <div class="lbl">Example 2</div>
+          <div class="io">Input:  <span>[7, 6, 4, 3, 1]</span></div>
+          <div class="io">Output: <span>0</span></div>
+          <div class="explain">Prices only decrease — no profitable transaction possible.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Approaches ── -->
+  <div class="section">
+    <div class="section-title">Approaches</div>
+    <div class="approach-grid">
+      <div class="approach-card">
+        <h3>Brute Force</h3>
+        <p>Try every pair (buy day, sell day) where buy &lt; sell, compute profit, keep the max. Simple but slow — checks n×(n−1)/2 pairs.</p>
+        <div class="complexity-row">
+          <span class="chip bad">Time O(n²)</span>
+          <span class="chip good">Space O(1)</span>
+        </div>
+      </div>
+      <div class="approach-card optimal">
+        <h3>One Pass / Greedy</h3>
+        <p>Track the minimum price seen so far. For every new price, compute profit against that minimum and update the max profit. Single scan, no extra memory.</p>
+        <div class="complexity-row">
+          <span class="chip good">Time O(n)</span>
+          <span class="chip best">Space O(1)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Code ── -->
+  <div class="section">
+    <div class="section-title">Solution Code</div>
+    <div class="code-panel">
+      <div class="code-topbar">
+        <span class="filename">MaxProfit.java</span>
+        <button class="copy-btn" onclick="copyCode()">Copy</button>
+      </div>
+      <pre id="full-code"><span class="kw">class</span> <span class="ty">Solution</span> {
+
+    <span class="cm">/**
+     * Returns the maximum profit from a single buy-sell transaction.
+     * Time  : O(n)  — one pass through the prices array
+     * Space : O(1)  — only two variables regardless of input size
+     */</span>
+    <span class="kw">public</span> <span class="kw">int</span> <span class="fn">maxProfit</span>(<span class="kw">int</span>[] <span class="nm">prices</span>) {
+        <span class="kw">int</span> <span class="nm">minPrice</span>  = <span class="ty">Integer</span>.MAX_VALUE;
+        <span class="kw">int</span> <span class="nm">maxProfit</span> = <span class="nu">0</span>;
+
+        <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">price</span> : <span class="nm">prices</span>) {
+            <span class="kw">if</span> (<span class="nm">price</span> &lt; <span class="nm">minPrice</span>) {
+                <span class="nm">minPrice</span> = <span class="nm">price</span>;           <span class="cm">// found a cheaper buy day</span>
+            } <span class="kw">else if</span> (<span class="nm">price</span> - <span class="nm">minPrice</span> &gt; <span class="nm">maxProfit</span>) {
+                <span class="nm">maxProfit</span> = <span class="nm">price</span> - <span class="nm">minPrice</span>; <span class="cm">// better profit found</span>
+            }
+        }
+
+        <span class="kw">return</span> <span class="nm">maxProfit</span>;
+    }
+}</pre>
+    </div>
+  </div>
+
+  <!-- ── Algorithm walkthrough ── -->
+  <div class="section">
+    <div class="section-title">How It Works</div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Initialise two trackers</h4>
+          <p><code>minPrice</code> starts at <code>Integer.MAX_VALUE</code> so any real price beats it on the first iteration. <code>maxProfit</code> starts at <code>0</code> — the minimum answer (no trade).</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Scan prices left to right</h4>
+          <p>For each price, we ask two questions: is this cheaper than any price seen before? If yes, update <code>minPrice</code>. Otherwise, would selling today beat our best profit?</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Update minimum buy price</h4>
+          <p>If <code>price &lt; minPrice</code>, we found a better day to have bought. We shift our imaginary buy day forward. We cannot sell on this day (buy &lt; sell enforced implicitly).</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Update maximum profit</h4>
+          <p>Otherwise compute <code>price − minPrice</code>. If this beats <code>maxProfit</code>, record it. The <code>else if</code> guarantees we never compute profit on the same day we update <code>minPrice</code>.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Return result</h4>
+          <p>After one full pass, <code>maxProfit</code> holds the best possible single-transaction profit. If prices only fell, it stays <code>0</code> — the correct answer when no profit is achievable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Complexity ── -->
+  <div class="section">
+    <div class="section-title">Time &amp; Space Complexity</div>
+    <div class="complexity-table">
+      <div class="cx-row header">
+        <div class="cx-cell">Metric</div>
+        <div class="cx-cell">Value</div>
+        <div class="cx-cell">Explanation</div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Best</div>
+        <div class="cx-cell"><span class="big green">O(n)</span></div>
+        <div class="cx-cell"><p>Even in the best case (answer at first pair) we still scan all n prices — no early exit since a later price might yield even higher profit.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Average</div>
+        <div class="cx-cell"><span class="big green">O(n)</span></div>
+        <div class="cx-cell"><p>Exactly one pass through the array. Each element is visited once; two O(1) comparisons per element.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Worst</div>
+        <div class="cx-cell"><span class="big green">O(n)</span></div>
+        <div class="cx-cell"><p>Decreasing array (no profit possible) — we still visit every price but <code>maxProfit</code> stays 0. Still linear — same as best case.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Space</div>
+        <div class="cx-cell"><span class="big teal">O(1)</span></div>
+        <div class="cx-cell"><p>Only <code>minPrice</code> and <code>maxProfit</code> — two integers. Memory usage is constant regardless of how large the input array is.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">vs Brute Force</div>
+        <div class="cx-cell"><span class="big red">O(n²)</span></div>
+        <div class="cx-cell"><p>Nested loops check every (buy, sell) pair. For n = 10,000 that's ~50 million comparisons vs 10,000 in the one-pass greedy approach.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Interactive trace ── -->
+  <div class="section">
+    <div class="section-title">Interactive Trace</div>
+    <div class="trace-wrapper">
+      <div class="trace-input-bar">
+        <label>prices[]</label>
+        <input type="text" id="inp-prices" value="7, 1, 5, 3, 6, 4" />
+        <button class="run-btn" onclick="buildTrace()">Run ▶</button>
+      </div>
+
+      <div class="trace-body">
+        <div class="trace-left">
+          <div class="trace-code" id="tc-code"></div>
+        </div>
+        <div class="trace-right">
+
+          <!-- legend -->
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--accent-dim);border:1.5px solid var(--accent);"></div>current</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--green-dim);border:1.5px solid var(--green);"></div>min buy</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--amber-dim);border:1.5px solid var(--amber);"></div>sell candidate</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--teal-dim);border:1.5px solid var(--teal);"></div>best pair</div>
+          </div>
+
+          <!-- price cells -->
+          <div class="price-bar" id="p-bar"></div>
+
+          <!-- bar chart -->
+          <div class="bar-chart" id="bar-chart"></div>
+
+          <!-- vars -->
+          <div class="t-vars" style="margin-top:12px;">
+            <div class="t-var"><div class="vl">price</div><div class="vv" id="tv-price">—</div></div>
+            <div class="t-var"><div class="vl">minPrice</div><div class="vv" id="tv-min">—</div></div>
+            <div class="t-var"><div class="vl">maxProfit</div><div class="vv" id="tv-profit">0</div></div>
+          </div>
+
+          <div class="t-status" id="t-status"></div>
+        </div>
+      </div>
+
+      <div class="trace-controls">
+        <button class="t-btn" id="btn-p" onclick="go(-1)">← Prev</button>
+        <button class="t-btn" id="btn-n" onclick="go(1)">Next →</button>
+        <button class="t-btn" onclick="buildTrace()">↺ Reset</button>
+        <span class="t-ctr" id="t-ctr"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edge cases ── -->
+  <div class="section">
+    <div class="section-title">Edge Cases</div>
+    <div class="edge-grid">
+      <div class="edge-card">
+        <h4>Decreasing prices</h4>
+        <p>Prices fall every day — no profitable trade exists. <code>maxProfit</code> stays <code>0</code>, which is returned as the answer.</p>
+        <div class="eg">Input: [7, 6, 4, 3, 1] → 0</div>
+      </div>
+      <div class="edge-card">
+        <h4>Single element</h4>
+        <p>Only one price — you can't both buy and sell. The loop runs once, no profit update fires, returns <code>0</code>.</p>
+        <div class="eg">Input: [5] → 0</div>
+      </div>
+      <div class="edge-card">
+        <h4>All same price</h4>
+        <p>Every day has the same price. Profit is always <code>0</code> — the <code>else if</code> never triggers since <code>price − minPrice = 0</code>.</p>
+        <div class="eg">Input: [3, 3, 3, 3] → 0</div>
+      </div>
+      <div class="edge-card">
+        <h4>Best buy is last trough</h4>
+        <p>The minimum price appears late in the array. The algorithm correctly tracks the running minimum and updates it whenever a cheaper price is found.</p>
+        <div class="eg">Input: [9, 3, 7, 1, 8] → 7</div>
+      </div>
+      <div class="edge-card">
+        <h4>Two elements</h4>
+        <p>Minimum possible input for a transaction. Result is <code>max(0, prices[1] − prices[0])</code>.</p>
+        <div class="eg">Input: [2, 5] → 3</div>
+      </div>
+      <div class="edge-card">
+        <h4>Large spike at end</h4>
+        <p>Profit is found on the very last day. The algorithm keeps updating <code>maxProfit</code> until the loop ends, capturing this correctly.</p>
+        <div class="eg">Input: [1, 2, 3, 4, 100] → 99</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Best Time to Buy and Sell Stock · LeetCode #121</span>
+    <span>O(n) time · O(1) space · Greedy one-pass</span>
+  </div>
+</div>
+
+<script>
+const TC_CODE = [
+  '<span class="kw">public</span> <span class="kw">int</span> <span class="fn">maxProfit</span>(<span class="kw">int</span>[] <span class="nm">prices</span>) {',
+  '    <span class="kw">int</span> <span class="nm">minPrice</span>  = <span class="ty">Integer</span>.MAX_VALUE;',
+  '    <span class="kw">int</span> <span class="nm">maxProfit</span> = <span class="nu">0</span>;',
+  '    <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">price</span> : <span class="nm">prices</span>) {',
+  '        <span class="kw">if</span> (<span class="nm">price</span> &lt; <span class="nm">minPrice</span>) {',
+  '            <span class="nm">minPrice</span> = <span class="nm">price</span>;',
+  '        } <span class="kw">else if</span> (<span class="nm">price</span> - <span class="nm">minPrice</span> &gt; <span class="nm">maxProfit</span>) {',
+  '            <span class="nm">maxProfit</span> = <span class="nm">price</span> - <span class="nm">minPrice</span>;',
+  '        }',
+  '    }',
+  '    <span class="kw">return</span> <span class="nm">maxProfit</span>;',
+  '}',
+];
+
+let steps = [], cur = 0, prices = [];
+
+function buildSteps(ps) {
+  const s = [];
+  let minP = Infinity, maxPr = 0;
+  let bestBuy = -1, bestSell = -1;
+
+  s.push({ line:0, idx:-1, minP:Infinity, maxPr:0, bestBuy:-1, bestSell:-1, msg:'Method entered. Initialising variables.', phase:'init' });
+  s.push({ line:1, idx:-1, minP:Infinity, maxPr:0, bestBuy:-1, bestSell:-1, msg:'<code>minPrice = Integer.MAX_VALUE</code> — ensures the first price always becomes the initial minimum.', phase:'init' });
+  s.push({ line:2, idx:-1, minP:Infinity, maxPr:0, bestBuy:-1, bestSell:-1, msg:'<code>maxProfit = 0</code> — default answer if no profit is possible.', phase:'init' });
+  s.push({ line:3, idx:-1, minP:Infinity, maxPr:0, bestBuy:-1, bestSell:-1, msg:'Entering the for-each loop over <code>prices</code>.', phase:'init' });
+
+  for (let i = 0; i < ps.length; i++) {
+    const price = ps[i];
+    s.push({ line:3, idx:i, minP, maxPr, bestBuy, bestSell, msg:`Day ${i}: <code>price = ${price}</code>`, phase:'enter' });
+
+    if (price < minP) {
+      s.push({ line:4, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>${price} &lt; minPrice(${minP === Infinity ? '∞' : minP})</code> → <b style="color:var(--green)">true</b>. Update minimum buy day.`, phase:'update-min' });
+      minP = price;
+      bestBuy = i;
+      s.push({ line:5, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>minPrice = ${price}</code>. Day ${i} is now the best buy candidate.`, phase:'update-min' });
+    } else {
+      const profit = price - minP;
+      s.push({ line:4, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>${price} &lt; minPrice(${minP})</code> → <b style="color:var(--red)">false</b>. Check profit.`, phase:'check-profit' });
+      if (profit > maxPr) {
+        s.push({ line:6, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>${price} − ${minP} = ${profit} &gt; maxProfit(${maxPr})</code> → <b style="color:var(--green)">true</b>. New best!`, phase:'update-profit' });
+        maxPr = profit;
+        bestSell = i;
+        s.push({ line:7, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>maxProfit = ${profit}</code>. Best sell day is day ${i}.`, phase:'update-profit' });
+      } else {
+        s.push({ line:6, idx:i, minP, maxPr, bestBuy, bestSell, msg:`<code>${price} − ${minP} = ${profit} &gt; maxProfit(${maxPr})</code> → <b style="color:var(--red)">false</b>. No improvement.`, phase:'no-update' });
+      }
+    }
+  }
+
+  s.push({ line:10, idx:-1, minP, maxPr, bestBuy, bestSell,
+    msg: maxPr > 0
+      ? `Loop done. Buy day ${bestBuy} (price=${ps[bestBuy]}), sell day ${bestSell} (price=${ps[bestSell]}). <b style="color:var(--green)">maxProfit = ${maxPr}</b>`
+      : `Loop done. Prices only decreased — no profitable trade. Return <b style="color:var(--green)">0</b>.`,
+    phase:'done', result: maxPr });
+
+  return s;
+}
+
+function renderCode(hl) {
+  document.getElementById('tc-code').innerHTML = TC_CODE.map((t,idx) =>
+    `<div class="tc-line${idx===hl?' hl':''}"><span class="ln">${idx+1}</span>${t}</div>`
+  ).join('');
+}
+
+function renderPrices(s) {
+  const maxP = Math.max(...prices);
+  document.getElementById('p-bar').innerHTML = prices.map((v,i) => {
+    let c = 'p-cell';
+    if (s.bestBuy === i && s.bestSell === i) c += ' both';
+    else if (i === s.idx && s.phase !== 'init') {
+      if (s.phase === 'update-min') c += ' buy';
+      else if (s.phase === 'update-profit' || s.phase === 'check-profit' || s.phase === 'no-update') c += ' sell';
+      else c += ' cur';
+    }
+    else if (i === s.bestBuy && s.phase !== 'update-min') c += ' buy';
+    else if (i === s.bestSell) c += ' sell';
+    return `<div class="${c}"><span class="pv">${v}</span><span class="pi">d${i}</span></div>`;
+  }).join('');
+
+  const barH = 72;
+  document.getElementById('bar-chart').innerHTML = prices.map((v,i) => {
+    const h = Math.round((v / maxP) * barH);
+    let bg = 'var(--surface3)';
+    if (i === s.bestBuy && s.bestSell !== i) bg = 'var(--green)';
+    else if (i === s.bestSell) bg = 'var(--amber)';
+    else if (i === s.idx && s.phase !== 'init') bg = 'var(--accent)';
+    return `<div class="bar-col">
+      <div class="bar-lbl">${v}</div>
+      <div class="bar" style="height:${h}px;background:${bg};opacity:0.7;"></div>
+      <div class="bar-lbl" style="color:var(--muted)">d${i}</div>
+    </div>`;
+  }).join('');
+}
+
+function render() {
+  const s = steps[cur];
+  renderCode(s.line);
+  renderPrices(s);
+
+  const setV = (id, txt, cls) => {
+    const e = document.getElementById(id);
+    e.textContent = txt;
+    e.className = 'vv' + (cls ? ' '+cls : '');
+  };
+
+  setV('tv-price',  s.idx >= 0 ? prices[s.idx] : '—', s.idx >= 0 ? 'c-accent' : '');
+  setV('tv-min',    s.minP === Infinity ? '∞' : s.minP, s.minP !== Infinity ? 'c-green' : '');
+  setV('tv-profit', s.maxPr, s.maxPr > 0 ? 'c-amber' : '');
+
+  const st = document.getElementById('t-status');
+  let html = s.msg;
+  if (s.result !== undefined && s.result > 0) {
+    html += `<br><span class="result-tag">&#10003; Max Profit = ${s.result}</span>`;
+  }
+  st.innerHTML = html;
+  st.className = 't-status' + (s.phase === 'done' ? ' ok' : '');
+
+  document.getElementById('t-ctr').textContent = `${cur+1} / ${steps.length}`;
+  document.getElementById('btn-p').disabled = cur === 0;
+  document.getElementById('btn-n').disabled = cur === steps.length - 1;
+}
+
+function go(d) { cur = Math.max(0, Math.min(steps.length-1, cur+d)); render(); }
+
+function buildTrace() {
+  const raw = document.getElementById('inp-prices').value
+    .split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+  if (!raw.length) return;
+  prices = raw; cur = 0;
+  steps = buildSteps(prices);
+  render();
+}
+
+function copyCode() {
+  const text = document.getElementById('full-code').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.querySelector('.copy-btn');
+    b.textContent = 'Copied!';
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  });
+}
+
+buildTrace();
+</script>
+</body>
+</html>

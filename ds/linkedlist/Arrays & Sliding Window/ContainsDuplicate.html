@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contains Duplicate — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #13151d;
+  --surface2: #1a1d28;
+  --surface3: #22263a;
+  --border: #272b3d;
+  --accent: #6175ff;
+  --accent-dim: #1e2560;
+  --accent-light: #a5b0ff;
+  --green: #3ddc84;
+  --green-dim: #0f2b1e;
+  --amber: #ffc04d;
+  --amber-dim: #2d1f05;
+  --red: #ff6b6b;
+  --red-dim: #2d1010;
+  --purple: #c084fc;
+  --purple-dim: #2a1245;
+  --teal: #2dd4bf;
+  --teal-dim: #0a2520;
+  --text: #dde2f0;
+  --muted: #606880;
+  --muted2: #8892b0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; }
+.page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+.hero { border-bottom: 1px solid var(--border); padding-bottom: 32px; margin-bottom: 40px; }
+.tag { display:inline-block; font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid var(--border); color:var(--muted2); margin-bottom:14px; letter-spacing:.06em; }
+.tag.easy { border-color:var(--green); color:var(--green); }
+h1 { font-size:38px; font-weight:300; letter-spacing:-.02em; color:#fff; margin-bottom:10px; line-height:1.15; }
+h1 em { font-style:normal; color:var(--accent-light); }
+.subtitle { color:var(--muted2); font-size:15px; font-weight:300; max-width:580px; }
+
+.section { margin-bottom: 40px; }
+.section-title { font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.problem-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; }
+.problem-box p { color:var(--muted2); margin-bottom:14px; }
+.example-block { background:var(--surface2); border-radius:8px; padding:14px 16px; font-family:var(--mono); font-size:13px; margin-top:4px; }
+.example-block .lbl { color:var(--muted); font-size:11px; margin-bottom:4px; }
+.example-block .io { color:var(--text); }
+.example-block .io span { color:var(--accent-light); }
+.example-block .explain { color:var(--muted2); font-size:12px; margin-top:6px; font-family:var(--sans); }
+
+.approach-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+@media(max-width:660px){ .approach-grid { grid-template-columns:1fr; } }
+.approach-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+.approach-card.optimal { border-color:var(--accent); }
+.approach-card.optimal::before { content:'Optimal'; position:absolute; top:12px; right:12px; font-size:10px; font-family:var(--mono); padding:2px 8px; border-radius:20px; background:var(--accent-dim); color:var(--accent-light); border:1px solid var(--accent); }
+.approach-card h3 { font-size:14px; font-weight:500; color:var(--text); margin-bottom:8px; }
+.approach-card p  { font-size:13px; color:var(--muted2); margin-bottom:14px; font-weight:300; }
+.complexity-row { display:flex; gap:6px; flex-wrap:wrap; }
+.chip { font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted2); }
+.chip.good { border-color:var(--green);  color:var(--green);  background:var(--green-dim); }
+.chip.best { border-color:var(--teal);   color:var(--teal);   background:var(--teal-dim); }
+.chip.mid  { border-color:var(--amber);  color:var(--amber);  background:var(--amber-dim); }
+.chip.bad  { border-color:var(--red);    color:var(--red);    background:var(--red-dim); }
+
+.code-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.code-topbar { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.code-topbar .filename { font-family:var(--mono); font-size:12px; color:var(--muted2); }
+.copy-btn { font-family:var(--mono); font-size:11px; padding:4px 12px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted2); cursor:pointer; transition:all .15s; }
+.copy-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+pre { padding:20px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.85; }
+.kw  { color:#a78bfa; }
+.ty  { color:#7dd3fc; }
+.fn  { color:#fbbf24; }
+.str { color:#86efac; }
+.cm  { color:var(--muted); font-style:italic; }
+.nm  { color:#f9a8d4; }
+.nu  { color:#fb923c; }
+
+.steps-list { display:flex; flex-direction:column; gap:2px; }
+.step-item { display:flex; gap:16px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--border); }
+.step-item:last-child { border-bottom:none; }
+.step-num { width:28px; height:28px; border-radius:50%; background:var(--accent-dim); border:1px solid var(--accent); color:var(--accent-light); font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.step-body h4 { font-size:14px; font-weight:500; color:var(--text); margin-bottom:4px; }
+.step-body p  { font-size:13px; color:var(--muted2); font-weight:300; }
+code { font-family:var(--mono); font-size:12px; background:var(--surface3); padding:1px 6px; border-radius:4px; color:var(--accent-light); }
+
+.complexity-table { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.cx-row { display:grid; grid-template-columns:130px 100px 1fr; border-bottom:1px solid var(--border); }
+.cx-row:last-child { border-bottom:none; }
+.cx-row.header { background:var(--surface2); }
+.cx-cell { padding:12px 16px; font-size:13px; border-right:1px solid var(--border); }
+.cx-cell:last-child { border-right:none; }
+.cx-row.header .cx-cell { color:var(--muted); font-size:11px; font-family:var(--mono); letter-spacing:.06em; }
+.cx-cell .big { font-family:var(--mono); font-size:15px; font-weight:600; display:block; margin-bottom:2px; }
+.cx-cell .big.green { color:var(--green); }
+.cx-cell .big.amber { color:var(--amber); }
+.cx-cell .big.red   { color:var(--red); }
+.cx-cell .big.teal  { color:var(--teal); }
+.cx-cell p { font-size:12.5px; color:var(--muted2); font-weight:300; }
+
+/* ── Trace ── */
+.trace-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.trace-input-bar { display:flex; gap:10px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface2); flex-wrap:wrap; }
+.trace-input-bar label { font-family:var(--mono); font-size:12px; color:var(--muted2); }
+input[type=text] { font-family:var(--mono); font-size:13px; padding:6px 10px; background:var(--surface3); border:1px solid var(--border); border-radius:6px; color:var(--text); outline:none; width:220px; }
+input:focus { border-color:var(--accent); }
+.run-btn { font-family:var(--mono); font-size:12px; padding:7px 16px; border-radius:7px; border:1px solid var(--accent); background:var(--accent-dim); color:var(--accent-light); cursor:pointer; transition:all .15s; }
+.run-btn:hover { background:#2a3a8a; }
+
+.trace-body { display:grid; grid-template-columns:300px 1fr; }
+@media(max-width:660px){ .trace-body { grid-template-columns:1fr; } }
+.trace-left { border-right:1px solid var(--border); }
+.trace-code { padding:14px 0; }
+.tc-line { display:flex; align-items:center; padding:2px 14px; font-family:var(--mono); font-size:12px; line-height:1.9; transition:background .2s; }
+.tc-line .ln { width:24px; color:var(--muted); font-size:10px; flex-shrink:0; }
+.tc-line.hl { background:var(--accent-dim); border-left:2px solid var(--accent); padding-left:12px; }
+.tc-line.hl .ln { color:var(--accent-light); }
+
+.trace-right { padding:16px; }
+
+/* array cells */
+.arr-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.a-cell { width:52px; height:56px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all .25s; flex-shrink:0; }
+.a-cell .av { font-family:var(--mono); font-size:17px; font-weight:600; color:var(--text); }
+.a-cell .ai { font-size:10px; color:var(--muted); font-family:var(--mono); }
+.a-cell.cur  { border-color:var(--accent); background:var(--accent-dim); }
+.a-cell.cur  .av { color:var(--accent-light); }
+.a-cell.seen { border-color:var(--muted);  background:var(--surface3); }
+.a-cell.seen .av { color:var(--muted2); }
+.a-cell.dup  { border-color:var(--red);   background:var(--red-dim); }
+.a-cell.dup  .av { color:var(--red); }
+.a-cell.ok   { border-color:var(--green); background:var(--green-dim); }
+.a-cell.ok   .av { color:var(--green); }
+
+/* set display */
+.set-label { font-size:11px; color:var(--muted); font-family:var(--mono); margin-bottom:6px; }
+.set-chips { display:flex; flex-wrap:wrap; gap:5px; min-height:28px; margin-bottom:14px; }
+.set-chip { font-family:var(--mono); font-size:13px; padding:4px 11px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); transition:all .25s; }
+.set-chip.new-chip { border-color:var(--amber); background:var(--amber-dim); color:var(--amber); }
+.set-chip.hit-chip { border-color:var(--red);   background:var(--red-dim);   color:var(--red); }
+
+/* vars */
+.t-vars { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.t-var { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; }
+.t-var .vl { font-family:var(--mono); font-size:10px; color:var(--muted); margin-bottom:3px; }
+.t-var .vv { font-family:var(--mono); font-size:17px; font-weight:600; color:var(--text); }
+.vv.c-accent { color:var(--accent-light); }
+.vv.c-green  { color:var(--green); }
+.vv.c-red    { color:var(--red); }
+.vv.c-amber  { color:var(--amber); }
+
+.t-status { font-size:13px; color:var(--muted2); padding:10px 12px; background:var(--surface2); border-radius:8px; min-height:44px; line-height:1.55; border-left:3px solid var(--border); }
+.t-status.found  { border-left-color:var(--red); }
+.t-status.clean  { border-left-color:var(--green); }
+
+.result-tag { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:13px; font-weight:600; padding:3px 12px; border-radius:20px; margin-top:6px; }
+.result-tag.true-tag  { background:var(--red-dim);   border:1px solid var(--red);   color:var(--red); }
+.result-tag.false-tag { background:var(--green-dim); border:1px solid var(--green); color:var(--green); }
+
+.trace-controls { display:flex; align-items:center; gap:8px; padding:12px 16px; border-top:1px solid var(--border); background:var(--surface2); }
+.t-btn { font-family:var(--mono); font-size:12px; padding:6px 16px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; transition:all .15s; }
+.t-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+.t-btn:disabled { opacity:.3; cursor:default; }
+.t-btn:disabled:hover { border-color:var(--border); color:var(--text); }
+.t-ctr { font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:auto; }
+
+/* legend */
+.legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.leg-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted2); }
+.leg-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+/* edge cases */
+.edge-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+.edge-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; }
+.edge-card h4 { font-size:13px; font-weight:500; color:var(--text); margin-bottom:6px; }
+.edge-card p  { font-size:12px; color:var(--muted2); font-weight:300; line-height:1.5; }
+.edge-card .eg { font-family:var(--mono); font-size:11px; color:var(--accent-light); margin-top:6px; }
+
+.footer { margin-top:56px; padding-top:24px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.footer span { font-family:var(--mono); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span class="tag easy">Easy</span>
+      <span class="tag">Array</span>
+      <span class="tag">Hash Set</span>
+      <span class="tag">LeetCode #217</span>
+    </div>
+    <h1>Contains Duplicate <em>/ Java</em></h1>
+    <p class="subtitle">Given an integer array, return <code style="font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 7px;border-radius:4px;color:var(--accent-light)">true</code> if any value appears at least twice, or <code style="font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 7px;border-radius:4px;color:var(--accent-light)">false</code> if every element is distinct.</p>
+  </div>
+
+  <!-- ── Problem ── -->
+  <div class="section">
+    <div class="section-title">Problem Statement</div>
+    <div class="problem-box">
+      <p>Given an integer array <code>nums</code>, return <code>true</code> if any value appears <strong>at least twice</strong>, and <code>false</code> if every element is distinct.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:4px;">
+        <div class="example-block">
+          <div class="lbl">Example 1</div>
+          <div class="io">Input: <span>[1, 2, 3, 1]</span></div>
+          <div class="io">Output: <span>true</span></div>
+          <div class="explain">1 appears at index 0 and 3.</div>
+        </div>
+        <div class="example-block">
+          <div class="lbl">Example 2</div>
+          <div class="io">Input: <span>[1, 2, 3, 4]</span></div>
+          <div class="io">Output: <span>false</span></div>
+          <div class="explain">All elements are distinct.</div>
+        </div>
+        <div class="example-block">
+          <div class="lbl">Example 3</div>
+          <div class="io">Input: <span>[1, 1, 1, 3, 3, 4, 3, 2, 4, 2]</span></div>
+          <div class="io">Output: <span>true</span></div>
+          <div class="explain">Multiple duplicates exist.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Approaches ── -->
+  <div class="section">
+    <div class="section-title">Approaches</div>
+    <div class="approach-grid">
+      <div class="approach-card">
+        <h3>Brute Force</h3>
+        <p>Compare every pair of elements with nested loops. If <code>nums[i] == nums[j]</code> for any <code>i != j</code>, return <code>true</code>.</p>
+        <div class="complexity-row">
+          <span class="chip bad">Time O(n²)</span>
+          <span class="chip best">Space O(1)</span>
+        </div>
+      </div>
+      <div class="approach-card">
+        <h3>Sort First</h3>
+        <p>Sort the array, then check adjacent elements. Duplicates will be neighbours after sorting. One linear scan after sorting.</p>
+        <div class="complexity-row">
+          <span class="chip mid">Time O(n log n)</span>
+          <span class="chip mid">Space O(1)</span>
+        </div>
+      </div>
+      <div class="approach-card optimal">
+        <h3>Hash Set</h3>
+        <p>Stream through the array, adding each value to a <code>HashSet</code>. If a value is already present, a duplicate is found instantly.</p>
+        <div class="complexity-row">
+          <span class="chip good">Time O(n)</span>
+          <span class="chip mid">Space O(n)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Code ── -->
+  <div class="section">
+    <div class="section-title">Solution Code</div>
+    <div class="code-panel">
+      <div class="code-topbar">
+        <span class="filename">ContainsDuplicate.java</span>
+        <button class="copy-btn" onclick="copyCode()">Copy</button>
+      </div>
+      <pre id="full-code"><span class="kw">import</span> java.util.HashSet;
+<span class="kw">import</span> java.util.Set;
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+
+    <span class="cm">/**
+     * Returns true if any value appears at least twice.
+     * Time  : O(n)  — single pass; HashSet add/contains are O(1) average
+     * Space : O(n)  — HashSet stores at most n distinct elements
+     */</span>
+    <span class="kw">public</span> <span class="kw">boolean</span> <span class="fn">containsDuplicate</span>(<span class="kw">int</span>[] <span class="nm">nums</span>) {
+        Set&lt;<span class="ty">Integer</span>&gt; <span class="nm">seen</span> = <span class="kw">new</span> HashSet&lt;&gt;();
+
+        <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">num</span> : <span class="nm">nums</span>) {
+            <span class="kw">if</span> (!<span class="nm">seen</span>.<span class="fn">add</span>(<span class="nm">num</span>)) {   <span class="cm">// add() returns false if already present</span>
+                <span class="kw">return</span> <span class="kw">true</span>;
+            }
+        }
+
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+}</pre>
+    </div>
+  </div>
+
+  <!-- ── Algorithm walkthrough ── -->
+  <div class="section">
+    <div class="section-title">How It Works</div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Create a HashSet</h4>
+          <p>Initialise <code>seen</code> as a <code>Set&lt;Integer&gt;</code>. A HashSet stores unique values only and provides O(1) average time for both <code>add</code> and <code>contains</code> via hashing.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Iterate with a for-each loop</h4>
+          <p>Visit every element <code>num</code> in <code>nums</code> exactly once. The loop exits early the moment a duplicate is found — no wasted work.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Use <code>add()</code> return value as a free check</h4>
+          <p><code>HashSet.add(e)</code> returns <code>true</code> if the element was newly inserted, or <code>false</code> if it was already present. We exploit this to combine the membership check and insertion into one O(1) call — no separate <code>contains()</code> needed.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Return <code>true</code> on first duplicate</h4>
+          <p>If <code>add()</code> returns <code>false</code>, the value was already in the set — we have found a duplicate. Return <code>true</code> immediately. No need to scan the rest of the array.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Return <code>false</code> after full scan</h4>
+          <p>If the loop completes without any duplicate, every element was unique. Return <code>false</code>. The set now holds all n distinct values.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Complexity ── -->
+  <div class="section">
+    <div class="section-title">Time &amp; Space Complexity</div>
+    <div class="complexity-table">
+      <div class="cx-row header">
+        <div class="cx-cell">Metric</div>
+        <div class="cx-cell">Value</div>
+        <div class="cx-cell">Explanation</div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Best</div>
+        <div class="cx-cell"><span class="big green">O(1)</span></div>
+        <div class="cx-cell"><p>The very first two elements are equal — <code>add(nums[1])</code> returns <code>false</code> immediately. Only two iterations needed.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Average</div>
+        <div class="cx-cell"><span class="big green">O(n)</span></div>
+        <div class="cx-cell"><p>Single pass through the array. Each <code>HashSet.add()</code> is O(1) amortised. Total work is proportional to n.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Time — Worst</div>
+        <div class="cx-cell"><span class="big amber">O(n)</span></div>
+        <div class="cx-cell"><p>All elements are distinct (return <code>false</code>) — the full array is scanned. Still linear; no nested loops anywhere.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Space</div>
+        <div class="cx-cell"><span class="big amber">O(n)</span></div>
+        <div class="cx-cell"><p>In the worst case (no duplicates) the HashSet holds all n elements. Each integer occupies O(1), so total space is O(n).</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Sort approach</div>
+        <div class="cx-cell"><span class="big amber">O(n log n)</span></div>
+        <div class="cx-cell"><p>Sorting takes O(n log n) but uses O(1) extra space. Trade-off: slower time, better memory than HashSet solution.</p></div>
+      </div>
+      <div class="cx-row">
+        <div class="cx-cell" style="color:var(--muted2);">Brute force</div>
+        <div class="cx-cell"><span class="big red">O(n²)</span></div>
+        <div class="cx-cell"><p>Nested loops check all n×(n−1)/2 pairs. Fine for tiny arrays, impractical for n &gt; 10,000.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Interactive trace ── -->
+  <div class="section">
+    <div class="section-title">Interactive Trace</div>
+    <div class="trace-wrapper">
+      <div class="trace-input-bar">
+        <label>nums[]</label>
+        <input type="text" id="inp-nums" value="1, 2, 3, 1" />
+        <button class="run-btn" onclick="buildTrace()">Run ▶</button>
+      </div>
+
+      <div class="trace-body">
+        <div class="trace-left">
+          <div class="trace-code" id="tc-code"></div>
+        </div>
+        <div class="trace-right">
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--accent-dim);border:1.5px solid var(--accent);"></div>current</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--surface3);border:1.5px solid var(--muted);"></div>added to set</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--red-dim);border:1.5px solid var(--red);"></div>duplicate!</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--green-dim);border:1.5px solid var(--green);"></div>all distinct</div>
+          </div>
+
+          <div class="arr-row" id="arr-row"></div>
+
+          <div class="set-label">HashSet  seen  {values inserted}</div>
+          <div class="set-chips" id="set-display"><span style="font-family:var(--mono);font-size:13px;color:var(--muted)">{}</span></div>
+
+          <div class="t-vars">
+            <div class="t-var"><div class="vl">num (current)</div><div class="vv" id="tv-num">—</div></div>
+            <div class="t-var"><div class="vl">add() returned</div><div class="vv" id="tv-add">—</div></div>
+          </div>
+
+          <div class="t-status" id="t-status"></div>
+        </div>
+      </div>
+
+      <div class="trace-controls">
+        <button class="t-btn" id="btn-p" onclick="go(-1)">← Prev</button>
+        <button class="t-btn" id="btn-n" onclick="go(1)">Next →</button>
+        <button class="t-btn" onclick="buildTrace()">↺ Reset</button>
+        <span class="t-ctr" id="t-ctr"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edge cases ── -->
+  <div class="section">
+    <div class="section-title">Edge Cases</div>
+    <div class="edge-grid">
+      <div class="edge-card">
+        <h4>All distinct</h4>
+        <p>Every element is unique. The full array is scanned, the set grows to size n, and <code>false</code> is returned at the end.</p>
+        <div class="eg">Input: [1, 2, 3, 4] → false</div>
+      </div>
+      <div class="edge-card">
+        <h4>Duplicate at start</h4>
+        <p>Best case — the second element equals the first. <code>add()</code> returns <code>false</code> on the very first attempt, returning <code>true</code> instantly.</p>
+        <div class="eg">Input: [5, 5, 6, 7] → true</div>
+      </div>
+      <div class="edge-card">
+        <h4>Duplicate at end</h4>
+        <p>Worst case — the duplicate is the very last element. The entire array is traversed before the duplicate is found.</p>
+        <div class="eg">Input: [1, 2, 3, 4, 1] → true</div>
+      </div>
+      <div class="edge-card">
+        <h4>Single element</h4>
+        <p>Only one element — no pair can exist. The loop runs once, <code>add()</code> succeeds, the loop ends, returns <code>false</code>.</p>
+        <div class="eg">Input: [42] → false</div>
+      </div>
+      <div class="edge-card">
+        <h4>All same value</h4>
+        <p>Every element is identical. Duplicate found on the second iteration — O(1) effective runtime in this input.</p>
+        <div class="eg">Input: [7, 7, 7, 7] → true</div>
+      </div>
+      <div class="edge-card">
+        <h4>Negative numbers</h4>
+        <p>HashSet handles negatives naturally — integer hashing works for all int values including negatives.</p>
+        <div class="eg">Input: [-1, -2, -3, -1] → true</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Contains Duplicate · LeetCode #217</span>
+    <span>O(n) time · O(n) space · HashSet one-pass</span>
+  </div>
+</div>
+
+<script>
+const TC_CODE = [
+  '<span class="kw">public</span> <span class="kw">boolean</span> <span class="fn">containsDuplicate</span>(<span class="kw">int</span>[] <span class="nm">nums</span>) {',
+  '    Set&lt;<span class="ty">Integer</span>&gt; <span class="nm">seen</span> = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;();',
+  '    <span class="kw">for</span> (<span class="kw">int</span> <span class="nm">num</span> : <span class="nm">nums</span>) {',
+  '        <span class="kw">if</span> (!<span class="nm">seen</span>.<span class="fn">add</span>(<span class="nm">num</span>)) {',
+  '            <span class="kw">return</span> <span class="kw">true</span>;',
+  '        }',
+  '    }',
+  '    <span class="kw">return</span> <span class="kw">false</span>;',
+  '}',
+];
+
+let steps = [], cur = 0, nums = [];
+
+function buildSteps(ns) {
+  const s = [], set = new Set();
+  s.push({ line:0, idx:-1, set:new Set(), num:null, addRet:null, msg:'Method entered. Initialising HashSet.', phase:'init' });
+  s.push({ line:1, idx:-1, set:new Set(), num:null, addRet:null, msg:'<code>seen</code> is an empty <code>HashSet&lt;Integer&gt;</code>.', phase:'init' });
+  s.push({ line:2, idx:-1, set:new Set(), num:null, addRet:null, msg:'Entering the for-each loop over <code>nums</code>.', phase:'loop' });
+
+  for (let i = 0; i < ns.length; i++) {
+    const num = ns[i];
+    s.push({ line:2, idx:i, set:new Set(set), num, addRet:null, msg:`Visiting index ${i}: <code>num = ${num}</code>`, phase:'visit' });
+    const added = !set.has(num);
+    s.push({ line:3, idx:i, set:new Set(set), num, addRet:added,
+      msg: added
+        ? `<code>seen.add(${num})</code> → <b style="color:var(--green)">true</b> (newly inserted — not a duplicate)`
+        : `<code>seen.add(${num})</code> → <b style="color:var(--red)">false</b> (already in set — duplicate found!)`,
+      phase: added ? 'add-ok' : 'dup' });
+
+    if (!added) {
+      s.push({ line:4, idx:i, set:new Set(set), num, addRet:false, msg:'Returning <code>true</code> immediately — duplicate confirmed.', phase:'return-true', result:true });
+      return s;
+    }
+    set.add(num);
+    s.push({ line:2, idx:i, set:new Set(set), num, addRet:true, msg:`<code>${num}</code> added to set. Set size: ${set.size}. Moving on.`, phase:'added' });
+  }
+
+  s.push({ line:7, idx:-1, set:new Set(set), num:null, addRet:null, msg:'Loop complete. No duplicate found anywhere in the array.', phase:'return-false', result:false });
+  return s;
+}
+
+function renderCode(hl) {
+  document.getElementById('tc-code').innerHTML = TC_CODE.map((t, idx) =>
+    `<div class="tc-line${idx === hl ? ' hl' : ''}"><span class="ln">${idx+1}</span>${t}</div>`
+  ).join('');
+}
+
+function renderArr(s) {
+  document.getElementById('arr-row').innerHTML = nums.map((v, i) => {
+    let c = 'a-cell';
+    if (s.phase === 'return-false') { c += ' ok'; }
+    else if (i === s.idx) {
+      c += (s.phase === 'dup' || s.phase === 'return-true') ? ' dup' : ' cur';
+    } else if (i < s.idx || (s.result === false)) {
+      c += ' seen';
+    }
+    return `<div class="${c}"><span class="av">${v}</span><span class="ai">[${i}]</span></div>`;
+  }).join('');
+}
+
+function renderSet(s) {
+  const el = document.getElementById('set-display');
+  const entries = [...s.set];
+  if (!entries.length) { el.innerHTML = '<span style="font-family:var(--mono);font-size:13px;color:var(--muted)">{}</span>'; return; }
+  el.innerHTML = entries.map(v => {
+    let c = 'set-chip';
+    if ((s.phase === 'add-ok' || s.phase === 'added') && v === s.num) c += ' new-chip';
+    else if ((s.phase === 'dup' || s.phase === 'return-true') && v === s.num) c += ' hit-chip';
+    return `<span class="${c}">${v}</span>`;
+  }).join('');
+}
+
+function render() {
+  const s = steps[cur];
+  renderCode(s.line);
+  renderArr(s);
+  renderSet(s);
+
+  const setV = (id, txt, cls) => {
+    const e = document.getElementById(id);
+    e.textContent = txt;
+    e.className = 'vv' + (cls ? ' ' + cls : '');
+  };
+
+  setV('tv-num', s.num !== null ? s.num : '—', s.num !== null ? 'c-accent' : '');
+
+  if (s.addRet === true)       setV('tv-add', 'true',  'c-green');
+  else if (s.addRet === false) setV('tv-add', 'false', 'c-red');
+  else                         setV('tv-add', '—', '');
+
+  const st = document.getElementById('t-status');
+  let html = s.msg;
+  if (s.result === true)  html += `<br><span class="result-tag true-tag">&#9888; true — duplicate exists</span>`;
+  if (s.result === false) html += `<br><span class="result-tag false-tag">&#10003; false — all distinct</span>`;
+  st.innerHTML = html;
+  st.className = 't-status' + (s.result === true ? ' found' : s.result === false ? ' clean' : '');
+
+  document.getElementById('t-ctr').textContent = `${cur+1} / ${steps.length}`;
+  document.getElementById('btn-p').disabled = cur === 0;
+  document.getElementById('btn-n').disabled = cur === steps.length - 1;
+}
+
+function go(d) { cur = Math.max(0, Math.min(steps.length - 1, cur + d)); render(); }
+
+function buildTrace() {
+  const raw = document.getElementById('inp-nums').value
+    .split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+  if (!raw.length) return;
+  nums = raw; cur = 0;
+  steps = buildSteps(nums);
+  render();
+}
+
+function copyCode() {
+  const text = document.getElementById('full-code').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.querySelector('.copy-btn');
+    b.textContent = 'Copied!';
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  });
+}
+
+buildTrace();
+</script>
+</body>
+</html>
