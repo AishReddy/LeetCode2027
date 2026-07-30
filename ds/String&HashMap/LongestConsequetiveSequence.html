@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>128. Longest Consecutive Sequence</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+        .callout-green{background:#0d1f12;border:1px solid #1a4028;border-left:3px solid var(--green);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#a3e4b8;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+        .cell-val{width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--font-mono);font-size:.95rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s}
+        .cell-val.cur{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .cell-val.seq{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .cell-val.best{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+        .cell-val.skip{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+        .cell-idx{font-family:var(--font-mono);font-size:.62rem;color:var(--muted)}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}.cell-val{width:38px;height:38px;font-size:.85rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>128. Longest Consecutive Sequence</h1>
+        <p>LeetCode Medium — HashSet + Sequence Start Detection</p>
+        <span class="badge">medium</span>
+        <span class="badge info">O(n) time</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given an unsorted array of integers <code style="color:var(--teal);font-family:var(--font-mono)">nums</code>,
+            return the length of the <strong style="color:var(--text)">longest consecutive sequence</strong>.
+            You must write an O(n) algorithm.
+        </p>
+        <div style="margin-top:.8rem;font-family:var(--font-mono);font-size:.82rem;background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;line-height:2.2;color:var(--muted)">
+            nums = [<span style="color:var(--text)">100, 4, 200, 1, 3, 2</span>]<br>
+            Sequences: <span style="color:var(--teal)">1→2→3→4</span> (length 4), <span style="color:var(--muted)">100</span> (1), <span style="color:var(--muted)">200</span> (1)<br>
+            Answer: <span style="color:var(--amber)">4</span>
+        </div>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Sorting is O(n log n). The trick: put everything in a HashSet, then only start counting from a number that has <strong style="color:var(--amber)">no left neighbour</strong> (num-1 not in set) — that's a sequence start.
+        </div>
+    </div>
+
+    <!-- Core Idea -->
+    <div class="section">
+        <div class="section-title">Core Idea — Sequence Start Detection</div>
+        <div style="font-size:.83rem;line-height:1.9;color:var(--muted)">
+            For every number, the question is: <strong style="color:var(--text)">is this the start of a sequence?</strong>
+            <div style="font-family:var(--font-mono);font-size:.82rem;background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;line-height:2.2">
+                set = {<span style="color:var(--teal)">1, 2, 3, 4</span>, 100, 200}<br><br>
+                num=<span style="color:var(--red)">2</span>: set.contains(<span style="color:var(--red)">1</span>) → <span style="color:var(--red)">yes</span> → <strong style="color:var(--red)">skip</strong> (not a start)<br>
+                num=<span style="color:var(--teal)">1</span>: set.contains(<span style="color:var(--teal)">0</span>) → <span style="color:var(--teal)">no</span>  → <strong style="color:var(--teal)">start!</strong> count 1,2,3,4 → length=4
+            </div>
+            This ensures each sequence is counted <strong style="color:var(--text)">exactly once</strong> from its leftmost element. Every element is visited at most twice across all sequences → O(n) total.
+        </div>
+        <div style="margin-top:.8rem" class="callout-green">
+            ✓ The while loop inside looks O(n²) but isn't — each element is added to exactly one sequence, so the total inner iterations across all outer iterations is ≤ n.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Build HashSet:</strong> add all elements of <code style="font-family:var(--font-mono);color:var(--teal)">nums</code> into a
+                    <code style="font-family:var(--font-mono);color:var(--teal)">HashSet</code> for O(1) lookups.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>For each num:</strong> check if <code style="font-family:var(--font-mono);color:var(--red)">num - 1</code> is in the set.
+                    If yes → skip (not a sequence start).
+                    If no → this is a <strong style="color:var(--teal)">sequence start</strong>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Count the sequence:</strong> while <code style="font-family:var(--font-mono);color:var(--amber)">num + length</code> is in the set,
+                    keep incrementing <code style="font-family:var(--font-mono);color:var(--amber)">length</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Update best:</strong> <code style="font-family:var(--font-mono);color:var(--green)">longest = Math.max(longest, length)</code>.
+                    Return <code style="font-family:var(--font-mono);color:var(--green)">longest</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; nums = [100, 4, 200, 1, 3, 2]</div>
+
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.8rem">
+            <strong style="color:var(--text)">HashSet:</strong>
+            <code style="font-family:var(--font-mono);color:var(--teal)">{100, 4, 200, 1, 3, 2}</code>
+        </div>
+
+        <div style="overflow-x:auto;margin-bottom:1rem">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">num</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">num-1 in set?</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">action</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">sequence found</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 10px;text-align:left">length</th>
+                    <th style="color:var(--green);font-weight:500;padding:6px 10px;text-align:left">longest</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">HashSet build = O(n). Each element is visited at most twice — once in outer loop, once in at most one inner while loop. Total = O(2n) = O(n).</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">HashSet stores all n elements.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why not O(n²)?</strong> The while loop only runs for sequence starts. A number is only a sequence start once, and each element is counted in exactly one sequence. So total inner iterations ≤ n across all outer iterations.<br><br>
+            <strong style="color:var(--text)">Why not sort?</strong> Sorting is O(n log n) and requires the array to be modified. The HashSet approach is O(n) with no mutation.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution — Your Code</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public int</span> <span class="fn">longestConsecutive</span>(<span class="kw">int</span>[] nums) {
+        HashSet&lt;Integer&gt; set = <span class="kw">new</span> HashSet&lt;&gt;();
+        <span class="kw">for</span> (<span class="kw">int</span> i : nums) {
+            set.<span class="fn">add</span>(i);
+        }
+        <span class="kw">int</span> longest = <span class="num-c">0</span>;
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num-c">0</span>; i &lt; nums.length; i++) {
+            <span class="kw">int</span> current = nums[i];   <span class="cm">// moving pointer along the sequence</span>
+            <span class="kw">int</span> length  = <span class="num-c">1</span>;
+
+            <span class="kw">if</span> (!set.<span class="fn">contains</span>(nums[i] - <span class="num-c">1</span>)) {    <span class="cm">// sequence start gate</span>
+                <span class="kw">while</span> (set.<span class="fn">contains</span>(current + <span class="num-c">1</span>)) {
+                    length++;
+                    current++;
+                }
+                longest = Math.<span class="fn">max</span>(longest, length);
+            }
+        }
+        <span class="kw">return</span> longest;
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.9">
+                <div style="color:var(--teal);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Your version</div>
+                <div style="color:var(--muted)">
+                    Uses <code style="font-family:var(--font-mono);color:var(--teal)">current</code> pointer that moves forward<br>
+                    While: <code style="font-family:var(--font-mono)">contains(current + 1)</code><br>
+                    Then: <code style="font-family:var(--font-mono)">current++</code> and <code style="font-family:var(--font-mono)">length++</code>
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.9">
+                <div style="color:var(--purple);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Alternate version</div>
+                <div style="color:var(--muted)">
+                    Uses <code style="font-family:var(--font-mono);color:var(--purple)">num + length</code> as offset<br>
+                    While: <code style="font-family:var(--font-mono)">contains(num + length)</code><br>
+                    Only <code style="font-family:var(--font-mono)">length++</code>, no extra variable
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Pattern to remember</div>
+            <div style="color:var(--text)">
+                1. Build: <code style="font-family:var(--font-mono);color:var(--teal)">HashSet&lt;Integer&gt; set</code> — O(1) contains<br>
+                2. Gate: <code style="font-family:var(--font-mono);color:var(--red)">if (!set.contains(nums[i] - 1))</code> → start only<br>
+                3. Count: <code style="font-family:var(--font-mono);color:var(--amber)">while (set.contains(current + 1)) { length++; current++; }</code><br>
+                4. Track: <code style="font-family:var(--font-mono);color:var(--green)">longest = Math.max(longest, length)</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            The gate <code style="font-family:var(--font-mono);color:var(--red)">!set.contains(num - 1)</code> is everything.
+            It means: <strong style="color:var(--text)">"don't count a sequence from the middle"</strong>.<br><br>
+            Without it, you'd recount sequences from every element — O(n²).<br>
+            With it, you count each sequence exactly once from its leftmost element — O(n).
+            <div style="font-family:var(--font-mono);font-size:.82rem;margin:.7rem 0 .5rem 1rem;line-height:2.4;color:var(--text)">
+                <span style="color:var(--red)">num=2</span>: contains(1)? yes → <span style="color:var(--red)">skip</span><br>
+                <span style="color:var(--red)">num=3</span>: contains(2)? yes → <span style="color:var(--red)">skip</span><br>
+                <span style="color:var(--teal)">num=1</span>: contains(0)? no  → <span style="color:var(--teal)">start! count → 4</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any array</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">nums =</label>
+            <input id="nums-input" type="text" value="100,4,200,1,3,2"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:220px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ 2–12 integers</span>
+        </div>
+
+        <!-- array cells -->
+        <div style="display:flex;gap:0;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;overflow-x:auto">
+            <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:70px;padding-bottom:4px">nums[]</span>
+            <div id="arr-cells" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- set display -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">HashSet</div>
+        <div id="set-display" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:36px;margin-bottom:1rem">{ }</div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill amber"  id="vp-num">num = —</div>
+            <div class="var-pill"        id="vp-gate">num-1 in set = —</div>
+            <div class="var-pill teal"   id="vp-len">length = —</div>
+            <div class="var-pill green"  id="vp-long">longest = 0</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  HashSet&lt;Integer&gt; set = new HashSet&lt;&gt;();</div>
+            <div class="tl" id="tl1">  for (int i : nums) set.add(i);</div>
+            <div class="tl" id="tl2">  int longest = 0;</div>
+            <div class="tl" id="tl3">  for (int i = 0; i &lt; nums.length; i++) {</div>
+            <div class="tl" id="tl4">      int current = nums[i];  int length = 1;</div>
+            <div class="tl" id="tl5">      if (!set.contains(nums[i] - 1)) {</div>
+            <div class="tl" id="tl6">          while (set.contains(current + 1)) {</div>
+            <div class="tl" id="tl7">              length++;  current++;</div>
+            <div class="tl" id="tl8">          }</div>
+            <div class="tl" id="tl9">          longest = Math.max(longest, length);</div>
+            <div class="tl" id="tl10">     }</div>
+            <div class="tl" id="tl11"> }</div>
+            <div class="tl" id="tl12"> return longest;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter nums and press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    let traceNums=[], steps=[], cur=0;
+
+    // ── Static walkthrough ──
+    function buildWalkthrough(){
+      const nums=[100,4,200,1,3,2];
+      const set=new Set(nums);
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let longest=0;
+
+      nums.forEach((num,i)=>{
+        const hasLeft=set.has(num-1);
+        let seqStr='—', length=0;
+        if(!hasLeft){
+          length=1;
+          while(set.has(num+length)) length++;
+          const seq=Array.from({length},(_,j)=>num+j).join('→');
+          seqStr=seq;
+          longest=Math.max(longest,length);
+        }
+        const tr=document.createElement('tr');
+        if(i%2!==0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">${num}</td>
+          <td style="padding:5px 10px;color:${hasLeft?'var(--red)':'var(--teal)'}">${hasLeft?'✓ yes → skip':'✗ no → START'}</td>
+          <td style="padding:5px 10px;color:${hasLeft?'var(--muted)':'var(--teal)'}">${hasLeft?'skip':'count sequence'}</td>
+          <td style="padding:5px 10px;color:var(--teal)">${seqStr}</td>
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">${hasLeft?'—':length}</td>
+          <td style="padding:5px 10px;color:var(--green);font-weight:700">${longest}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const res=document.getElementById('wt-result');
+      res.style.cssText='background:var(--amber-dim);border:1px solid var(--amber);border-radius:8px;color:var(--amber)';
+      res.textContent=`✅  longest consecutive sequence = ${longest}`;
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(nums){
+      const st=[];
+      const set=new Set(nums);
+
+      st.push({line:0,num:null,current:null,set:new Set(),length:null,longest:0,act:'init',seqNums:new Set(),
+        log:`HashSet<Integer> set = new HashSet<>()`});
+      st.push({line:1,num:null,current:null,set:new Set(set),length:null,longest:0,act:'build',seqNums:new Set(),
+        log:`set built: {${[...set].sort((a,b)=>a-b).join(', ')}}`});
+      st.push({line:2,num:null,current:null,set:new Set(set),length:null,longest:0,act:'init2',seqNums:new Set(),
+        log:`longest = 0`});
+
+      let longest=0;
+
+      nums.forEach((num,idx)=>{
+        st.push({line:3,num,current:num,set:new Set(set),length:null,longest,act:'loop',seqNums:new Set(),
+          log:`i=${idx}, nums[i]=${num}`});
+        st.push({line:4,num,current:num,set:new Set(set),length:1,longest,act:'initvars',seqNums:new Set([num]),
+          log:`current=${num}, length=1`});
+        const hasLeft=set.has(num-1);
+        st.push({line:5,num,current:num,set:new Set(set),length:1,longest,act:hasLeft?'skip':'start',seqNums:new Set([num]),
+          log:`set.contains(${num}-1=${num-1}) → ${hasLeft?'true → skip':'false → sequence start!'}`});
+
+        if(!hasLeft){
+          let length=1;
+          let current=num;
+          while(set.has(current+1)){
+            const seqSet=new Set(Array.from({length:length+1},(_,j)=>num+j));
+            st.push({line:6,num,current,set:new Set(set),length,longest,act:'count',seqNums:seqSet,
+              log:`set.contains(${current}+1=${current+1}) ✓`});
+            length++;
+            current++;
+            const seqSet2=new Set(Array.from({length},(_,j)=>num+j));
+            st.push({line:7,num,current,set:new Set(set),length,longest,act:'inc',seqNums:seqSet2,
+              log:`length=${length}, current=${current}`});
+          }
+          const seqSet=new Set(Array.from({length},(_,j)=>num+j));
+          st.push({line:6,num,current,set:new Set(set),length,longest,act:'countdone',seqNums:seqSet,
+            log:`set.contains(${current+1}) ✗  →  exit while. [${[...seqSet].join('→')}] length=${length}`});
+          const prev=longest;
+          longest=Math.max(longest,length);
+          st.push({line:9,num,current,set:new Set(set),length,longest,act:longest>prev?'newbest':'same',seqNums:seqSet,
+            log:`longest = max(${prev}, ${length}) = ${longest}${longest>prev?' ★ new best!':''}`});
+        }
+      });
+
+      st.push({line:12,num:null,current:null,set:new Set(set),length:null,longest,act:'done',seqNums:new Set(),
+        log:`✅  return longest = ${longest}`});
+      return st;
+    }
+
+    function renderCells(nums,curNum,seqNums){
+      const el=document.getElementById('arr-cells');
+      el.innerHTML='';
+      nums.forEach((v,i)=>{
+        let cls='cell-val';
+        if(v===curNum) cls='cell-val cur';
+        else if(seqNums&&seqNums.has(v)) cls='cell-val seq';
+        el.innerHTML+=`<div class="cell"><div class="${cls}">${v}</div><div class="cell-idx">[${i}]</div></div>`;
+      });
+    }
+
+    function renderSet(set,seqNums){
+      const el=document.getElementById('set-display');
+      if(!set||set.size===0){el.textContent='{ }';return;}
+      el.innerHTML=[...set].sort((a,b)=>a-b).map(v=>{
+        const inSeq=seqNums&&seqNums.has(v);
+        return `<span style="color:${inSeq?'var(--teal)':'var(--muted)'};font-weight:${inSeq?700:400};margin-right:.6rem">${v}</span>`;
+      }).join('');
+    }
+
+    const lineHL={0:'at',1:'at',2:'at',3:'at',4:'at',5:'ar',6:'aa',7:'aa',8:'aa',9:'ag',10:'at',11:'at',12:'ag'};
+
+    function applyStep(s){
+      renderCells(traceNums, s.num, s.seqNums);
+      renderSet(s.set, s.seqNums);
+
+      document.getElementById('vp-num').textContent=s.num!==null?`num = ${s.num}`:'num = —';
+      document.getElementById('vp-num').className='var-pill amber';
+
+      const gateText=s.act==='skip'?`${s.num}-1 in set ✓ → skip`
+        :s.act==='start'?`${s.num}-1 NOT in set → start!`:'—';
+      document.getElementById('vp-gate').textContent=`gate: ${gateText}`;
+      document.getElementById('vp-gate').className='var-pill'+(s.act==='skip'?' red':s.act==='start'?' teal':'');
+
+      document.getElementById('vp-len').textContent=s.length!==null?`length = ${s.length} | current = ${s.current}`:'length = —';
+      document.getElementById('vp-len').className='var-pill'+(s.length!==null?' teal':'');
+      document.getElementById('vp-long').textContent=`longest = ${s.longest}`;
+      document.getElementById('vp-long').className='var-pill'+(s.longest>0?' green':'');
+
+      for(let k=0;k<=12;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      const isDone=s.act==='done';
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='newbest'?'var(--amber)':
+        s.act==='skip'?'var(--red)':s.act==='start'?'var(--teal)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('nums-input').value.trim();
+      const nums=raw.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const errEl=document.getElementById('input-err');
+      if(nums.length<2||nums.length>12){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceNums=nums;
+      steps=buildSteps(traceNums);
+      cur=0;
+      renderCells(traceNums,null,new Set());
+      document.getElementById('set-display').textContent='{ }';
+      for(let k=0;k<=12;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-num').textContent='num = —';      document.getElementById('vp-num').className='var-pill amber';
+      document.getElementById('vp-gate').textContent='gate: —';     document.getElementById('vp-gate').className='var-pill';
+      document.getElementById('vp-len').textContent='length = —';   document.getElementById('vp-len').className='var-pill teal';
+      document.getElementById('vp-long').textContent='longest = 0'; document.getElementById('vp-long').className='var-pill green';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing nums=[${nums}] — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
