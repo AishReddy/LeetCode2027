@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>344. Reverse String</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --sky:#38bdf8;--sky-dim:#38bdf818;--sky-mid:#38bdf844;
+          --pink:#f472b6;--pink-dim:#f472b618;--pink-mid:#f472b644;
+          --emerald:#34d399;--emerald-dim:#34d39918;
+          --yellow:#fde68a;--yellow-dim:#fde68a18;
+          --violet:#a78bfa;--violet-dim:#a78bfa18;
+          --red:#f87171;--red-dim:#f8717118;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:900px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);border:1px solid var(--sky);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.easy    {background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)}
+        .badge.time    {background:var(--sky-dim);color:var(--sky);border-color:var(--sky)}
+        .badge.space   {background:var(--violet-dim);color:var(--violet);border-color:var(--violet)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .problem-example{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;font-size:.82rem;line-height:2.2;margin-top:1rem}
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.sky     {background:var(--sky-dim);    border-left:3px solid var(--sky);    color:#9ad0e0}
+        .callout.emerald {background:var(--emerald-dim);border-left:3px solid var(--emerald);color:#9ad4bc}
+        .callout.yellow  {background:var(--yellow-dim); border-left:3px solid var(--yellow); color:#d4c87a}
+        .callout.violet  {background:var(--violet-dim); border-left:3px solid var(--violet); color:#b0aed4}
+        .callout.pink    {background:var(--pink-dim);   border-left:3px solid var(--pink);   color:#d4a0bc}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.pl{background:var(--sky-dim);  color:var(--sky);  border:1px solid var(--sky)}
+        .phase-badge.pr{background:var(--pink-dim); color:var(--pink); border:1px solid var(--pink)}
+        .phase-badge.ps{background:var(--emerald-dim);color:var(--emerald);border:1px solid var(--emerald)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* array vis */
+        .arr-canvas{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1.4rem 1rem 1rem;margin:.8rem 0;overflow-x:auto}
+        .arr-canvas svg{display:block;margin:0 auto}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.sky    {background:var(--sky-dim);    color:var(--sky);    border-color:var(--sky)}
+        .pill.pink   {background:var(--pink-dim);   color:var(--pink);   border-color:var(--pink)}
+        .pill.emerald{background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)}
+        .pill.yellow {background:var(--yellow-dim); color:var(--yellow); border-color:var(--yellow)}
+
+        .code-line{display:block;transition:background .2s;border-radius:3px;padding:0 4px}
+        .code-line.active{background:#38bdf814}
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--yellow)}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.75rem 0;transition:color .2s}
+        .step-log.sky    {color:var(--sky)}
+        .step-log.pink   {color:var(--pink)}
+        .step-log.emerald{color:var(--emerald)}
+        .step-log.yellow {color:var(--yellow)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary  {background:var(--sky-dim);  border-color:var(--sky);  color:var(--sky)}
+        .btn-primary:hover:not(:disabled){background:var(--sky-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--sky);color:var(--sky)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--pink);border-color:var(--pink)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time {background:var(--sky-dim);    border-color:var(--sky)}
+        .cx-card.space{background:var(--violet-dim); border-color:var(--violet)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--sky)}
+        .cx-card.space .cx-label{color:var(--violet)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--sky)}
+        .cx-card.space .cx-big{color:var(--violet)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        /* mirror vis */
+        .mirror-wrap{display:flex;gap:2rem;align-items:center;justify-content:center;padding:1.2rem 0;flex-wrap:wrap}
+        .mirror-col{text-align:center}
+        .mirror-label{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem}
+        .mirror-chars{display:flex;gap:6px}
+        .mirror-char{width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:600;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2)}
+        .mirror-char.hi{background:var(--sky-dim);border-color:var(--sky);color:var(--sky)}
+        .mirror-arrow{font-size:1.4rem;color:var(--emerald);align-self:center}
+
+        @media(max-width:540px){.cx-grid{grid-template-columns:1fr}.header h1{font-size:2rem}.mirror-wrap{gap:1rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">LeetCode 344</div>
+        <h1>Reverse String</h1>
+        <p>Two-pointer in-place character swap</p>
+        <div class="badges">
+            <span class="badge easy">easy</span>
+            <span class="badge time">O(n) time</span>
+            <span class="badge space">O(1) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            Write a function that reverses a character array <code style="color:var(--sky)">s</code> <strong style="color:var(--text)">in-place</strong>. You must do this by modifying the input array directly with <strong style="color:var(--text)">O(1) extra memory</strong>.
+        </p>
+        <div class="problem-example">
+            Input:&nbsp; <span style="color:var(--sky)">['h','e','l','l','o']</span><br>
+            Output: <span style="color:var(--emerald)">['o','l','l','e','h']</span><br><br>
+            Input:&nbsp; <span style="color:var(--sky)">['H','a','n','n','a','h']</span><br>
+            Output: <span style="color:var(--emerald)">['h','a','n','n','a','H']</span>
+        </div>
+        <div class="callout sky">
+            ⚡ Key insight: place one pointer at the start (<code style="color:var(--sky)">l</code>) and one at the end (<code style="color:var(--pink)">r</code>). Swap them and march inward. When they meet (or cross), the array is reversed.
+        </div>
+    </div>
+
+    <!-- mirror intuition -->
+    <div class="card">
+        <div class="card-title">Visual intuition — mirror swaps</div>
+        <p style="font-size:.8rem;color:var(--muted2);line-height:1.7;margin-bottom:1rem">
+            Reversing is exactly placing each character at its mirror position. Index <code style="color:var(--sky)">i</code> pairs with index <code style="color:var(--pink)">n-1-i</code>.
+        </p>
+        <div class="mirror-wrap">
+            <div class="mirror-col">
+                <div class="mirror-label">original</div>
+                <div class="mirror-chars">
+                    <div class="mirror-char hi">h</div>
+                    <div class="mirror-char">e</div>
+                    <div class="mirror-char">l</div>
+                    <div class="mirror-char">l</div>
+                    <div class="mirror-char hi">o</div>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:6px">
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--sky)">[0]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[1]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[2]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[3]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--pink)">[4]</div>
+                </div>
+            </div>
+            <div class="mirror-arrow">⟷</div>
+            <div class="mirror-col">
+                <div class="mirror-label">reversed</div>
+                <div class="mirror-chars">
+                    <div class="mirror-char hi" style="background:var(--pink-dim);border-color:var(--pink);color:var(--pink)">o</div>
+                    <div class="mirror-char">l</div>
+                    <div class="mirror-char">l</div>
+                    <div class="mirror-char">e</div>
+                    <div class="mirror-char hi" style="background:var(--pink-dim);border-color:var(--pink);color:var(--pink)">h</div>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:6px">
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--pink)">[0]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[1]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[2]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--muted)">[3]</div>
+                    <div style="width:40px;text-align:center;font-size:.65rem;color:var(--sky)">[4]</div>
+                </div>
+            </div>
+        </div>
+        <div class="callout emerald">
+            ✓ Only ⌊n/2⌋ swaps needed. The middle element (odd-length array) never moves — it's already in its mirror position.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">Two-pointer approach</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge pl">l</div>
+                <div class="phase-body"><strong>Left pointer (l)</strong> — starts at index 0, the first character. Advances inward (<code style="color:var(--sky)">l++</code>) after each swap.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pr">r</div>
+                <div class="phase-body"><strong>Right pointer (r)</strong> — starts at <code style="color:var(--pink)">s.length-1</code>, the last character. Retreats inward (<code style="color:var(--pink)">r--</code>) after each swap.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge ps">↔</div>
+                <div class="phase-body"><strong>Swap &amp; march</strong> — use a <code style="color:var(--emerald)">temp</code> variable to swap <code>s[l]</code> ↔ <code>s[r]</code>. Repeat while <code style="color:var(--sky)">l &lt; r</code>. When they meet or cross, done.</div>
+            </div>
+        </div>
+        <div class="callout yellow">
+            ✓ No extra array. The classic 3-variable swap: <code>temp = s[l]; s[l] = s[r]; s[r] = temp;</code> — the same pattern used in sorting, partitioning, and every in-place rearrangement.
+        </div>
+    </div>
+
+    <!-- interactive trace -->
+    <div class="card">
+        <div class="card-title">Interactive trace &nbsp;—&nbsp; ['h','e','l','l','o']</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <div class="arr-canvas">
+            <svg id="arr-svg" width="100%" viewBox="0 0 380 100" style="max-width:380px"></svg>
+        </div>
+
+        <div class="pills">
+            <div class="pill sky"   id="pill-l">l = —</div>
+            <div class="pill pink"  id="pill-r">r = —</div>
+            <div class="pill"       id="pill-sl">s[l] = —</div>
+            <div class="pill"       id="pill-sr">s[r] = —</div>
+            <div class="pill yellow" id="pill-temp">temp = —</div>
+        </div>
+
+        <pre id="code-viewer" style="margin:.5rem 0 0;font-size:.76rem"></pre>
+
+        <div class="step-log sky" id="step-log">Press "Next step" to begin tracing ['h','e','l','l','o'].</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Full walkthrough table &nbsp;—&nbsp; ['h','e','l','l','o']</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">step</th>
+                    <th style="padding:6px 10px;color:var(--sky);font-weight:500">l</th>
+                    <th style="padding:6px 10px;color:var(--pink);font-weight:500">r</th>
+                    <th style="padding:6px 10px;color:var(--sky);font-weight:500">s[l]</th>
+                    <th style="padding:6px 10px;color:var(--pink);font-weight:500">s[r]</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">action</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">array after</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div class="callout sky" style="margin-top:1rem">
+            Only 2 swaps needed for a 5-char array (⌊5/2⌋ = 2). The middle character 'l' at index 2 never moves.
+        </div>
+    </div>
+
+    <!-- code -->
+    <div class="card">
+        <div class="card-title">Java solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public void</span> <span class="fn">reverseString</span>(<span class="kw">char</span>[] s) {
+        <span class="kw">int</span> l = <span class="num">0</span>;
+        <span class="kw">int</span> r = s.length - <span class="num">1</span>;
+
+        <span class="kw">while</span> (l &lt; r) {
+            <span class="kw">char</span> temp = s[l];   <span class="cm">// save left</span>
+            s[l] = s[r];          <span class="cm">// overwrite left with right</span>
+            s[r] = temp;          <span class="cm">// restore right from saved</span>
+            l++;
+            r--;
+        }
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--sky);font-weight:600;margin-bottom:.4rem">Why <code>l &lt; r</code> not <code>l &lt;= r</code>?</div>
+                <div style="color:var(--muted2)">
+                    When <code>l == r</code> both pointers are at the same middle element — swapping it with itself is useless. <code>l &lt; r</code> stops one step earlier, saving one redundant swap.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:.4rem">Why a temp variable?</div>
+                <div style="color:var(--muted2)">
+                    Without saving <code style="color:var(--yellow)">s[l]</code> first, writing <code>s[l] = s[r]</code> destroys its value before you can copy it to <code>s[r]</code>. The 3-variable swap is the fundamental pattern.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9;grid-column:1/-1">
+                <div style="color:var(--yellow);font-weight:600;margin-bottom:.4rem">Invariant</div>
+                <div style="color:var(--muted2)">
+                    After each iteration: <code style="color:var(--sky)">s[0..l-1]</code> and <code style="color:var(--pink)">s[r+1..n-1]</code> are in their final reversed positions. The region <code>[l..r]</code> still needs processing. Loop terminates when that region is empty.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">Each element is touched exactly once. ⌊n/2⌋ swaps total — half the array.</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(1)</div>
+                <div class="cx-desc">Only three variables: l, r, temp. No extra array, no recursion stack.</div>
+            </div>
+        </div>
+        <div class="callout violet" style="margin-top:1rem">
+            Two pointers meeting in the middle is the most elegant reversal. Some alternatives: XOR swap (no temp, but less readable), or using a stack (O(n) space — defeats the purpose).
+        </div>
+    </div>
+
+    <!-- related -->
+    <div class="card">
+        <div class="card-title">Related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Valid Palindrome (125)</strong> — same two-pointer inward march, comparing instead of swapping<br>
+            • <strong style="color:var(--text)">Reverse Words in a String II (186)</strong> — reverse whole array, then reverse each word<br>
+            • <strong style="color:var(--text)">Rotate Array (189)</strong> — uses reverse-of-reverse as a core sub-routine<br>
+            • <strong style="color:var(--text)">Two Sum II (167)</strong> — same converging pointer pattern on a sorted array
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const ORIG = ['h','e','l','l','o'];
+    const N = ORIG.length;
+    const CW = 54, CH = 44, GAP = 14;
+    const TOTAL_W = N * CW + (N-1) * GAP;
+    const SVG_W = 380;
+    const START_X = (SVG_W - TOTAL_W) / 2;
+    const Y = 20;
+
+    const SKY    = '#38bdf8';
+    const PINK   = '#f472b6';
+    const EMERALD= '#34d399';
+    const YELLOW = '#fde68a';
+    const MUTED  = '#32324a';
+
+    function bx(i) { return START_X + i*(CW+GAP); }
+    function cx(i) { return bx(i) + CW/2; }
+
+    function renderArr(arr, hl) {
+      const svg = document.getElementById('arr-svg');
+      let html = '';
+      for (let i = 0; i < N; i++) {
+        const x = bx(i), mx = cx(i);
+        let fill = '#0d1a1a', stroke = MUTED, textCol = '#6b8880', sw = '1';
+        if (hl.l === i && hl.r === i) { fill='#1a1a0a'; stroke=YELLOW; textCol=YELLOW; sw='1.5'; }
+        else if (hl.l === i)          { fill='#0a1a24'; stroke=SKY;    textCol=SKY;    sw='1.5'; }
+        else if (hl.r === i)          { fill='#24101a'; stroke=PINK;   textCol=PINK;   sw='1.5'; }
+        if (hl.swapping && (i===hl.l || i===hl.r)) { fill='#0a1f10'; stroke=EMERALD; textCol=EMERALD; sw='2'; }
+        if (hl.done) { fill='#0a1f10'; stroke=EMERALD; textCol=EMERALD; }
+
+        html += `<rect x="${x}" y="${Y}" width="${CW}" height="${CH}" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        html += `<text x="${mx}" y="${Y+CH/2+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="18" font-weight="600" fill="${textCol}">${arr[i]}</text>`;
+        html += `<text x="${mx}" y="${Y+CH+16}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3a3a55">[${i}]</text>`;
+      }
+      // pointer arrows above
+      if (hl.l !== undefined && hl.l >= 0 && hl.l < N) {
+        const ax = cx(hl.l);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${SKY}">l</text>`;
+        html += `<polygon points="${ax-4},${Y-5} ${ax+4},${Y-5} ${ax},${Y-1}" fill="${SKY}"/>`;
+      }
+      if (hl.r !== undefined && hl.r >= 0 && hl.r < N && hl.r !== hl.l) {
+        const ax = cx(hl.r);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${PINK}">r</text>`;
+        html += `<polygon points="${ax-4},${Y-5} ${ax+4},${Y-5} ${ax},${Y-1}" fill="${PINK}"/>`;
+      }
+      if (hl.l !== undefined && hl.r !== undefined && hl.l === hl.r) {
+        const ax = cx(hl.l);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${YELLOW}">l=r</text>`;
+      }
+      svg.innerHTML = html;
+    }
+
+    function buildSteps() {
+      const steps = [];
+      const arr = [...ORIG];
+
+      function snap(arr, hl, title, badge, badgeStyle, log, logColor, pills, codeLines) {
+        steps.push({ arr:[...arr], hl, title, badge, badgeStyle, log, logColor, pills, codeLines });
+      }
+
+      snap(arr, {l:0,r:N-1}, 'Initial array', '—', 'surface',
+        `Init: l=0 ('${arr[0]}'), r=${N-1} ('${arr[N-1]}'). While l<r, swap and march inward.`, 'sky',
+        {l:'0',r:String(N-1),sl:arr[0],sr:arr[N-1],temp:'—'}, [2,3]);
+
+      let l=0, r=N-1;
+      let stepNum = 1;
+      while (l < r) {
+        // show condition check
+        snap(arr, {l,r}, `Loop: l=${l} < r=${r} ✓`, 'swap', 'sky',
+          `l=${l} < r=${r} → enter loop. s[l]='${arr[l]}', s[r]='${arr[r]}'.`, 'sky',
+          {l:String(l),r:String(r),sl:arr[l],sr:arr[r],temp:'—'}, [5,6]);
+
+        const tempVal = arr[l];
+        snap(arr, {l,r}, `Save temp = s[${l}] = '${tempVal}'`, 'temp', 'yellow',
+          `char temp = s[${l}] = '${tempVal}'. Now safe to overwrite s[${l}].`, 'yellow',
+          {l:String(l),r:String(r),sl:arr[l],sr:arr[r],temp:String(tempVal)}, [6]);
+
+        snap(arr, {l,r,swapping:true}, `Swap s[${l}]↔s[${r}]`, 'swap!', 'emerald',
+          `s[${l}] = s[${r}] = '${arr[r]}', then s[${r}] = temp = '${tempVal}'. Swap done!`, 'emerald',
+          {l:String(l),r:String(r),sl:arr[r],sr:tempVal,temp:String(tempVal)}, [7,8,9]);
+
+        // do actual swap
+        arr[l] = arr[r]; arr[r] = tempVal;
+        l++; r--;
+
+        if (l < r) {
+          snap(arr, {l,r}, `After swap, l++ r-- → l=${l}, r=${r}`, 'march', 'sky',
+            `l→${l}, r→${r}. Array so far: [${arr.join(',')}]`, 'sky',
+            {l:String(l),r:String(r),sl:arr[l],sr:arr[r],temp:'—'}, [10,11]);
+        }
+        stepNum++;
+      }
+
+      snap(arr, {l,r,done:true}, `l=${l} ≥ r=${r} — done! ✓`, '✓ done', 'emerald',
+        `Loop exits (l=${l} >= r=${r}). Result: ['${arr.join("','")}']`, 'emerald',
+        {l:String(l),r:String(r),sl:'—',sr:'—',temp:'—'}, [5]);
+
+      return steps;
+    }
+
+    const BADGE_STYLES = {
+      surface: 'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      sky:     'background:var(--sky-dim);color:var(--sky);border-color:var(--sky)',
+      pink:    'background:var(--pink-dim);color:var(--pink);border-color:var(--pink)',
+      emerald: 'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+      yellow:  'background:var(--yellow-dim);color:var(--yellow);border-color:var(--yellow)',
+      'swap':  'background:var(--sky-dim);color:var(--sky);border-color:var(--sky)',
+      'swap!': 'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+      'temp':  'background:var(--yellow-dim);color:var(--yellow);border-color:var(--yellow)',
+      'march': 'background:var(--sky-dim);color:var(--sky);border-color:var(--sky)',
+    };
+
+    const CODE_LINES = [
+      '  int l = 0;',                // 0
+      '  int r = s.length - 1;',    // 1
+      '',                             // 2 (init arrow)
+      '',                             // 3
+      '',                             // 4
+      '  while (l < r) {',           // 5
+      '      char temp = s[l];',     // 6
+      '      s[l] = s[r];',          // 7
+      '      s[r] = temp;',          // 8
+      '      l++;',                   // 9
+      '      r--;',                   // 10
+      '  }',                          // 11
+    ];
+
+    // remap codeLines indices to match displayed lines
+    const CODE_DISPLAY = [
+      {idx:0, text:'  int l = 0;'},
+      {idx:1, text:'  int r = s.length - 1;'},
+      {idx:2, text:''},
+      {idx:3, text:'  while (l < r) {'},
+      {idx:4, text:'      char temp = s[l];'},
+      {idx:5, text:'      s[l] = s[r];'},
+      {idx:6, text:'      s[r] = temp;'},
+      {idx:7, text:'      l++;'},
+      {idx:8, text:'      r--;'},
+      {idx:9, text:'  }'},
+    ];
+
+    function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    function buildCodeHTML(activeCodes) {
+      // map step codeLines to display indices
+      const lineMap = {
+        0:[0], 1:[1], 2:[0,1], 3:[3], 5:[3], 6:[4], 7:[5,6], 8:[5,6], 9:[7,8], 10:[7,8], 11:[9]
+      };
+      const activeDisplay = new Set();
+      for (const c of activeCodes) {
+        (lineMap[c]||[]).forEach(d=>activeDisplay.add(d));
+      }
+      return CODE_DISPLAY.map(({idx,text}) =>
+        `<span class="code-line${activeDisplay.has(idx)?' active':''}">${escHtml(text)||' '}</span>`
+      ).join('\n');
+    }
+
+    const PILL_COLOR = {
+      l:'sky', r:'pink',
+      sl(v){ return v==='—'?'':'sky' },
+      sr(v){ return v==='—'?'':'pink' },
+      temp(v){ return v==='—'?'':'yellow' }
+    };
+
+    function applyStep(idx) {
+      const s = steps[idx];
+      renderArr(s.arr, s.hl);
+      document.getElementById('step-title').textContent = s.title;
+      const badge = document.getElementById('step-badge');
+      badge.textContent = s.badge;
+      badge.setAttribute('style', BADGE_STYLES[s.badgeStyle]||BADGE_STYLES.surface);
+      const log = document.getElementById('step-log');
+      log.textContent = s.log; log.className='step-log '+s.logColor;
+
+      const defs = [
+        {id:'pill-l',   label:'l',     val:s.pills.l,    col:'sky'},
+        {id:'pill-r',   label:'r',     val:s.pills.r,    col:'pink'},
+        {id:'pill-sl',  label:"s[l]",  val:s.pills.sl,   col: s.pills.sl==='—'?'':'sky'},
+        {id:'pill-sr',  label:"s[r]",  val:s.pills.sr,   col: s.pills.sr==='—'?'':'pink'},
+        {id:'pill-temp',label:'temp',  val:s.pills.temp, col: s.pills.temp==='—'?'':'yellow'},
+      ];
+      for (const d of defs) {
+        const el = document.getElementById(d.id);
+        el.textContent = d.label+' = '+d.val;
+        el.className = 'pill '+(d.col||'');
+      }
+      document.getElementById('code-viewer').innerHTML = buildCodeHTML(s.codeLines);
+      document.getElementById('step-counter').textContent = `step ${idx} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled = idx===0;
+      document.getElementById('btn-next').disabled = idx===steps.length-1;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(cur);}}
+    function prevStep(){if(cur>0){cur--;applyStep(cur);}}
+    function resetTrace(){cur=0;applyStep(0);}
+
+    function buildWT() {
+      const tbody = document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      const rows=[
+        [1,0,4,'h','o','swap h↔o, l++ r--', "['o','e','l','l','h']"],
+        [2,1,3,'e','l','swap e↔l, l++ r--', "['o','l','l','e','h']"],
+        [3,2,2,'l','l','l=r=2 → exit loop', "['o','l','l','e','h'] ✓"],
+      ];
+      rows.forEach(([step,l,r,sl,sr,action,after],i)=>{
+        const tr=document.createElement('tr');
+        if(i%2===1)tr.style.background='#ffffff04';
+        const isDone=action.includes('exit');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 10px;color:var(--sky);text-align:center;font-weight:600">${l}</td>
+          <td style="padding:5px 10px;color:var(--pink);text-align:center;font-weight:600">${r}</td>
+          <td style="padding:5px 10px;color:var(--sky)">'${sl}'</td>
+          <td style="padding:5px 10px;color:var(--pink)">'${sr}'</td>
+          <td style="padding:5px 10px;color:${isDone?'var(--emerald)':'var(--yellow)'};font-size:.72rem">${action}</td>
+          <td style="padding:5px 10px;color:var(--muted2);font-size:.7rem">${after}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    let steps=[], cur=0;
+    steps=buildSteps();
+    resetTrace();
+    buildWT();
+</script>
+</body>
+</html>
