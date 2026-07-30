@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2000. Reverse Prefix of Word</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--green-dim);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-num.r{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}.str{color:#34d399}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        /* char cells */
+        .char-row{display:flex;gap:4px;flex-wrap:wrap;margin:.5rem 0}
+        .ch{display:flex;flex-direction:column;align-items:center;gap:3px}
+        .ch-box{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-family:var(--font-mono);font-size:.95rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s}
+        .ch-box.prefix{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .ch-box.target{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .ch-box.rest{background:var(--surface2);color:var(--muted)}
+        .ch-box.rev{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+        .ch-box.scan{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .ch-idx{font-family:var(--font-mono);font-size:.6rem;color:var(--muted)}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}.ch-box{width:32px;height:32px;font-size:.85rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>2000. Reverse Prefix of Word</h1>
+        <p>LeetCode Easy — Find + Two-Pointer Reverse</p>
+        <span class="badge">easy</span>
+        <span class="badge info">O(n) time &nbsp;|&nbsp; O(n) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given a string <code style="color:var(--teal);font-family:var(--font-mono)">word</code> and a character
+            <code style="color:var(--amber);font-family:var(--font-mono)">ch</code>, reverse the segment of
+            <code style="color:var(--teal);font-family:var(--font-mono)">word</code> from index 0 up to and including
+            the <strong style="color:var(--text)">first occurrence</strong> of <code style="color:var(--amber);font-family:var(--font-mono)">ch</code>.
+            If <code style="color:var(--amber);font-family:var(--font-mono)">ch</code> is not in the word, return the word unchanged.
+        </p>
+        <div style="margin-top:.8rem;font-family:var(--font-mono);font-size:.82rem;background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;line-height:2.2;color:var(--muted)">
+            word = <span style="color:var(--text)">"abcdefd"</span>,  ch = <span style="color:var(--amber)">'d'</span><br>
+            First 'd' at index 3 → reverse [0..3] = <span style="color:var(--teal)">"abcd"</span> → <span style="color:var(--green)">"dcba"</span><br>
+            Result: <span style="color:var(--green)">"dcba"</span> + <span style="color:var(--muted)">"efd"</span> = <span style="color:var(--green)">"dcbaefd"</span>
+        </div>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Two steps: find the first occurrence of ch using <code style="font-family:var(--font-mono)">indexOf</code>, then reverse the prefix using a two-pointer swap.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — indexOf + Two-Pointer Reverse</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Find:</strong> <code style="font-family:var(--font-mono);color:var(--amber)">int idx = word.indexOf(ch)</code>.
+                    If <code style="font-family:var(--font-mono)">idx == -1</code> → return word unchanged.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Convert:</strong> <code style="font-family:var(--font-mono);color:var(--teal)">char[] arr = word.toCharArray()</code>
+                    — strings are immutable in Java, so we need a char array to swap in-place.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">3</div>
+                <div class="step-body">
+                    <strong>Two-pointer reverse</strong> with <code style="font-family:var(--font-mono);color:var(--teal)">left=0</code>,
+                    <code style="font-family:var(--font-mono);color:var(--purple)">right=idx</code>.
+                    Swap <code style="font-family:var(--font-mono)">arr[left]</code> and <code style="font-family:var(--font-mono)">arr[right]</code>,
+                    then <code style="font-family:var(--font-mono)">left++, right--</code> until they cross.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num r">4</div>
+                <div class="step-body">
+                    <strong>Return</strong> <code style="font-family:var(--font-mono);color:var(--green)">new String(arr)</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; word = "abcdefd", ch = 'd'</div>
+
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:.4rem">Step 1 — indexOf('d') = 3</div>
+        <div id="wt-find" class="char-row"></div>
+
+        <hr>
+
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:.4rem">Step 2 — Two-pointer reverse [0..3]</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">left</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 10px;text-align:left">right</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">swap</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 10px;text-align:left">arr after</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">indexOf scans at most n chars. Reverse swaps at most idx/2 ≤ n/2 pairs. Total O(n).</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc"><code>toCharArray()</code> creates a copy of the string — O(n). Needed because Java strings are immutable.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why toCharArray()?</strong>
+            Java strings are immutable — you can't modify <code style="font-family:var(--font-mono)">word.charAt(i)</code> in place.
+            Converting to <code style="font-family:var(--font-mono)">char[]</code> lets us swap characters directly.<br><br>
+            <strong style="color:var(--text)">Why left &lt; right (not ≤)?</strong>
+            When left == right we're at the middle element — no swap needed.
+            Using &lt; skips it correctly for both odd and even length prefixes.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> String <span class="fn">reversePrefix</span>(String word, <span class="kw">char</span> ch) {
+        <span class="kw">int</span> idx = word.<span class="fn">indexOf</span>(ch);
+        <span class="kw">if</span> (idx == -<span class="num-c">1</span>) <span class="kw">return</span> word;   <span class="cm">// ch not found</span>
+
+        <span class="kw">char</span>[] arr = word.<span class="fn">toCharArray</span>();
+
+        <span class="kw">int</span> left  = <span class="num-c">0</span>;
+        <span class="kw">int</span> right = idx;
+
+        <span class="kw">while</span> (left &lt; right) {
+            <span class="kw">char</span> temp  = arr[left];
+            arr[left]  = arr[right];
+            arr[right] = temp;
+            left++;
+            right--;
+        }
+
+        <span class="kw">return new</span> <span class="fn">String</span>(arr);
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Pattern to remember</div>
+            <div style="color:var(--text)">
+                1. <code style="font-family:var(--font-mono);color:var(--amber)">indexOf(ch)</code> → find boundary, handle -1<br>
+                2. <code style="font-family:var(--font-mono);color:var(--teal)">toCharArray()</code> → make mutable<br>
+                3. Two-pointer swap: <code style="font-family:var(--font-mono);color:var(--purple)">left=0, right=idx</code>, swap while <code style="font-family:var(--font-mono)">left &lt; right</code><br>
+                4. <code style="font-family:var(--font-mono);color:var(--green)">new String(arr)</code> → return
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            This is just a standard <strong style="color:var(--text)">two-pointer reverse</strong> applied to a substring.
+            The only twist is finding the right boundary with <code style="font-family:var(--font-mono)">indexOf</code>.
+            <div style="font-family:var(--font-mono);font-size:.82rem;margin:.6rem 0 .5rem 1rem;line-height:2.4;color:var(--text)">
+                <span style="color:var(--teal)">a b c d</span> <span style="color:var(--muted)">e f d</span><br>
+                <span style="color:var(--teal)">↑</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:var(--purple)">↑</span><br>
+                left=0 &nbsp;&nbsp; right=3 → swap → <span style="color:var(--green)">d b c a</span> → swap again → <span style="color:var(--green)">d c b a</span>
+            </div>
+            The rest of the string <code style="font-family:var(--font-mono)">[idx+1..]</code> is untouched.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any word and char</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">word = "</label>
+            <input id="word-input" type="text" value="abcdefd"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:160px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">" &nbsp; ch = '</label>
+            <input id="ch-input" type="text" value="d" maxlength="1"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 10px;background:#070b14;border:1px solid var(--amber);color:var(--amber);border-radius:6px;width:50px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">'</label>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ word: 2-14 lowercase letters, ch: 1 letter</span>
+        </div>
+
+        <!-- char cells -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">arr[]</div>
+        <div class="char-row" id="tr-chars"></div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill amber"  id="vp-idx">idx = —</div>
+            <div class="var-pill teal"   id="vp-left">left = —</div>
+            <div class="var-pill purple" id="vp-right">right = —</div>
+            <div class="var-pill green"  id="vp-res">result = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  int idx = word.indexOf(ch);</div>
+            <div class="tl" id="tl1">  if (idx == -1) return word;</div>
+            <div class="tl" id="tl2">  char[] arr = word.toCharArray();</div>
+            <div class="tl" id="tl3">  int left=0, right=idx;</div>
+            <div class="tl" id="tl4">  while (left &lt; right) {</div>
+            <div class="tl" id="tl5">      char temp = arr[left];</div>
+            <div class="tl" id="tl6">      arr[left] = arr[right];  arr[right] = temp;</div>
+            <div class="tl" id="tl7">      left++;  right--;</div>
+            <div class="tl" id="tl8">  }</div>
+            <div class="tl" id="tl9">  return new String(arr);</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter a word and character, then press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    let traceWord='', traceCh='', steps=[], cur=0;
+
+    // ── Static walkthrough ──
+    function buildWalkthrough(){
+      const word='abcdefd', ch='d';
+      const idx=word.indexOf(ch);
+
+      // find row
+      const findEl=document.getElementById('wt-find');
+      findEl.innerHTML='';
+      [...word].forEach((c,i)=>{
+        const cls=i<idx?'ch-box prefix':i===idx?'ch-box target':'ch-box rest';
+        findEl.innerHTML+=`<div class="ch"><div class="${cls}">${c}</div><div class="ch-idx">[${i}]</div></div>`;
+      });
+
+      // reverse table
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      const arr=[...word];
+      let l=0, r=idx;
+      let step=1;
+      while(l<r){
+        const before=[...arr].join('');
+        const tmp=arr[l]; arr[l]=arr[r]; arr[r]=tmp;
+        const tr=document.createElement('tr');
+        if(step%2===0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--teal);font-weight:700">${l}</td>
+          <td style="padding:5px 10px;color:var(--purple);font-weight:700">${r}</td>
+          <td style="padding:5px 10px;color:var(--text)">swap arr[${l}]='${arr[r]}' ↔ arr[${r}]='${arr[l]}'</td>
+          <td style="padding:5px 10px;color:var(--amber)">"${arr.join('')}"</td>`;
+        tbody.appendChild(tr);
+        l++; r--; step++;
+      }
+
+      const res=document.getElementById('wt-result');
+      res.style.cssText='background:var(--green-dim);border:1px solid var(--green);border-radius:8px;color:var(--green)';
+      res.textContent='✅  return new String(arr) = "'+arr.join('"  →  reversed prefix ["')+'"';
+      res.textContent='✅  return "'+arr.join('')+'"';
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(word, ch){
+      const st=[];
+      const idx=word.indexOf(ch);
+
+      st.push({line:0,arr:[...word],left:null,right:null,idx,act:'find',
+        log:'idx = word.indexOf("'+ch+'") = '+idx});
+
+      if(idx===-1){
+        st.push({line:1,arr:[...word],left:null,right:null,idx,act:'notfound',
+          log:'"'+ch+'" not found → return word unchanged'});
+        return st;
+      }
+
+      st.push({line:2,arr:[...word],left:null,right:null,idx,act:'toarr',
+        log:'arr = word.toCharArray() = ['+[...word].join(', ')+']'});
+
+      const arr=[...word];
+      let l=0, r=idx;
+      st.push({line:3,arr:[...arr],left:l,right:r,idx,act:'init',
+        log:'left=0, right='+idx});
+
+      while(l<r){
+        st.push({line:4,arr:[...arr],left:l,right:r,idx,act:'check',
+          log:'while '+l+' < '+r+' ✓'});
+        st.push({line:5,arr:[...arr],left:l,right:r,idx,act:'temp',
+          log:'temp = arr['+l+'] = "'+arr[l]+'"'});
+        const tmp=arr[l]; arr[l]=arr[r]; arr[r]=tmp;
+        st.push({line:6,arr:[...arr],left:l,right:r,idx,act:'swap',
+          log:'swap arr['+l+'] ↔ arr['+r+']  →  "'+arr.join('"+"')+'"'});
+        l++; r--;
+        st.push({line:7,arr:[...arr],left:l,right:r,idx,act:'advance',
+          log:'left='+l+', right='+r});
+      }
+
+      st.push({line:8,arr:[...arr],left:l,right:r,idx,act:'exit',
+        log:'while '+l+' < '+r+' ✗ → exit'});
+      st.push({line:9,arr:[...arr],left:l,right:r,idx,act:'done',
+        log:'✅  return new String(arr) = "'+arr.join('")+'"'});
+      return st;
+    }
+
+    function renderChars(arr, left, right, idx, act){
+      const el=document.getElementById('tr-chars');
+      el.innerHTML='';
+      arr.forEach((c,i)=>{
+        let cls='ch-box';
+        if(act==='find'||act==='toarr'||act==='init'){
+          if(i<idx) cls='ch-box prefix';
+          else if(i===idx) cls='ch-box target';
+        } else if(act==='done'||act==='exit'){
+          if(i<=idx) cls='ch-box rev';
+        } else {
+          if(i===left) cls='ch-box cur'||'ch-box prefix';
+          if(i===right) cls='ch-box scan';
+          if(i===left&&i===right) cls='ch-box target';
+          if(i<left||i===right&&i<right) cls='ch-box rev';
+          // already reversed = i<left or i>right within prefix
+          if(i<left&&i<=idx) cls='ch-box rev';
+          if(i>right&&i<=idx) cls='ch-box rev';
+          if(i===left) cls='ch-box prefix';
+          if(i===right) cls='ch-box scan';
+        }
+        el.innerHTML+=`<div class="ch"><div class="${cls}">${c}</div><div class="ch-idx">[${i}]</div></div>`;
+      });
+    }
+
+    const lineHL={0:'at',1:'ar',2:'at',3:'at',4:'at',5:'ap',6:'aa',7:'at',8:'at',9:'ag'};
+
+    function applyStep(s){
+      renderChars(s.arr, s.left, s.right, s.idx, s.act);
+
+      document.getElementById('vp-idx').textContent='idx = '+(s.idx===-1?'-1 (not found)':s.idx);
+      document.getElementById('vp-idx').className='var-pill'+(s.idx===-1?' red':' amber');
+      document.getElementById('vp-left').textContent=s.left!==null?'left = '+s.left:'left = —';
+      document.getElementById('vp-left').className='var-pill'+(s.left!==null?' teal':'');
+      document.getElementById('vp-right').textContent=s.right!==null?'right = '+s.right:'right = —';
+      document.getElementById('vp-right').className='var-pill'+(s.right!==null?' purple':'');
+      const isDone=s.act==='done';
+      document.getElementById('vp-res').textContent=isDone?'result = "'+s.arr.join('')+'"':'result = —';
+      document.getElementById('vp-res').className='var-pill'+(isDone?' green':'');
+
+      for(let k=0;k<=9;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='swap'?'var(--amber)':
+        s.act==='notfound'?'var(--red)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent='Step '+cur+' / '+(steps.length-1);
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const word=document.getElementById('word-input').value.trim().toLowerCase();
+      const ch=document.getElementById('ch-input').value.trim().toLowerCase();
+      const errEl=document.getElementById('input-err');
+      if(!/^[a-z]{2,14}$/.test(word)||!/^[a-z]$/.test(ch)){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceWord=word; traceCh=ch;
+      steps=buildSteps(traceWord,traceCh);
+      cur=0;
+      renderChars([...traceWord],null,null,traceWord.indexOf(traceCh),'find');
+      for(let k=0;k<=9;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-idx').textContent='idx = —';   document.getElementById('vp-idx').className='var-pill amber';
+      document.getElementById('vp-left').textContent='left = —'; document.getElementById('vp-left').className='var-pill teal';
+      document.getElementById('vp-right').textContent='right = —';document.getElementById('vp-right').className='var-pill purple';
+      document.getElementById('vp-res').textContent='result = —'; document.getElementById('vp-res').className='var-pill';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent='Step 0 / '+(steps.length-1);
+      document.getElementById('trace-log').textContent='Tracing word="'+word+'", ch="'+ch+'" — press Next Step to begin';
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
