@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>102. Binary Tree Level Order Traversal</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --gold:#f59e0b;--gold-dim:#f59e0b18;--gold-mid:#f59e0b44;
+          --teal:#2dd4b0;--teal-dim:#2dd4b018;--teal-mid:#2dd4b044;
+          --purple:#c084fc;--purple-dim:#c084fc18;--purple-mid:#c084fc44;
+          --sky:#38bdf8;--sky-dim:#38bdf818;
+          --rose:#fb7185;--rose-dim:#fb718518;
+          --emerald:#34d399;--emerald-dim:#34d39918;
+          --orange:#fb923c;--orange-dim:#fb923c18;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:1000px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.medium {background:var(--gold-dim);   color:var(--gold);   border-color:var(--gold)}
+        .badge.time   {background:var(--teal-dim);   color:var(--teal);   border-color:var(--teal)}
+        .badge.space  {background:var(--purple-dim); color:var(--purple); border-color:var(--purple)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.gold  {background:var(--gold-dim);  border-left:3px solid var(--gold);  color:#d4c08a}
+        .callout.teal  {background:var(--teal-dim);  border-left:3px solid var(--teal);  color:#9ad4c8}
+        .callout.purple{background:var(--purple-dim);border-left:3px solid var(--purple);color:#d0b8e8}
+        .callout.rose  {background:var(--rose-dim);  border-left:3px solid var(--rose);  color:#d4a0a8}
+        .callout.emerald{background:var(--emerald-dim);border-left:3px solid var(--emerald);color:#9ad4bc}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.p1{background:var(--gold-dim);  color:var(--gold);  border:1px solid var(--gold)}
+        .phase-badge.p2{background:var(--teal-dim);  color:var(--teal);  border:1px solid var(--teal)}
+        .phase-badge.p3{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* ── Tracer layout ── */
+        .tracer-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+        .tracer-pane{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem;display:flex;flex-direction:column}
+        .tracer-pane-label{font-size:.63rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.6rem}
+
+        .code-pane{font-family:var(--mono);font-size:.75rem;line-height:2.05;overflow-x:auto}
+        .code-line{display:block;border-radius:3px;padding:0 6px;transition:background .25s,color .25s;color:var(--muted2)}
+        .code-line.active     {background:#f59e0b1a;color:var(--text)}
+        .code-line.active-deq {background:#2dd4b020;color:var(--teal)}
+        .code-line.active-enq {background:#c084fc20;color:var(--purple)}
+        .code-line.active-done{background:#34d39920;color:var(--emerald)}
+
+        /* queue viz */
+        .queue-wrap{margin:.5rem 0;min-height:48px}
+        .queue-label{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+        .queue-cells{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+        .q-cell{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;border:1px solid;transition:all .3s;flex-shrink:0}
+        .q-cell.gold  {background:var(--gold-dim);  border-color:var(--gold);  color:var(--gold)}
+        .q-cell.teal  {background:var(--teal-dim);  border-color:var(--teal);  color:var(--teal)}
+        .q-cell.purple{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .q-cell.faded {background:#1a1a24;          border-color:var(--border2);color:var(--muted)}
+        .q-head{font-size:.62rem;color:var(--teal);  margin-right:2px}
+        .q-tail{font-size:.62rem;color:var(--purple);margin-left:2px}
+
+        /* result levels */
+        .result-wrap{margin:.5rem 0}
+        .result-level{display:flex;gap:5px;align-items:center;margin-bottom:4px;font-size:.76rem}
+        .result-lbl{color:var(--muted);width:52px;flex-shrink:0;font-size:.68rem}
+        .r-cell{min-width:32px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:600;border:1px solid;padding:0 6px}
+        .r-cell.l0{background:var(--gold-dim);  border-color:var(--gold);  color:var(--gold)}
+        .r-cell.l1{background:var(--teal-dim);  border-color:var(--teal);  color:var(--teal)}
+        .r-cell.l2{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.gold   {background:var(--gold-dim);  color:var(--gold);  border-color:var(--gold)}
+        .pill.teal   {background:var(--teal-dim);  color:var(--teal);  border-color:var(--teal)}
+        .pill.purple {background:var(--purple-dim);color:var(--purple);border-color:var(--purple)}
+        .pill.emerald{background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)}
+        .pill.rose   {background:var(--rose-dim);  color:var(--rose);  border-color:var(--rose)}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.6rem 0;transition:color .2s}
+        .step-log.gold  {color:var(--gold)}
+        .step-log.teal  {color:var(--teal)}
+        .step-log.purple{color:var(--purple)}
+        .step-log.emerald{color:var(--emerald)}
+        .step-log.rose  {color:var(--rose)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary  {background:var(--gold-dim);  border-color:var(--gold);  color:var(--gold)}
+        .btn-primary:hover:not(:disabled){background:var(--gold-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--rose);border-color:var(--rose)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--gold)}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time {background:var(--teal-dim);  border-color:var(--teal)}
+        .cx-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--teal)}
+        .cx-card.space .cx-label{color:var(--purple)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--teal)}
+        .cx-card.space .cx-big{color:var(--purple)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        .illus-pane{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1.2rem}
+
+        @media(max-width:660px){
+          .tracer-grid{grid-template-columns:1fr}
+          .cx-grid{grid-template-columns:1fr}
+          .header h1{font-size:2rem}
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">LeetCode 102</div>
+        <h1>Binary Tree Level Order Traversal</h1>
+        <p>BFS with a queue — process one level at a time</p>
+        <div class="badges">
+            <span class="badge medium">medium</span>
+            <span class="badge time">O(n) time</span>
+            <span class="badge space">O(n) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            Given the <code style="color:var(--gold)">root</code> of a binary tree, return the <strong style="color:var(--text)">level order traversal</strong> of its nodes' values — left to right, level by level — as a <code style="color:var(--teal)">List&lt;List&lt;Integer&gt;&gt;</code>.
+        </p>
+        <div style="background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;font-size:.82rem;line-height:2.4;margin-top:1rem">
+            <span style="color:var(--muted2)">Tree:</span><br>
+            <span style="color:var(--gold)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3</span><br>
+            <span style="color:var(--gold)">&nbsp;&nbsp;&nbsp;&nbsp;/ \</span><br>
+            <span style="color:var(--teal)">&nbsp;&nbsp;&nbsp;9&nbsp;&nbsp;20</span><br>
+            <span style="color:var(--teal)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ \</span><br>
+            <span style="color:var(--purple)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;15&nbsp;&nbsp;7</span><br><br>
+            <span style="color:var(--muted2)">Output: </span><span style="color:var(--emerald)">[[3], [9,20], [15,7]]</span>
+        </div>
+        <div class="callout gold">
+            ⚡ Key insight: BFS naturally visits nodes level by level. The trick is knowing <strong style="color:var(--gold)">where one level ends and the next begins</strong> — snapshot the queue size at the start of each level, then process exactly that many nodes.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">BFS with level-size snapshot</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge p1">1</div>
+                <div class="phase-body"><strong>Seed the queue</strong> — enqueue root. Each iteration of the outer loop processes one complete level.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge p2">2</div>
+                <div class="phase-body"><strong>Snapshot the level size</strong> — <code style="color:var(--teal)">int size = queue.size()</code> before the inner loop. This captures exactly how many nodes are on the current level, even as we enqueue children.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge p3">3</div>
+                <div class="phase-body"><strong>Process &amp; enqueue children</strong> — dequeue <code>size</code> nodes, add their values to the current level list, enqueue non-null left and right children. Add completed list to result.</div>
+            </div>
+        </div>
+        <div class="callout teal">
+            ✓ The inner <code>for (int i = 0; i &lt; size; i++)</code> loop is the key. It processes exactly one level. Children enqueued during this loop form the next level — they're counted in the <em>next</em> iteration's <code>size</code> snapshot.
+        </div>
+    </div>
+
+    <!-- ═══ INTERACTIVE TRACER ═══ -->
+    <div class="card">
+        <div class="card-title">Interactive trace — code &amp; tree side by side</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <div class="tracer-grid">
+            <!-- LEFT: code + queue viz + result -->
+            <div class="tracer-pane">
+                <div class="tracer-pane-label">Code — active line highlighted</div>
+                <div class="code-pane">
+                    <span class="code-line" id="cl0">List&lt;List&lt;Integer&gt;&gt; result = <span class="kw">new</span> ArrayList&lt;&gt;();</span>
+                    <span class="code-line" id="cl1">Queue&lt;TreeNode&gt; q = <span class="kw">new</span> LinkedList&lt;&gt;();</span>
+                    <span class="code-line" id="cl2"><span class="kw">if</span> (root != <span class="kw">null</span>) q.offer(root);</span>
+                    <span class="code-line" id="cl3">&nbsp;</span>
+                    <span class="code-line" id="cl4"><span class="kw">while</span> (!q.isEmpty()) {</span>
+                    <span class="code-line" id="cl5">&nbsp;&nbsp;<span class="kw">int</span> size = q.size(); <span class="cm">// snapshot level size</span></span>
+                    <span class="code-line" id="cl6">&nbsp;&nbsp;List&lt;Integer&gt; level = <span class="kw">new</span> ArrayList&lt;&gt;();</span>
+                    <span class="code-line" id="cl7">&nbsp;&nbsp;<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; size; i++) {</span>
+                    <span class="code-line" id="cl8">&nbsp;&nbsp;&nbsp;&nbsp;TreeNode node = q.poll(); <span class="cm">// dequeue</span></span>
+                    <span class="code-line" id="cl9">&nbsp;&nbsp;&nbsp;&nbsp;level.add(node.val);</span>
+                    <span class="code-line" id="cl10">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (node.left  != <span class="kw">null</span>) q.offer(node.left);</span>
+                    <span class="code-line" id="cl11">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (node.right != <span class="kw">null</span>) q.offer(node.right);</span>
+                    <span class="code-line" id="cl12">&nbsp;&nbsp;}</span>
+                    <span class="code-line" id="cl13">&nbsp;&nbsp;result.add(level);</span>
+                    <span class="code-line" id="cl14">}</span>
+                    <span class="code-line" id="cl15"><span class="kw">return</span> result;</span>
+                </div>
+
+                <!-- queue viz -->
+                <div style="margin-top:.8rem">
+                    <div class="queue-label">Queue (front → tail)</div>
+                    <div class="queue-cells" id="queue-viz"></div>
+                </div>
+
+                <!-- result so far -->
+                <div style="margin-top:.8rem">
+                    <div class="queue-label">Result built so far</div>
+                    <div class="result-wrap" id="result-viz"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT: tree + pills -->
+            <div class="tracer-pane">
+                <div class="tracer-pane-label">Live tree — current node highlighted</div>
+                <svg id="trace-svg" width="100%" viewBox="0 0 300 210" style="max-width:300px;flex:1"></svg>
+                <div class="pills" style="margin-top:.8rem">
+                    <div class="pill gold"   id="pill-level">level = —</div>
+                    <div class="pill teal"   id="pill-size">size = —</div>
+                    <div class="pill"        id="pill-node">node = —</div>
+                    <div class="pill purple" id="pill-i">i = —</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-log gold" id="step-log">Press "Next step" to begin BFS traversal of [3, 9, 20, null, null, 15, 7].</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Level-by-level breakdown — [3, 9, 20, null, null, 15, 7]</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">level</th>
+                    <th style="padding:6px 10px;color:var(--gold);font-weight:500">queue at start</th>
+                    <th style="padding:6px 10px;color:var(--teal);font-weight:500">size</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">nodes dequeued</th>
+                    <th style="padding:6px 10px;color:var(--purple);font-weight:500">children enqueued</th>
+                    <th style="padding:6px 10px;color:var(--emerald);font-weight:500">result</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div class="callout purple" style="margin-top:1rem">
+            The <code>size</code> snapshot is taken <em>before</em> children are enqueued — this is what separates levels. After adding 9 and 20's children, the queue has 2 nodes (15, 7), but the current level's for-loop has already finished.
+        </div>
+    </div>
+
+    <!-- full code -->
+    <div class="card">
+        <div class="card-title">Full Java solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> List&lt;List&lt;Integer&gt;&gt; <span class="fn">levelOrder</span>(<span class="fn">TreeNode</span> root) {
+        List&lt;List&lt;Integer&gt;&gt; result = <span class="kw">new</span> ArrayList&lt;&gt;();
+        <span class="kw">if</span> (root == <span class="kw">null</span>) <span class="kw">return</span> result;
+
+        Queue&lt;<span class="fn">TreeNode</span>&gt; q = <span class="kw">new</span> LinkedList&lt;&gt;();
+        q.offer(root);
+
+        <span class="kw">while</span> (!q.isEmpty()) {
+            <span class="kw">int</span> size = q.size();                     <span class="cm">// nodes on this level</span>
+            List&lt;Integer&gt; level = <span class="kw">new</span> ArrayList&lt;&gt;();
+
+            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; size; i++) {
+                <span class="fn">TreeNode</span> node = q.poll();
+                level.add(node.val);
+                <span class="kw">if</span> (node.left  != <span class="kw">null</span>) q.offer(node.left);
+                <span class="kw">if</span> (node.right != <span class="kw">null</span>) q.offer(node.right);
+            }
+            result.add(level);
+        }
+        <span class="kw">return</span> result;
+    }
+}</pre>
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--gold);font-weight:600;margin-bottom:.4rem">Why snapshot <code>size</code>?</div>
+                <div style="color:var(--muted2)">
+                    As you dequeue nodes and enqueue their children, <code>q.size()</code> changes mid-loop. Snapshotting it before the inner loop freezes the count for this level — without it, you'd process part of the next level too.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--teal);font-weight:600;margin-bottom:.4rem">Why <code>null</code> check before enqueue?</div>
+                <div style="color:var(--muted2)">
+                    Never enqueue null. If you do, you'll dequeue null and get a NullPointerException on <code>null.left</code>. Always check <code>!= null</code> before <code>q.offer()</code>.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9;grid-column:1/-1">
+                <div style="color:var(--purple);font-weight:600;margin-bottom:.4rem">DFS vs BFS for level order</div>
+                <div style="color:var(--muted2)">
+                    DFS (recursion) can also do level order by passing the depth as a parameter and appending to <code>result.get(depth)</code>. But BFS is more natural — the queue literally holds "the next level" at all times. DFS uses O(h) call stack space; BFS uses O(w) queue space (w = max width).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">Every node is enqueued and dequeued exactly once. Each operation is O(1). Total = O(n).</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">Queue holds at most one full level at a time. Widest level of a perfect binary tree = n/2 nodes → O(n). Output list also O(n).</div>
+            </div>
+        </div>
+        <div class="callout gold" style="margin-top:1rem">
+            The queue acts as a FIFO buffer between levels. When processing level k, the queue contains exactly the nodes of level k+1 after the inner loop finishes — ready for the next iteration.
+        </div>
+    </div>
+
+    <!-- ═══ ILLUSTRATION — last ═══ -->
+    <div class="card">
+        <div class="card-title">Illustration — BFS wave expanding level by level</div>
+        <div class="illus-pane">
+            <svg id="illus-svg" width="100%" viewBox="0 0 580 280" style="max-width:580px;display:block;margin:0 auto"></svg>
+        </div>
+        <div style="margin-top:1rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;font-size:.74rem;text-align:center">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--gold);font-weight:600;margin-bottom:.3rem">Level 0 — [3]</div>
+                <div style="color:var(--muted2)">Queue: [3]<br>size=1 → dequeue 3<br>enqueue 9, 20</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--teal);font-weight:600;margin-bottom:.3rem">Level 1 — [9, 20]</div>
+                <div style="color:var(--muted2)">Queue: [9, 20]<br>size=2 → dequeue both<br>enqueue 15, 7</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--purple);font-weight:600;margin-bottom:.3rem">Level 2 — [15, 7]</div>
+                <div style="color:var(--muted2)">Queue: [15, 7]<br>size=2 → dequeue both<br>no children → done</div>
+            </div>
+        </div>
+
+        <!-- related -->
+    </div>
+    <div class="card">
+        <div class="card-title">Variants &amp; related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Binary Tree Zigzag Level Order Traversal (103)</strong> — alternate left→right and right→left per level<br>
+            • <strong style="color:var(--text)">Binary Tree Right Side View (199)</strong> — return last node of each level<br>
+            • <strong style="color:var(--text)">Average of Levels in Binary Tree (637)</strong> — average of each level list<br>
+            • <strong style="color:var(--text)">N-ary Tree Level Order Traversal (429)</strong> — same BFS, enqueue all children<br>
+            • <strong style="color:var(--text)">Populating Next Right Pointers (116)</strong> — connect same-level nodes using BFS
+        </div>
+    </div>
+
+</div><!-- .page -->
+<script>
+    const GOLD='#f59e0b',TEAL='#2dd4b0',PURPLE='#c084fc',EMERALD='#34d399',ROSE='#fb7185';
+    const MUTED_E='#32324a';
+    const R=21;
+
+    // Tree: 3(root) → 9(L), 20(R) → 15(RL), 7(RR)
+    // Node ids: 0=3, 1=9, 2=20, 3=15, 4=7
+    const TPOS=[
+      {x:150,y:26},   // 0: 3
+      {x:80, y:100},  // 1: 9
+      {x:222,y:100},  // 2: 20
+      {x:175,y:175},  // 3: 15
+      {x:268,y:175},  // 4: 7
+    ];
+    const TEDGES=[[0,1],[0,2],[2,3],[2,4]];
+    const TVALS=[3,9,20,15,7];
+    const LEVEL_COLS=[GOLD,TEAL,PURPLE];
+    const NODE_LEVELS=[0,1,1,2,2];
+
+    function renderTree(state){
+      const svg=document.getElementById('trace-svg');
+      let h='';
+      for(const [a,b] of TEDGES)
+        h+=`<line x1="${TPOS[a].x}" y1="${TPOS[a].y}" x2="${TPOS[b].x}" y2="${TPOS[b].y}" stroke="${MUTED_E}" stroke-width="1.5"/>`;
+      for(let i=0;i<5;i++){
+        const {x,y}=TPOS[i];
+        const lv=NODE_LEVELS[i];
+        const lcol=LEVEL_COLS[lv];
+        let fill='#0d0d18',stroke=MUTED_E,tc='#5a5a88',sw='1.5';
+        if(state.visited?.includes(i)){fill=lcol+'18';stroke=lcol;tc=lcol;}
+        if(state.active===i)          {fill=lcol+'30';stroke=lcol;tc=lcol;sw='2.5';}
+        if(state.done?.includes(i))   {fill=lcol+'12';stroke=lcol+'88';tc=lcol+'aa';}
+        h+=`<circle cx="${x}" cy="${y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        h+=`<text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="600" fill="${tc}">${TVALS[i]}</text>`;
+      }
+      svg.innerHTML=h;
+    }
+
+    function renderQueue(q){
+      const el=document.getElementById('queue-viz');
+      if(!q.length){el.innerHTML='<span style="color:var(--muted);font-size:.72rem">empty</span>';return;}
+      const cols=[GOLD,TEAL,PURPLE];
+      el.innerHTML=q.map((node,i)=>{
+        const lv=NODE_LEVELS[TVALS.indexOf(node)];
+        const col=lv===0?'gold':lv===1?'teal':'purple';
+        const prefix=i===0?'<span class="q-head">front→</span>':'';
+        const suffix=i===q.length-1?'<span class="q-tail">←tail</span>':'';
+        return `${prefix}<div class="q-cell ${col}">${node}</div>${suffix}`;
+      }).join('');
+    }
+
+    function renderResult(res){
+      const el=document.getElementById('result-viz');
+      if(!res.length){el.innerHTML='<span style="color:var(--muted);font-size:.72rem">—</span>';return;}
+      const cls=['l0','l1','l2'];
+      el.innerHTML=res.map((lvArr,i)=>`
+        <div class="result-level">
+          <div class="result-lbl">level ${i}:</div>
+          ${lvArr.map(v=>`<div class="r-cell ${cls[i]}">${v}</div>`).join('')}
+        </div>`).join('');
+    }
+
+    // ── Build steps ────────────────────────────────────────────────────────
+    function buildSteps(){
+      const steps=[];
+      let visited=[],done=[],queue=[],result=[];
+
+      function snap(active,vis,dn,q,res,
+          title,badge,bStyle,log,logColor,pills,activeLines,lClass){
+        steps.push({active,visited:[...vis],done:[...dn],
+          queue:[...q],result:res.map(a=>[...a]),
+          title,badge,bStyle,log,logColor,pills,activeLines,lClass:lClass||'active'});
+      }
+
+      // init
+      snap(-1,[],[],[],[],'Init — enqueue root','init','gold',
+        'Create result list and queue. Root ≠ null → enqueue root (3). Queue: [3].','gold',
+        {level:'—',size:'—',node:'—',i:'—'},[0,1,2]);
+
+      queue=[3];
+      snap(-1,[],[],queue,[],'Outer loop — queue not empty','loop','gold',
+        'Queue not empty → enter outer loop. size = q.size() = 1. Start level 0.','gold',
+        {level:'0',size:'1',node:'—',i:'—'},[4,5,6]);
+
+      // Level 0: dequeue 3, enqueue 9 and 20
+      visited=[0];
+      snap(0,[0],[],queue,[],'Dequeue 3 — add to level','deq','teal',
+        'i=0: poll() → node=3. level.add(3). Enqueue left=9 and right=20.','teal',
+        {level:'0',size:'1',node:'3',i:'0'},[7,8,9,10,11],'active-deq');
+
+      queue=[9,20]; result=[[3]];
+      snap(-1,[0],[0],queue,result,'Level 0 done — result.add([3])','add','gold',
+        'Inner loop done (i < 1 exhausted). result.add([3]). Queue: [9, 20].','gold',
+        {level:'0',size:'1',node:'—',i:'done'},[13],'active-done');
+
+      // Level 1: size=2, dequeue 9 then 20
+      snap(-1,[0],[0],queue,result,'Outer loop — queue [9,20], size=2','loop','gold',
+        'Queue not empty → size = 2. Start level 1.','gold',
+        {level:'1',size:'2',node:'—',i:'—'},[4,5,6]);
+
+      visited=[0,1];
+      snap(1,[0,1],[0],queue,result,'Dequeue 9 — add to level','deq','teal',
+        'i=0: poll() → node=9. level.add(9). 9 has no children → nothing enqueued.','teal',
+        {level:'1',size:'2',node:'9',i:'0'},[7,8,9,10,11],'active-deq');
+
+      queue=[20];
+      visited=[0,1,2];
+      snap(2,[0,1,2],[0],queue,result,'Dequeue 20 — add to level','deq','teal',
+        'i=1: poll() → node=20. level.add(20). Enqueue left=15, right=7.','teal',
+        {level:'1',size:'2',node:'20',i:'1'},[7,8,9,10,11],'active-deq');
+
+      queue=[15,7]; result=[[3],[9,20]];
+      snap(-1,[0,1,2],[0,1,2],queue,result,'Level 1 done — result.add([9,20])','add','gold',
+        'Inner loop done. result.add([9,20]). Queue: [15, 7].','gold',
+        {level:'1',size:'2',node:'—',i:'done'},[13],'active-done');
+
+      // Level 2: size=2, dequeue 15 then 7
+      snap(-1,[0,1,2],[0,1,2],queue,result,'Outer loop — queue [15,7], size=2','loop','gold',
+        'Queue not empty → size = 2. Start level 2.','gold',
+        {level:'2',size:'2',node:'—',i:'—'},[4,5,6]);
+
+      visited=[0,1,2,3];
+      snap(3,[0,1,2,3],[0,1,2],queue,result,'Dequeue 15 — add to level','deq','purple',
+        'i=0: poll() → node=15. level.add(15). Leaf node — no children.','purple',
+        {level:'2',size:'2',node:'15',i:'0'},[7,8,9,10,11],'active-deq');
+
+      queue=[7];
+      visited=[0,1,2,3,4];
+      snap(4,[0,1,2,3,4],[0,1,2],queue,result,'Dequeue 7 — add to level','deq','purple',
+        'i=1: poll() → node=7. level.add(7). Leaf node — no children.','purple',
+        {level:'2',size:'2',node:'7',i:'1'},[7,8,9,10,11],'active-deq');
+
+      queue=[]; result=[[3],[9,20],[15,7]];
+      snap(-1,[0,1,2,3,4],[0,1,2,3,4],[],result,'Level 2 done — result.add([15,7])','add','gold',
+        'Inner loop done. result.add([15,7]). Queue empty!','gold',
+        {level:'2',size:'2',node:'—',i:'done'},[13],'active-done');
+
+      // done
+      snap(-1,[0,1,2,3,4],[0,1,2,3,4],[],result,'Queue empty — return result ✓','✓ done','emerald',
+        'Queue is empty → outer while loop exits. Return [[3],[9,20],[15,7]].','emerald',
+        {level:'—',size:'—',node:'—',i:'—'},[14,15],'active-done');
+
+      return steps;
+    }
+
+    const BADGE_STYLES={
+      surface: 'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      gold:    'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)',
+      teal:    'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      purple:  'background:var(--purple-dim);color:var(--purple);border-color:var(--purple)',
+      emerald: 'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+      rose:    'background:var(--rose-dim);color:var(--rose);border-color:var(--rose)',
+      init:    'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)',
+      loop:    'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)',
+      deq:     'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      add:     'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)',
+      '✓ done':'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+    };
+
+    const NUM_CL=16;
+
+    function applyStep(idx){
+      const s=steps[idx];
+      renderTree({active:s.active,visited:s.visited,done:s.done});
+      renderQueue(s.queue);
+      renderResult(s.result);
+
+      document.getElementById('step-title').textContent=s.title;
+      const badge=document.getElementById('step-badge');
+      badge.textContent=s.badge;
+      badge.setAttribute('style',BADGE_STYLES[s.bStyle]||BADGE_STYLES[s.badge]||BADGE_STYLES.surface);
+
+      for(let i=0;i<NUM_CL;i++){
+        const el=document.getElementById('cl'+i);
+        if(el) el.className='code-line'+(s.activeLines.includes(i)?' '+s.lClass:'');
+      }
+
+      const log=document.getElementById('step-log');
+      log.textContent=s.log; log.className='step-log '+s.logColor;
+
+      const lv=parseInt(s.pills.level);
+      const lvClass=isNaN(lv)?'gold':lv===0?'gold':lv===1?'teal':'purple';
+      const defs=[
+        {id:'pill-level',label:'level',val:s.pills.level,col:lvClass},
+        {id:'pill-size', label:'size', val:s.pills.size, col:s.pills.size==='—'?'':'teal'},
+        {id:'pill-node', label:'node', val:s.pills.node,
+          col:s.pills.node==='—'?'':lv===0?'gold':lv===1?'teal':'purple'},
+        {id:'pill-i',    label:'i',    val:s.pills.i,    col:s.pills.i==='—'||s.pills.i==='done'?'':'purple'},
+      ];
+      for(const d of defs){
+        const el=document.getElementById(d.id);
+        el.textContent=d.label+' = '+d.val;
+        el.className='pill '+(d.col||'');
+      }
+
+      document.getElementById('step-counter').textContent=`step ${idx} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=idx===0;
+      document.getElementById('btn-next').disabled=idx===steps.length-1;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(cur);}}
+    function prevStep(){if(cur>0){cur--;applyStep(cur);}}
+    function resetTrace(){cur=0;applyStep(0);}
+
+    function buildWT(){
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      const rows=[
+        [0,'[3]','1','3','9, 20','[[3]]'],
+        [1,'[9, 20]','2','9, 20','15, 7 (from 20)','[[3],[9,20]]'],
+        [2,'[15, 7]','2','15, 7','none (leaves)','[[3],[9,20],[15,7]] ✓'],
+      ];
+      rows.forEach(([lv,qstart,size,deq,enq,res],i)=>{
+        const tr=document.createElement('tr');
+        if(i%2===1)tr.style.background='#ffffff04';
+        const lvcol=lv===0?'var(--gold)':lv===1?'var(--teal)':'var(--purple)';
+        const isLast=res.includes('✓');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:${lvcol};font-weight:600">${lv}</td>
+          <td style="padding:5px 10px;color:var(--gold);font-size:.72rem">${qstart}</td>
+          <td style="padding:5px 10px;color:var(--teal);text-align:center;font-weight:600">${size}</td>
+          <td style="padding:5px 10px;color:${lvcol};font-size:.72rem">${deq}</td>
+          <td style="padding:5px 10px;color:var(--purple);font-size:.72rem">${enq}</td>
+          <td style="padding:5px 10px;color:${isLast?'var(--amber)':'var(--emerald)'};font-weight:${isLast?700:400};font-size:.72rem">${res}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ── Illustration ───────────────────────────────────────────────────────
+    function drawIllus(){
+      const svg=document.getElementById('illus-svg');
+      // Tree + level bands + queue states shown side by side
+      const treePos=[
+        {x:200,y:40},  // 3
+        {x:120,y:120}, // 9
+        {x:280,y:120}, // 20
+        {x:220,y:200}, // 15
+        {x:340,y:200}, // 7
+      ];
+      const tEdges=[[0,1],[0,2],[2,3],[2,4]];
+      const tVals=[3,9,20,15,7];
+      const tCols=[GOLD,TEAL,TEAL,PURPLE,PURPLE];
+      const levelY=[40,120,200];
+      const levelCols=[GOLD,TEAL,PURPLE];
+      const levelLabels=['Level 0','Level 1','Level 2'];
+
+      let h='';
+
+      // level bands
+      for(let i=0;i<3;i++){
+        h+=`<rect x="30" y="${levelY[i]-24}" width="280" height="48" rx="6" fill="${levelCols[i]}09" stroke="${levelCols[i]}" stroke-width=".6" stroke-dasharray="4,6"/>`;
+        h+=`<text x="38" y="${levelY[i]+5}" font-family="IBM Plex Mono,monospace" font-size="10" fill="${levelCols[i]}" opacity=".7">${levelLabels[i]}</text>`;
+      }
+
+      // edges
+      for(const [a,b] of tEdges)
+        h+=`<line x1="${treePos[a].x}" y1="${treePos[a].y}" x2="${treePos[b].x}" y2="${treePos[b].y}" stroke="${MUTED_E}" stroke-width="1.5"/>`;
+
+      // nodes
+      for(let i=0;i<5;i++){
+        const {x,y}=treePos[i];
+        h+=`<circle cx="${x}" cy="${y}" r="20" fill="${tCols[i]}18" stroke="${tCols[i]}" stroke-width="2"/>`;
+        h+=`<text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="14" font-weight="600" fill="${tCols[i]}">${tVals[i]}</text>`;
+      }
+
+      // arrow divider
+      h+=`<line x1="345" y1="20" x2="345" y2="240" stroke="${MUTED_E}" stroke-width="1" stroke-dasharray="4,4"/>`;
+
+      // Queue states on right side
+      const queueStates=[
+        {label:'Start level 0',q:[3],col:GOLD,result:''},
+        {label:'After level 0',q:[9,20],col:TEAL,result:'[[3]]'},
+        {label:'After level 1',q:[15,7],col:PURPLE,result:'[[3],[9,20]]'},
+        {label:'After level 2',q:[],col:EMERALD,result:'[[3],[9,20],[15,7]] ✓'},
+      ];
+      const qStartX=365, qStartY=30, qRowH=55;
+      for(let i=0;i<queueStates.length;i++){
+        const qs=queueStates[i];
+        const y=qStartY+i*qRowH;
+        h+=`<text x="${qStartX}" y="${y}" font-family="IBM Plex Mono,monospace" font-size="9" fill="${qs.col}" opacity=".8">${qs.label}</text>`;
+        if(qs.q.length===0){
+          h+=`<text x="${qStartX+4}" y="${y+18}" font-family="IBM Plex Mono,monospace" font-size="11" fill="${MUTED_E}">[ empty ]</text>`;
+        } else {
+          for(let j=0;j<qs.q.length;j++){
+            const nx=qStartX+j*38;
+            h+=`<rect x="${nx}" y="${y+6}" width="32" height="26" rx="5" fill="${qs.col}18" stroke="${qs.col}" stroke-width="1"/>`;
+            h+=`<text x="${nx+16}" y="${y+21}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="600" fill="${qs.col}">${qs.q[j]}</text>`;
+          }
+        }
+        if(qs.result)
+          h+=`<text x="${qStartX}" y="${y+43}" font-family="IBM Plex Mono,monospace" font-size="9" fill="${qs.col}">${qs.result}</text>`;
+      }
+
+      svg.innerHTML=h;
+    }
+
+    let steps=[],cur=0;
+    steps=buildSteps();
+    resetTrace();
+    buildWT();
+    drawIllus();
+</script>
+</body>
+</html>
