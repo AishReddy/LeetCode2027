@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valid Palindrome</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --fuchsia:#e879f9;--fuchsia-dim:#e879f918;--fuchsia-mid:#e879f944;
+          --teal:#2dd4b0;--teal-dim:#2dd4b018;--teal-mid:#2dd4b044;
+          --gold:#f59e0b;--gold-dim:#f59e0b18;
+          --green:#4ade80;--green-dim:#4ade8018;
+          --red:#f87171;--red-dim:#f8717118;
+          --slate:#94a3b8;--slate-dim:#94a3b818;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:900px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fuchsia);border:1px solid var(--fuchsia);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.easy  {background:var(--green-dim); color:var(--green); border-color:var(--green)}
+        .badge.time  {background:var(--teal-dim);  color:var(--teal);  border-color:var(--teal)}
+        .badge.space {background:var(--slate-dim); color:var(--slate); border-color:var(--slate)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .problem-example{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;font-size:.82rem;line-height:2.4;margin-top:1rem}
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.fuchsia{background:var(--fuchsia-dim);border-left:3px solid var(--fuchsia);color:#d0a0d4}
+        .callout.teal   {background:var(--teal-dim);   border-left:3px solid var(--teal);   color:#9ad4c8}
+        .callout.green  {background:var(--green-dim);  border-left:3px solid var(--green);  color:#9ad4ae}
+        .callout.gold   {background:var(--gold-dim);   border-left:3px solid var(--gold);   color:#d4c08a}
+        .callout.red    {background:var(--red-dim);    border-left:3px solid var(--red);    color:#d4a0a0}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.pl{background:var(--fuchsia-dim);color:var(--fuchsia);border:1px solid var(--fuchsia)}
+        .phase-badge.pr{background:var(--teal-dim);   color:var(--teal);   border:1px solid var(--teal)}
+        .phase-badge.pm{background:var(--gold-dim);   color:var(--gold);   border:1px solid var(--gold)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* ── char strip vis ── */
+        .arr-canvas{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1.4rem 1rem 1.2rem;margin:.8rem 0;overflow-x:auto}
+        .arr-canvas svg{display:block;margin:0 auto}
+
+        /* ── symmetry mirror ── */
+        .sym-wrap{display:flex;flex-direction:column;gap:6px;align-items:center;padding:1rem 0}
+        .sym-row{display:flex;gap:6px}
+        .sym-char{width:42px;height:42px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:600;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2)}
+        .sym-char.match {background:var(--teal-dim);  border-color:var(--teal);   color:var(--teal)}
+        .sym-char.mid   {background:var(--gold-dim);  border-color:var(--gold);   color:var(--gold)}
+        .sym-axis{height:2px;width:100%;background:linear-gradient(90deg,transparent,var(--fuchsia),transparent);margin:4px 0;border-radius:2px}
+        .sym-label{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.fuchsia{background:var(--fuchsia-dim);color:var(--fuchsia);border-color:var(--fuchsia)}
+        .pill.teal   {background:var(--teal-dim);   color:var(--teal);   border-color:var(--teal)}
+        .pill.gold   {background:var(--gold-dim);   color:var(--gold);   border-color:var(--gold)}
+        .pill.green  {background:var(--green-dim);  color:var(--green);  border-color:var(--green)}
+        .pill.red    {background:var(--red-dim);    color:var(--red);    border-color:var(--red)}
+
+        .code-line{display:block;transition:background .2s;border-radius:3px;padding:0 4px}
+        .code-line.active{background:#e879f914}
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--gold)}.str{color:#86efac}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.75rem 0;transition:color .2s}
+        .step-log.fuchsia{color:var(--fuchsia)}.step-log.teal{color:var(--teal)}.step-log.green{color:var(--green)}.step-log.red{color:var(--red)}.step-log.gold{color:var(--gold)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary  {background:var(--fuchsia-dim);border-color:var(--fuchsia);color:var(--fuchsia)}
+        .btn-primary:hover:not(:disabled){background:var(--fuchsia-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--fuchsia);color:var(--fuchsia)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--red);border-color:var(--red)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        /* try-it input */
+        .try-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+        .try-row label{font-size:.76rem;color:var(--muted2)}
+        .try-row input{font-family:var(--mono);font-size:.82rem;padding:8px 14px;background:#070710;border:1px solid var(--fuchsia);color:var(--fuchsia);border-radius:6px;outline:none;width:200px}
+        .try-row input:focus{border-color:var(--teal);color:var(--teal)}
+        .try-result{font-family:var(--mono);font-size:.88rem;padding:10px 16px;border-radius:8px;border:1px solid;transition:all .3s;display:inline-block}
+        .try-result.yes{background:var(--green-dim); border-color:var(--green); color:var(--green)}
+        .try-result.no {background:var(--red-dim);   border-color:var(--red);   color:var(--red)}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time {background:var(--teal-dim);  border-color:var(--teal)}
+        .cx-card.space{background:var(--slate-dim); border-color:var(--slate)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--teal)}
+        .cx-card.space .cx-label{color:var(--slate)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--teal)}
+        .cx-card.space .cx-big{color:var(--slate)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        @media(max-width:540px){.cx-grid{grid-template-columns:1fr}.header h1{font-size:2rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">Two Pointers</div>
+        <h1>Valid Palindrome</h1>
+        <p>Converging two-pointer character comparison</p>
+        <div class="badges">
+            <span class="badge easy">easy</span>
+            <span class="badge time">O(n) time</span>
+            <span class="badge space">O(1) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            Given a string <code style="color:var(--fuchsia)">str</code>, determine if it is a <strong style="color:var(--text)">palindrome</strong> — a string that reads the same forwards and backwards.
+        </p>
+        <div class="problem-example">
+            <span style="color:var(--fuchsia)">"racecar"</span> → <span style="color:var(--green)">true</span> &nbsp;<span style="color:var(--muted)">// r·a·c·e·c·a·r mirrors perfectly</span><br>
+            <span style="color:var(--fuchsia)">"madam"</span>&nbsp;&nbsp; → <span style="color:var(--green)">true</span> &nbsp;<span style="color:var(--muted)">// m·a·d·a·m mirrors perfectly</span><br>
+            <span style="color:var(--fuchsia)">"hello"</span>&nbsp;&nbsp; → <span style="color:var(--red)">false</span> &nbsp;<span style="color:var(--muted)">// h≠o at positions 0 and 4</span><br>
+            <span style="color:var(--fuchsia)">"a"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → <span style="color:var(--green)">true</span> &nbsp;<span style="color:var(--muted)">// single char, l never &lt; r</span>
+        </div>
+        <div class="callout fuchsia">
+            ⚡ Key insight: a palindrome is symmetric around its center. Check symmetry by pointing one pointer at each end and converging — if every pair matches, it's a palindrome.
+        </div>
+    </div>
+
+    <!-- symmetry visual -->
+    <div class="card">
+        <div class="card-title">Symmetry intuition — "racecar"</div>
+        <div class="sym-wrap">
+            <div class="sym-label">outer pairs match inward</div>
+            <div class="sym-row">
+                <div class="sym-char match">r</div>
+                <div class="sym-char match">a</div>
+                <div class="sym-char match">c</div>
+                <div class="sym-char mid">e</div>
+                <div class="sym-char match">c</div>
+                <div class="sym-char match">a</div>
+                <div class="sym-char match">r</div>
+            </div>
+            <div class="sym-axis"></div>
+            <div style="display:flex;gap:6px;font-size:.68rem;color:var(--muted)">
+                <div style="width:42px;text-align:center">[0]</div>
+                <div style="width:42px;text-align:center">[1]</div>
+                <div style="width:42px;text-align:center">[2]</div>
+                <div style="width:42px;text-align:center;color:var(--gold)">[3]</div>
+                <div style="width:42px;text-align:center">[4]</div>
+                <div style="width:42px;text-align:center">[5]</div>
+                <div style="width:42px;text-align:center">[6]</div>
+            </div>
+            <div style="font-size:.74rem;color:var(--muted2);margin-top:.6rem;line-height:1.8;text-align:center">
+                Pairs: <span style="color:var(--teal)">[0]↔[6]</span> &nbsp; <span style="color:var(--teal)">[1]↔[5]</span> &nbsp; <span style="color:var(--teal)">[2]↔[4]</span> &nbsp; <span style="color:var(--gold)">[3] = center (never compared)</span>
+            </div>
+        </div>
+        <div class="callout teal">
+            ✓ Only ⌊n/2⌋ comparisons needed. The center character (odd-length string) is always trivially palindromic with itself — skip it via the <code>l &lt; r</code> condition.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">Two-pointer approach</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge pl">l</div>
+                <div class="phase-body"><strong>Left pointer (l)</strong> — starts at index 0. Advances inward (<code style="color:var(--fuchsia)">l++</code>) after each matching pair. Represents the "front" of the string.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pr">r</div>
+                <div class="phase-body"><strong>Right pointer (r)</strong> — starts at <code style="color:var(--teal)">str.length()-1</code>. Retreats inward (<code style="color:var(--teal)">r--</code>) after matching. Represents the "back" of the string.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pm">?</div>
+                <div class="phase-body"><strong>Compare &amp; decide</strong> — if <code style="color:var(--red)">charAt(l) != charAt(r)</code>, return <code style="color:var(--red)">false</code> immediately. If they match, advance both. If <code>l ≥ r</code> without mismatch, return <code style="color:var(--green)">true</code>.</div>
+            </div>
+        </div>
+        <div class="callout gold">
+            ✓ Early exit on first mismatch — no need to check the rest. Best case O(1) (first chars differ), worst case O(n/2) comparisons.
+        </div>
+    </div>
+
+    <!-- interactive trace -->
+    <div class="card">
+        <div class="card-title">Interactive trace &nbsp;—&nbsp; "racecar"</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <div class="arr-canvas">
+            <svg id="arr-svg" width="100%" viewBox="0 0 460 100" style="max-width:460px"></svg>
+        </div>
+
+        <div class="pills">
+            <div class="pill fuchsia" id="pill-l">l = —</div>
+            <div class="pill teal"    id="pill-r">r = —</div>
+            <div class="pill"         id="pill-cl">s[l] = —</div>
+            <div class="pill"         id="pill-cr">s[r] = —</div>
+            <div class="pill"         id="pill-match">match = —</div>
+        </div>
+
+        <pre id="code-viewer" style="margin:.5rem 0 0;font-size:.76rem"></pre>
+
+        <div class="step-log fuchsia" id="step-log">Press "Next step" to trace "racecar".</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- try it yourself -->
+    <div class="card">
+        <div class="card-title">Try it yourself</div>
+        <div class="try-row">
+            <label>string:</label>
+            <input type="text" id="try-input" placeholder="type any string…" oninput="tryPalindrome()" value="racecar">
+        </div>
+        <div id="try-result" class="try-result yes">✓ "racecar" is a palindrome</div>
+        <div id="try-trace" style="margin-top:1rem;font-family:var(--mono);font-size:.74rem;color:var(--muted2);line-height:2;background:#070710;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;min-height:40px"></div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Full walkthrough table &nbsp;—&nbsp; "racecar"</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">step</th>
+                    <th style="padding:6px 10px;color:var(--fuchsia);font-weight:500">l</th>
+                    <th style="padding:6px 10px;color:var(--teal);font-weight:500">r</th>
+                    <th style="padding:6px 10px;color:var(--fuchsia);font-weight:500">s[l]</th>
+                    <th style="padding:6px 10px;color:var(--teal);font-weight:500">s[r]</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">match?</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">result</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- non-palindrome trace -->
+    <div class="card">
+        <div class="card-title">Non-palindrome trace &nbsp;—&nbsp; "hello" (early exit)</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">step</th>
+                    <th style="padding:6px 10px;color:var(--fuchsia);font-weight:500">l</th>
+                    <th style="padding:6px 10px;color:var(--teal);font-weight:500">r</th>
+                    <th style="padding:6px 10px;color:var(--fuchsia);font-weight:500">s[l]</th>
+                    <th style="padding:6px 10px;color:var(--teal);font-weight:500">s[r]</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">match?</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">result</th>
+                </tr>
+                </thead>
+                <tbody id="wt2-tbody"></tbody>
+            </table>
+        </div>
+        <div class="callout red" style="margin-top:1rem">
+            ✗ 'h' ≠ 'o' at step 1 → return <code>false</code> immediately. No need to check the remaining characters.
+        </div>
+    </div>
+
+    <!-- code -->
+    <div class="card">
+        <div class="card-title">Java solution</div>
+        <pre><span class="kw">public boolean</span> <span class="fn">isPalindrome</span>(String str) {
+    <span class="kw">int</span> l = <span class="num">0</span>;
+    <span class="kw">int</span> r = str.length() - <span class="num">1</span>;
+
+    <span class="kw">while</span> (l &lt; r) {
+        <span class="kw">if</span> (str.charAt(l) != str.charAt(r)) {
+            <span class="kw">return false</span>;          <span class="cm">// mismatch → not palindrome</span>
+        }
+        l++;
+        r--;
+    }
+    <span class="kw">return true</span>;               <span class="cm">// all pairs matched</span>
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--fuchsia);font-weight:600;margin-bottom:.4rem">Why <code>l &lt; r</code>?</div>
+                <div style="color:var(--muted2)">
+                    When <code>l == r</code>, both pointers are on the same middle character — comparing it to itself is always true and redundant. <code>l &lt; r</code> skips it cleanly.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--teal);font-weight:600;margin-bottom:.4rem">vs. Reverse String (344)</div>
+                <div style="color:var(--muted2)">
+                    Same converging pointer pattern, but instead of swapping, we compare. No <code>temp</code> needed. A mismatch proves it's not a palindrome instantly.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9;grid-column:1/-1">
+                <div style="color:var(--gold);font-weight:600;margin-bottom:.4rem">Invariant</div>
+                <div style="color:var(--muted2)">
+                    After each iteration: all character pairs <code style="color:var(--fuchsia)">s[0..l-1]</code> ↔ <code style="color:var(--teal)">s[r+1..n-1]</code> have been verified to match. The region <code>[l..r]</code> is still unverified. Exits when region is empty → all pairs matched.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">At most ⌊n/2⌋ comparisons. Early exit on first mismatch means average case is much faster for non-palindromes.</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(1)</div>
+                <div class="cx-desc">Only two integer pointers. No copy of the string, no stack, no extra data structure.</div>
+            </div>
+        </div>
+        <div class="callout fuchsia" style="margin-top:1rem">
+            Common wrong approach: reverse the string and compare — also O(n) time but O(n) extra space for the copy. This two-pointer approach avoids that entirely.
+        </div>
+    </div>
+
+    <!-- related -->
+    <div class="card">
+        <div class="card-title">Related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Valid Palindrome II (680)</strong> — same idea, but allowed to remove one character<br>
+            • <strong style="color:var(--text)">Palindrome Linked List (234)</strong> — find mid + reverse second half + compare with two pointers<br>
+            • <strong style="color:var(--text)">Longest Palindromic Substring (5)</strong> — expand-around-center, opposite direction<br>
+            • <strong style="color:var(--text)">Reverse String (344)</strong> — same converging pattern, swap instead of compare
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const WORD = 'racecar';
+    const N = WORD.length;
+    const CW = 50, CH = 44, GAP = 12;
+    const SVG_W = 460;
+    const TOTAL_W = N * CW + (N-1) * GAP;
+    const START_X = (SVG_W - TOTAL_W) / 2;
+    const Y = 20;
+
+    const FUCHSIA = '#e879f9';
+    const TEAL    = '#2dd4b0';
+    const GOLD    = '#f59e0b';
+    const GREEN   = '#4ade80';
+    const RED     = '#f87171';
+    const MUTED   = '#32324a';
+
+    function bx(i) { return START_X + i*(CW+GAP); }
+    function cx(i) { return bx(i) + CW/2; }
+
+    function renderArr(word, hl) {
+      const svg = document.getElementById('arr-svg');
+      let html = '';
+      for (let i = 0; i < word.length; i++) {
+        const x = bx(i), mx = cx(i);
+        let fill = '#0d1520', stroke = MUTED, textCol = '#5a6880', sw = '1';
+        if (hl.matched && hl.matched.includes(i)) { fill='#0a1f18'; stroke=TEAL; textCol=TEAL; }
+        if (hl.l === i) { fill='#200a28'; stroke=FUCHSIA; textCol=FUCHSIA; sw='1.8'; }
+        if (hl.r === i) { fill='#0a2020'; stroke=TEAL;    textCol=TEAL;    sw='1.8'; }
+        if (hl.l === i && hl.r === i) { fill='#1a1a08'; stroke=GOLD; textCol=GOLD; sw='1.8'; }
+        if (hl.mismatch && (i===hl.l||i===hl.r)) { fill='#2a0a0a'; stroke=RED; textCol=RED; sw='2'; }
+        if (hl.done) { fill='#0a1f10'; stroke=GREEN; textCol=GREEN; sw='1'; }
+
+        html += `<rect x="${x}" y="${Y}" width="${CW}" height="${CH}" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        html += `<text x="${mx}" y="${Y+CH/2+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="17" font-weight="600" fill="${textCol}">${word[i]}</text>`;
+        html += `<text x="${mx}" y="${Y+CH+16}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3a3a55">[${i}]</text>`;
+      }
+      // pointer labels + arrows
+      if (hl.l !== undefined && hl.l >= 0 && hl.l < word.length && hl.l !== hl.r) {
+        const ax = cx(hl.l);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${FUCHSIA}">l</text>`;
+        html += `<polygon points="${ax-4},${Y-4} ${ax+4},${Y-4} ${ax},${Y}" fill="${FUCHSIA}"/>`;
+      }
+      if (hl.r !== undefined && hl.r >= 0 && hl.r < word.length && hl.l !== hl.r) {
+        const ax = cx(hl.r);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${TEAL}">r</text>`;
+        html += `<polygon points="${ax-4},${Y-4} ${ax+4},${Y-4} ${ax},${Y}" fill="${TEAL}"/>`;
+      }
+      if (hl.l !== undefined && hl.r !== undefined && hl.l === hl.r) {
+        const ax = cx(hl.l);
+        html += `<text x="${ax}" y="${Y-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="${GOLD}">l=r</text>`;
+      }
+      // draw match arc between l and r
+      if (hl.l !== undefined && hl.r !== undefined && hl.l !== hl.r && !hl.mismatch) {
+        const x1 = cx(hl.l), x2 = cx(hl.r);
+        const mid = (x1+x2)/2, arc = 18;
+        html += `<path d="M${x1},${Y} Q${mid},${Y-arc} ${x2},${Y}" fill="none" stroke="${TEAL}" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>`;
+      }
+      svg.innerHTML = html;
+    }
+
+    function buildSteps() {
+      const steps = [];
+      const word = WORD;
+      const matched = [];
+
+      function snap(hl, title, badge, badgeStyle, log, logColor, pills, codeLines) {
+        steps.push({ hl:{...hl, matched:[...matched]}, title, badge, badgeStyle, log, logColor, pills, codeLines });
+      }
+
+      snap({l:0, r:N-1}, 'Initial string', '—', 'surface',
+        `Init: l=0 ('${word[0]}'), r=${N-1} ('${word[N-1]}'). Begin comparing from both ends.`, 'fuchsia',
+        {l:'0', r:String(N-1), cl:word[0], cr:word[N-1], match:'—'}, [1,2]);
+
+      let l=0, r=N-1;
+      while (l < r) {
+        const cl = word[l], cr = word[r];
+        const isMatch = cl === cr;
+
+        snap({l, r}, `Compare s[${l}]='${cl}' vs s[${r}]='${cr}'`, 'compare', 'fuchsia',
+          `l=${l} < r=${r} → compare '${cl}' vs '${cr}'.`, 'fuchsia',
+          {l:String(l), r:String(r), cl, cr, match:'—'}, [4,5]);
+
+        if (!isMatch) {
+          snap({l, r, mismatch:true}, `Mismatch! '${cl}' ≠ '${cr}'`, '✗ false', 'red',
+            `'${cl}' ≠ '${cr}' → return false immediately!`, 'red',
+            {l:String(l), r:String(r), cl, cr, match:'✗'}, [5,6]);
+          break;
+        }
+
+        snap({l, r}, `Match ✓ '${cl}' = '${cr}'`, '✓ match', 'teal',
+          `'${cl}' = '${cr}' → match! l++, r--.`, 'teal',
+          {l:String(l), r:String(r), cl, cr, match:'✓'}, [8,9]);
+
+        matched.push(l, r);
+        l++; r--;
+      }
+
+      if (l >= r) {
+        snap({l, r, done:true}, 'l ≥ r — all pairs matched! ✓', '✓ true', 'green',
+          `l=${l} ≥ r=${r} → loop exits. All pairs matched → return true!`, 'green',
+          {l:String(l), r:String(r), cl:'—', cr:'—', match:'all ✓'}, [11]);
+      }
+
+      return steps;
+    }
+
+    const BADGE_STYLES = {
+      surface: 'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      fuchsia: 'background:var(--fuchsia-dim);color:var(--fuchsia);border-color:var(--fuchsia)',
+      teal:    'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      green:   'background:var(--green-dim);color:var(--green);border-color:var(--green)',
+      red:     'background:var(--red-dim);color:var(--red);border-color:var(--red)',
+      gold:    'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)',
+      compare: 'background:var(--fuchsia-dim);color:var(--fuchsia);border-color:var(--fuchsia)',
+      '✓ match':'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      '✓ true': 'background:var(--green-dim);color:var(--green);border-color:var(--green)',
+      '✗ false':'background:var(--red-dim);color:var(--red);border-color:var(--red)',
+    };
+
+    const CODE_DISPLAY = [
+      {text:'  int l = 0;'},
+      {text:'  int r = str.length() - 1;'},
+      {text:''},
+      {text:'  while (l < r) {'},
+      {text:'      if (str.charAt(l) != str.charAt(r)) {'},
+      {text:'          return false;'},
+      {text:'      }'},
+      {text:'      l++;'},
+      {text:'      r--;'},
+      {text:'  }'},
+      {text:'  return true;'},
+    ];
+
+    const CODE_MAP = {
+      1:[0], 2:[1], 4:[3,4], 5:[3,4], 6:[5], 8:[7,8], 9:[7,8], 11:[10]
+    };
+
+    function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    function buildCodeHTML(codeLines) {
+      const active = new Set();
+      for (const c of codeLines) { (CODE_MAP[c]||[]).forEach(i=>active.add(i)); }
+      return CODE_DISPLAY.map(({text},i)=>
+        `<span class="code-line${active.has(i)?' active':''}">${escHtml(text)||' '}</span>`
+      ).join('\n');
+    }
+
+    function applyStep(idx) {
+      const s = steps[idx];
+      renderArr(WORD, s.hl);
+      document.getElementById('step-title').textContent = s.title;
+      const badge = document.getElementById('step-badge');
+      badge.textContent = s.badge;
+      badge.setAttribute('style', BADGE_STYLES[s.badgeStyle]||BADGE_STYLES[s.badge]||BADGE_STYLES.surface);
+      const log = document.getElementById('step-log');
+      log.textContent = s.log; log.className = 'step-log '+s.logColor;
+
+      const pillDefs = [
+        {id:'pill-l',     label:'l',     val:s.pills.l,     col:'fuchsia'},
+        {id:'pill-r',     label:'r',     val:s.pills.r,     col:'teal'},
+        {id:'pill-cl',    label:"s[l]",  val:s.pills.cl,    col: s.pills.cl==='—'?'':'fuchsia'},
+        {id:'pill-cr',    label:"s[r]",  val:s.pills.cr,    col: s.pills.cr==='—'?'':'teal'},
+        {id:'pill-match', label:'match', val:s.pills.match,
+          col: s.pills.match==='✓'||s.pills.match==='all ✓'?'green':s.pills.match==='✗'?'red':''},
+      ];
+      for (const d of pillDefs) {
+        const el = document.getElementById(d.id);
+        el.textContent = d.label+' = '+d.val;
+        el.className = 'pill '+(d.col||'');
+      }
+      document.getElementById('code-viewer').innerHTML = buildCodeHTML(s.codeLines);
+      document.getElementById('step-counter').textContent = `step ${idx} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled = idx===0;
+      document.getElementById('btn-next').disabled = idx===steps.length-1;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(cur);}}
+    function prevStep(){if(cur>0){cur--;applyStep(cur);}}
+    function resetTrace(){cur=0;applyStep(0);}
+
+    // try-it
+    function tryPalindrome() {
+      const val = document.getElementById('try-input').value;
+      if (!val) { document.getElementById('try-result').textContent='—'; document.getElementById('try-result').className='try-result'; document.getElementById('try-trace').innerHTML=''; return; }
+      let l=0, r=val.length-1, result=true, traceLines=[];
+      while (l < r) {
+        const cl=val[l], cr=val[r];
+        const match = cl===cr;
+        traceLines.push(`<span style="color:var(--muted2)">l=${l} r=${r}:</span> <span style="color:var(--fuchsia)">'${cl}'</span> vs <span style="color:var(--teal)">'${cr}'</span> → <span style="color:${match?'var(--green)':'var(--red)'}">${match?'✓ match':'✗ mismatch → return false'}</span>`);
+        if (!match) { result=false; break; }
+        l++; r--;
+      }
+      if (result && l>=r) traceLines.push(`<span style="color:var(--green)">l=${l} ≥ r=${r} → all pairs matched → return true</span>`);
+      const res = document.getElementById('try-result');
+      res.textContent = result ? `✓ "${val}" is a palindrome` : `✗ "${val}" is not a palindrome`;
+      res.className = 'try-result '+(result?'yes':'no');
+      document.getElementById('try-trace').innerHTML = traceLines.join('<br>') || '<span style="color:var(--muted)">Single char — trivially a palindrome</span>';
+    }
+
+    function buildWT() {
+      // racecar table
+      const tbody = document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      const rows=[
+        [1,0,6,'r','r',true,'continue'],
+        [2,1,5,'a','a',true,'continue'],
+        [3,2,4,'c','c',true,'continue'],
+        [4,3,3,'e','e','l=r','exit loop → return true ✓'],
+      ];
+      rows.forEach(([step,l,r,cl,cr,match,result],i)=>{
+        const tr=document.createElement('tr');
+        if(i%2===1)tr.style.background='#ffffff04';
+        const isDone=String(result).includes('true');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 10px;color:var(--fuchsia);text-align:center;font-weight:600">${l}</td>
+          <td style="padding:5px 10px;color:var(--teal);text-align:center;font-weight:600">${r}</td>
+          <td style="padding:5px 10px;color:var(--fuchsia)">'${cl}'</td>
+          <td style="padding:5px 10px;color:var(--teal)">'${cr}'</td>
+          <td style="padding:5px 10px;color:${match===true?'var(--green)':match===false?'var(--red)':'var(--gold)'}">${match===true?'✓ yes':match===false?'✗ no':'l=r'}</td>
+          <td style="padding:5px 10px;color:${isDone?'var(--green)':'var(--muted2)'};font-size:.72rem">${result}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      // hello table
+      const tbody2 = document.getElementById('wt2-tbody');
+      tbody2.innerHTML='';
+      const rows2=[
+        [1,0,4,'h','o',false,'return false ✗'],
+      ];
+      rows2.forEach(([step,l,r,cl,cr,match,result],i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 10px;color:var(--fuchsia);text-align:center;font-weight:600">${l}</td>
+          <td style="padding:5px 10px;color:var(--teal);text-align:center;font-weight:600">${r}</td>
+          <td style="padding:5px 10px;color:var(--fuchsia)">'${cl}'</td>
+          <td style="padding:5px 10px;color:var(--teal)">'${cr}'</td>
+          <td style="padding:5px 10px;color:var(--red)">✗ no</td>
+          <td style="padding:5px 10px;color:var(--red);font-size:.72rem">${result}</td>`;
+        tbody2.appendChild(tr);
+      });
+    }
+
+    let steps=[], cur=0;
+    steps=buildSteps();
+    resetTrace();
+    buildWT();
+    tryPalindrome();
+</script>
+</body>
+</html>
