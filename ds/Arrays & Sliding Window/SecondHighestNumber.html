@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Second Highest Number</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+        .cell-val{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--font-mono);font-size:.95rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s}
+        .cell-val.cur{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .cell-val.ismax{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .cell-val.issecond{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .cell-val.dup{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+        .cell-val.done{opacity:.4}
+        .cell-idx{font-family:var(--font-mono);font-size:.62rem;color:var(--muted)}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}.cell-val{width:40px;height:40px;font-size:.85rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>Second Highest Number</h1>
+        <p>Single Pass — Track max and secondMax simultaneously</p>
+        <span class="badge">O(n) time &nbsp;|&nbsp; O(1) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given an integer array <code style="color:var(--teal);font-family:var(--font-mono)">nums</code>,
+            return the <strong style="color:var(--text)">second highest distinct value</strong>.
+            If no valid second maximum exists, return <code style="color:var(--red);font-family:var(--font-mono)">Integer.MIN_VALUE</code>.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Track two variables simultaneously in one pass. The key is the <strong style="color:var(--amber)">update order</strong> — secondMax must be updated <em>before</em> max, and duplicates of max must be skipped.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Single Pass with Two Variables</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Init:</strong> both <code style="font-family:var(--font-mono);color:var(--teal)">max</code> and
+                    <code style="font-family:var(--font-mono);color:var(--purple)">secondMax</code> start at
+                    <code style="font-family:var(--font-mono)">Integer.MIN_VALUE</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>New overall max:</strong> if <code style="font-family:var(--font-mono);color:var(--amber)">num &gt; max</code>
+                    → set <code style="font-family:var(--font-mono);color:var(--purple)">secondMax = max</code> first,
+                    then <code style="font-family:var(--font-mono);color:var(--teal)">max = num</code>.
+                    Order matters — don't lose the old max.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Better secondMax:</strong> else if <code style="font-family:var(--font-mono);color:var(--amber)">num &gt; secondMax &amp;&amp; num != max</code>
+                    → update <code style="font-family:var(--font-mono);color:var(--purple)">secondMax = num</code>.
+                    The <code style="font-family:var(--font-mono)">num != max</code> guard handles duplicates.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Return</strong> <code style="font-family:var(--font-mono);color:var(--purple)">secondMax</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; nums = [3, 1, 4, 1, 5, 9, 2, 6]</div>
+
+        <div style="display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem">
+            <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:60px">nums[]</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap" id="wt-cells"></div>
+        </div>
+
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">num</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">condition</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 8px">max</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 8px">secondMax</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">note</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Edge Cases -->
+    <div class="section">
+        <div class="section-title">Edge Cases</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:.82rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem">
+                <div style="color:var(--red);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">[5, 5, 5]  — all duplicates</div>
+                <div style="color:var(--muted)">secondMax stays <code style="font-family:var(--font-mono)">MIN_VALUE</code> because <code style="font-family:var(--font-mono)">num != max</code> guard blocks every update.</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem">
+                <div style="color:var(--red);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">[5]  — single element</div>
+                <div style="color:var(--muted)">secondMax stays <code style="font-family:var(--font-mono)">MIN_VALUE</code> — no second distinct element exists.</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem">
+                <div style="color:var(--teal);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">[5, 5, 3]  — leading dup</div>
+                <div style="color:var(--muted)">5 sets max. Second 5 is skipped (<code style="font-family:var(--font-mono)">num != max</code>). 3 &gt; MIN → secondMax = 3. ✓</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem">
+                <div style="color:var(--teal);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">[1, 2]  — two elements</div>
+                <div style="color:var(--muted)">1 → max=1. 2 &gt; max → secondMax=1, max=2. Returns 1. ✓</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">Single pass — every element visited exactly once. No sorting.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc">Only two integer variables — max and secondMax.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Your Java Solution</div>
+        <pre><span class="kw">public int</span> <span class="fn">secondHighest</span>(<span class="kw">int</span>[] nums) {
+    <span class="kw">int</span> max       = Integer.MIN_VALUE;
+    <span class="kw">int</span> secondMax = Integer.MIN_VALUE;
+
+    <span class="kw">for</span> (<span class="kw">int</span> num : nums) {
+        <span class="kw">if</span> (num &gt; max) {
+            secondMax = max;   <span class="cm">// old max becomes secondMax first</span>
+            max       = num;   <span class="cm">// then update max</span>
+        } <span class="kw">else if</span> (num &gt; secondMax && num != max) {
+            secondMax = num;   <span class="cm">// better secondMax (not a dup of max)</span>
+        }
+    }
+
+    <span class="kw">return</span> secondMax;
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">3 things to remember</div>
+            <div style="color:var(--text)">
+                1. Init both to <code style="font-family:var(--font-mono);color:var(--muted)">Integer.MIN_VALUE</code> — handles negative numbers<br>
+                2. Update <code style="font-family:var(--font-mono);color:var(--purple)">secondMax = max</code> <strong>before</strong> <code style="font-family:var(--font-mono);color:var(--teal)">max = num</code> — order matters<br>
+                3. <code style="font-family:var(--font-mono);color:var(--red)">num != max</code> guard — prevents duplicates from becoming secondMax
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            Three mutually exclusive cases for each number:
+            <div style="font-family:var(--font-mono);font-size:.82rem;margin:.6rem 0 .6rem 1rem;line-height:2.4;color:var(--text)">
+                num &gt; max &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → <span style="color:var(--teal)">new overall max</span><br>
+                num &gt; secondMax &amp;&amp; num != max → <span style="color:var(--purple)">new secondMax</span><br>
+                otherwise &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → <span style="color:var(--muted)">ignore</span>
+            </div>
+            The <code style="font-family:var(--font-mono)">else if</code> ensures these are mutually exclusive — if num beats max, we don't also try to update secondMax with the same num.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any array</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">nums =</label>
+            <input id="nums-input" type="text" value="3,1,4,1,5,9,2,6"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:220px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ 2–12 integers</span>
+        </div>
+
+        <!-- array cells -->
+        <div style="display:flex;gap:0;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;overflow-x:auto">
+            <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:60px;padding-bottom:4px">nums[]</span>
+            <div id="arr-cells" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill amber"  id="vp-num">num = —</div>
+            <div class="var-pill teal"   id="vp-max">max = MIN</div>
+            <div class="var-pill purple" id="vp-sec">secondMax = MIN</div>
+            <div class="var-pill"        id="vp-act">action = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  int max = MIN_VALUE,  secondMax = MIN_VALUE;</div>
+            <div class="tl" id="tl1">  for (int num : nums) {</div>
+            <div class="tl" id="tl2">      if (num &gt; max) {</div>
+            <div class="tl" id="tl3">          secondMax = max;  max = num;</div>
+            <div class="tl" id="tl4">      } else if (num &gt; secondMax &amp;&amp; num != max) {</div>
+            <div class="tl" id="tl5">          secondMax = num;</div>
+            <div class="tl" id="tl6">      }</div>
+            <div class="tl" id="tl7">  }</div>
+            <div class="tl" id="tl8">  return secondMax;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter an array and press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    const MIN = -Infinity;
+    let traceNums=[], steps=[], cur=0;
+
+    function fmtVal(v){ return v===MIN?'MIN':v; }
+
+    // ── Static walkthrough ──
+    function buildWalkthrough(){
+      const nums=[3,1,4,1,5,9,2,6];
+      const cellsEl=document.getElementById('wt-cells');
+      cellsEl.innerHTML='';
+      nums.forEach((v,i)=>{
+        cellsEl.innerHTML+=`<div class="cell"><div class="cell-val">${v}</div><div class="cell-idx">[${i}]</div></div>`;
+      });
+
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let max=MIN, sec=MIN;
+
+      nums.forEach((num,i)=>{
+        let cond, note, condColor;
+        if(num>max){
+          cond='num > max'; note='new max → old max demoted'; condColor='var(--teal)';
+          sec=max; max=num;
+        } else if(num>sec&&num!==max){
+          cond='num > secondMax && num != max'; note='new secondMax'; condColor='var(--purple)';
+          sec=num;
+        } else if(num===max){
+          cond='num == max (duplicate)'; note='skip — dup of max'; condColor='var(--red)';
+        } else {
+          cond='num <= secondMax'; note='ignore'; condColor='var(--muted)';
+        }
+        const tr=document.createElement('tr');
+        if(i%2!==0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 8px;color:var(--amber);font-weight:700">${num}</td>
+          <td style="padding:5px 8px;color:${condColor};font-size:.72rem">${cond}</td>
+          <td style="padding:5px 8px;color:var(--teal);font-weight:700;text-align:center">${fmtVal(max)}</td>
+          <td style="padding:5px 8px;color:var(--purple);font-weight:700;text-align:center">${fmtVal(sec)}</td>
+          <td style="padding:5px 8px;color:var(--muted);font-size:.72rem">${note}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const res=document.getElementById('wt-result');
+      res.style.cssText='background:var(--purple-dim);border:1px solid var(--purple);border-radius:8px;color:var(--purple)';
+      res.textContent='✅  return secondMax = '+fmtVal(sec);
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(nums){
+      const st=[];
+      let max=MIN, sec=MIN;
+
+      st.push({line:0,num:null,max,sec,act:'init',idx:null,
+        log:'max = MIN_VALUE,  secondMax = MIN_VALUE'});
+
+      nums.forEach((num,i)=>{
+        st.push({line:1,num,max,sec,act:'loop',idx:i,
+          log:'num = '+num});
+        st.push({line:2,num,max,sec,act:'check1',idx:i,
+          log:'num('+num+') > max('+fmtVal(max)+') → '+(num>max?'true':'false')});
+
+        if(num>max){
+          const oldMax=max;
+          sec=max; max=num;
+          st.push({line:3,num,max,sec,act:'newmax',idx:i,
+            log:'secondMax='+fmtVal(oldMax)+', max='+num+' (old max demoted)'});
+        } else {
+          st.push({line:4,num,max,sec,act:'check2',idx:i,
+            log:'num('+num+') > secondMax('+fmtVal(sec)+') && num != max('+fmtVal(max)+') → '+
+              ((num>sec&&num!==max)?'true':'false — '+(num===max?'duplicate of max':'not bigger than secondMax'))});
+          if(num>sec&&num!==max){
+            sec=num;
+            st.push({line:5,num,max,sec,act:'newsec',idx:i,
+              log:'secondMax = '+sec+' ★'});
+          }
+        }
+      });
+
+      st.push({line:8,num:null,max,sec,act:'done',idx:null,
+        log:'✅  return secondMax = '+fmtVal(sec)});
+      return st;
+    }
+
+    function renderCells(nums, curIdx, max, sec){
+      const el=document.getElementById('arr-cells');
+      el.innerHTML='';
+      nums.forEach((v,i)=>{
+        let cls='cell-val';
+        if(i===curIdx) cls='cell-val cur';
+        else if(v===max&&i<curIdx) cls='cell-val ismax';
+        else if(i<curIdx) cls='cell-val done';
+        el.innerHTML+=`<div class="cell"><div class="${cls}">${v}</div><div class="cell-idx">[${i}]</div></div>`;
+      });
+    }
+
+    const lineHL={0:'at',1:'at',2:'at',3:'at',4:'ap',5:'ap',6:'at',7:'at',8:'ag'};
+    const actLabel={
+      init:'🔧 init',loop:'➡ next num',check1:'❓ num > max?',
+      newmax:'🔺 new max',check2:'❓ num > secondMax?',
+      newsec:'🔷 new secondMax',done:'✅ return'
+    };
+    const actClass={
+      init:'',loop:'amber',check1:'amber',newmax:'teal',
+      check2:'purple',newsec:'purple',done:'green'
+    };
+
+    function applyStep(s){
+      if(s.idx!==null) renderCells(traceNums, s.idx, s.max, s.sec);
+      else renderCells(traceNums, -1, s.max, s.sec);
+
+      document.getElementById('vp-num').textContent=s.num!==null?'num = '+s.num:'num = —';
+      document.getElementById('vp-num').className='var-pill amber';
+      document.getElementById('vp-max').textContent='max = '+fmtVal(s.max);
+      document.getElementById('vp-max').className='var-pill teal';
+      document.getElementById('vp-sec').textContent='secondMax = '+fmtVal(s.sec);
+      document.getElementById('vp-sec').className='var-pill purple';
+      document.getElementById('vp-act').textContent='action = '+(actLabel[s.act]||s.act);
+      document.getElementById('vp-act').className='var-pill '+(actClass[s.act]||'');
+
+      for(let k=0;k<=8;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      const isDone=s.act==='done';
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='newmax'?'var(--teal)':
+        s.act==='newsec'?'var(--purple)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent='Step '+cur+' / '+(steps.length-1);
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('nums-input').value.trim();
+      const nums=raw.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const errEl=document.getElementById('input-err');
+      if(nums.length<2||nums.length>12){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceNums=nums;
+      steps=buildSteps(traceNums);
+      cur=0;
+      renderCells(traceNums,-1,MIN,MIN);
+      for(let k=0;k<=8;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-num').textContent='num = —';        document.getElementById('vp-num').className='var-pill amber';
+      document.getElementById('vp-max').textContent='max = MIN';      document.getElementById('vp-max').className='var-pill teal';
+      document.getElementById('vp-sec').textContent='secondMax = MIN';document.getElementById('vp-sec').className='var-pill purple';
+      document.getElementById('vp-act').textContent='action = —';     document.getElementById('vp-act').className='var-pill';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent='Step 0 / '+(steps.length-1);
+      document.getElementById('trace-log').textContent='Tracing nums=['+nums+'] — press Next Step to begin';
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
