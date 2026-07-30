@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>49. Group Anagrams</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+        .callout-green{background:#0d1f12;border:1px solid #1a4028;border-left:3px solid var(--green);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#a3e4b8;line-height:1.6}
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.6;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.6rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+
+        .map-box{background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.74rem;min-height:48px;margin-bottom:1rem;word-break:break-all}
+        .map-entry{display:flex;align-items:baseline;gap:.5rem;margin-bottom:6px;flex-wrap:wrap}
+        .mk{color:var(--purple);font-weight:700;font-size:.7rem}
+        .mv{color:var(--teal)}
+        .mv.hi{color:var(--amber)}
+
+        .chip{display:inline-block;font-family:var(--font-mono);font-size:.78rem;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);margin:2px}
+        .chip.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .chip.done{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+
+        /* freq bar mini visualiser */
+        .freq-vis{display:flex;gap:2px;align-items:flex-end;height:40px;margin:.6rem 0}
+        .fbar{border-radius:2px 2px 0 0;min-width:6px;transition:height .25s,background .25s}
+        .fbar-lbl{font-family:var(--font-mono);font-size:7px;color:var(--muted);text-align:center}
+        .fbar-wrap{display:flex;flex-direction:column;align-items:center;gap:1px}
+
+        .group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem;margin-top:1rem}
+        .group-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+        .group-key{font-family:var(--font-mono);font-size:.68rem;color:var(--purple);margin-bottom:.5rem;word-break:break-all}
+        .group-words{display:flex;flex-wrap:wrap;gap:4px}
+
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>49. Group Anagrams</h1>
+        <p>LeetCode Medium — Frequency Array Key + HashMap</p>
+        <span class="badge">medium</span>
+        <span class="badge info">O(n·k) time — no sorting!</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given an array of strings <code style="color:var(--teal);font-family:var(--font-mono)">strs</code>,
+            group the anagrams together and return them as a list of lists. Order does not matter.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Sorting each word costs O(k log k). Instead, build an <strong style="color:var(--amber)">int[26] frequency count</strong> per word and encode it as a string key — O(k) per word, O(n·k) total.
+        </div>
+        <div style="margin-top:.8rem" class="callout-green">
+            ✓ All anagrams produce the <strong style="color:var(--green)">exact same int[26] array</strong> → same encoded key → same HashMap bucket.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — int[26] Frequency Key + HashMap</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Create HashMap</strong> <code style="font-family:var(--font-mono);color:var(--purple)">map</code> —
+                    key = encoded frequency string, value = list of words with that frequency profile.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>For each word</strong> build <code style="font-family:var(--font-mono);color:var(--teal)">int[] count = new int[26]</code>.
+                    For every character: <code style="font-family:var(--font-mono);color:var(--teal)">count[c - 'a']++</code>.
+                    This is O(k) — no sorting needed.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Encode the key:</strong> append each count + a delimiter <code style="font-family:var(--font-mono);color:var(--amber)">'#'</code>
+                    to a <code style="font-family:var(--font-mono);color:var(--amber)">StringBuilder</code>.
+                    e.g. <code style="font-family:var(--font-mono)">"eat" → "1#0#0#0#1#...#1#..."</code>
+                    The <code style="font-family:var(--font-mono)">'#'</code> delimiter prevents <code style="font-family:var(--font-mono)">count=12</code> colliding with <code style="font-family:var(--font-mono)">count=1</code> followed by <code style="font-family:var(--font-mono)">2</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Add to map</strong> using <code style="font-family:var(--font-mono);color:var(--green)">computeIfAbsent</code>,
+                    then return <code style="font-family:var(--font-mono);color:var(--green)">new ArrayList&lt;&gt;(map.values())</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; strs = ["eat","tea","tan","ate","nat","bat"]</div>
+
+        <div style="font-size:.8rem;line-height:1.7;color:var(--muted);margin-bottom:1rem">
+            For <strong style="color:var(--text)">"eat"</strong>: a=1, e=1, t=1, all others=0.
+            Key = <code style="font-family:var(--font-mono);color:var(--purple)">"1#0#0#0#1#0#0#0#0#0#0#0#0#0#0#0#0#0#0#1#0#0#0#0#0#0#"</code><br>
+            For <strong style="color:var(--text)">"tea"</strong>: same counts → <strong style="color:var(--teal)">same key → same group</strong>.
+        </div>
+
+        <div style="overflow-x:auto;margin-bottom:1rem">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">word</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">char counts (non-zero)</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 10px;text-align:left">key (encoded)</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">key in map?</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">group after</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:.5rem">Final groups</div>
+        <div class="group-grid" id="wt-groups"></div>
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;background:var(--teal-dim);border:1px solid var(--teal);border-radius:8px;font-family:var(--font-mono);font-size:.82rem;color:var(--teal)"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n·k)</div>
+                <div class="desc">n words × O(k) per word to build int[26] + O(26) to encode key. No sorting. HashMap ops O(1) avg.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(n·k)</div>
+                <div class="desc">HashMap stores all n words. Each encoded key is O(26) = O(1). Total space dominated by the words themselves.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">vs. Sorted Key O(n·k log k):</strong> Sorting each word takes O(k log k). The freq array approach replaces that with O(k) — a clear win when words are long.<br><br>
+            <strong style="color:var(--text)">Why the '#' delimiter?</strong> Without it, counts <code style="font-family:var(--font-mono)">12,0,0...</code> and <code style="font-family:var(--font-mono)">1,20,0...</code> would encode identically as <code style="font-family:var(--font-mono)">"1200..."</code>. The delimiter makes each slot unambiguous.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution — O(n·k) Frequency Array</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> List&lt;List&lt;String&gt;&gt; <span class="fn">groupAnagrams</span>(String[] strs) {
+        Map&lt;String, List&lt;String&gt;&gt; map = <span class="kw">new</span> HashMap&lt;&gt;();
+
+        <span class="kw">for</span> (String word : strs) {
+            <span class="cm">// O(k) frequency count — no sorting needed</span>
+            <span class="kw">int</span>[] count = <span class="kw">new int</span>[<span class="num-c">26</span>];
+            <span class="kw">for</span> (<span class="kw">char</span> c : word.<span class="fn">toCharArray</span>())
+                count[c - <span class="num-c">'a'</span>]++;
+
+            <span class="cm">// encode int[26] → String key with '#' delimiter</span>
+            StringBuilder sb = <span class="kw">new</span> StringBuilder();
+            <span class="kw">for</span> (<span class="kw">int</span> freq : count)
+                sb.<span class="fn">append</span>(freq).<span class="fn">append</span>(<span class="num-c">'#'</span>);
+            String key = sb.<span class="fn">toString</span>();  <span class="cm">// e.g. "1#0#0#0#1#...#1#..."</span>
+
+            map.<span class="fn">computeIfAbsent</span>(key, k -> <span class="kw">new</span> ArrayList&lt;&gt;()).<span class="fn">add</span>(word);
+        }
+
+        <span class="kw">return new</span> ArrayList&lt;&gt;(map.<span class="fn">values</span>());
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.8;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.5rem">Pattern to remember</div>
+            <code style="color:var(--teal);font-family:var(--font-mono)">int[] count = new int[26];<br>for (char c : word.toCharArray()) count[c - 'a']++;<br>StringBuilder sb = new StringBuilder();<br>for (int freq : count) sb.append(freq).append('#');<br>String key = sb.toString();</code>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            Every anagram has <strong style="color:var(--text)">identical character frequencies</strong>.
+            Encoding that as a string avoids O(k log k) sorting entirely.
+            <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--text);margin:.7rem 0 .7rem 1rem;line-height:2.2">
+                <span style="color:var(--amber)">"eat"</span> → count[a]=1,count[e]=1,count[t]=1 → <span style="color:var(--purple)">"1#0#0#0#1#...#1#..."</span><br>
+                <span style="color:var(--amber)">"tea"</span> → count[a]=1,count[e]=1,count[t]=1 → <span style="color:var(--purple)">"1#0#0#0#1#...#1#..."</span>
+                <span style="color:var(--muted)"> ← same key</span>
+            </div>
+            <strong style="color:var(--text)">Interview checklist:</strong><br>
+            1. <code style="font-family:var(--font-mono)">int[] count = new int[26]</code> + <code style="font-family:var(--font-mono)">count[c - 'a']++</code><br>
+            2. Encode with <code style="font-family:var(--font-mono)">sb.append(freq).append('#')</code> — the <code style="font-family:var(--font-mono)">'#'</code> delimiter is critical<br>
+            3. <code style="font-family:var(--font-mono)">computeIfAbsent</code> + return <code style="font-family:var(--font-mono)">map.values()</code>
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any words</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">strs =</label>
+            <input id="words-input" type="text" value="eat,tea,tan,ate,nat,bat"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:260px;outline:none"
+                   placeholder="comma-separated words"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ 2–8 lowercase words, max 8 chars each</span>
+        </div>
+
+        <!-- word chips -->
+        <div style="display:flex;gap:0;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+            <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);margin-right:.5rem">strs[]</span>
+            <div id="word-chips"></div>
+        </div>
+
+        <!-- live freq bar for current word -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">int[] count (current word)</div>
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;margin-bottom:1rem">
+            <div class="freq-vis" id="freq-vis"></div>
+        </div>
+
+        <!-- live map -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">map (freq key → group)</div>
+        <div class="map-box" id="map-display">{ }</div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill teal"   id="vp-word">word = —</div>
+            <div class="var-pill purple" id="vp-key">key = —</div>
+            <div class="var-pill amber"  id="vp-act">action = —</div>
+            <div class="var-pill green"  id="vp-grp">groups = 0</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  Map&lt;String, List&lt;String&gt;&gt; map = new HashMap&lt;&gt;();</div>
+            <div class="tl" id="tl1">  for (String word : strs) {</div>
+            <div class="tl" id="tl2">      int[] count = new int[26];</div>
+            <div class="tl" id="tl3">      for (char c : word.toCharArray())  count[c - 'a']++;</div>
+            <div class="tl" id="tl4">      StringBuilder sb = new StringBuilder();</div>
+            <div class="tl" id="tl5">      for (int freq : count)  sb.append(freq).append('#');</div>
+            <div class="tl" id="tl6">      String key = sb.toString();</div>
+            <div class="tl" id="tl7">      map.computeIfAbsent(key, k -> new ArrayList&lt;&gt;()).add(word);</div>
+            <div class="tl" id="tl8">  }</div>
+            <div class="tl" id="tl9">  return new ArrayList&lt;&gt;(map.values());</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter words and press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let traceWords=[], steps=[], cur=0;
+    const ALPHA='abcdefghijklmnopqrstuvwxyz';
+
+    // ── Helpers ──
+    function buildCount(word){
+      const c=new Array(26).fill(0);
+      for(const ch of word) c[ch.charCodeAt(0)-97]++;
+      return c;
+    }
+    function encodeKey(count){
+      return count.map(v=>v+'#').join('');
+    }
+    function freqKey(word){ return encodeKey(buildCount(word)); }
+    function shortKey(word){
+      // human-readable: only non-zero slots e.g. "a×1 e×1 t×1"
+      const c=buildCount(word);
+      return c.map((v,i)=>v?ALPHA[i]+'×'+v:'').filter(Boolean).join(' ');
+    }
+
+    // ── Static walkthrough ──
+    function buildWalkthrough(){
+      const ws=['eat','tea','tan','ate','nat','bat'];
+      const map={};
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      ws.forEach((word,idx)=>{
+        const key=freqKey(word);
+        const existed=!!map[key];
+        if(!map[key]) map[key]=[];
+        map[key].push(word);
+        const tr=document.createElement('tr');
+        if(idx%2!==0) tr.style.background='#ffffff06';
+        // show short human-readable key in table (full key too long)
+        const shortK=shortKey(word);
+        const keyPreview=key.replace(/0#/g,'').substring(0,24)+'...';
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">"${word}"</td>
+          <td style="padding:5px 10px;color:var(--teal)">${shortK}</td>
+          <td style="padding:5px 10px;color:var(--purple);font-size:.68rem">"${keyPreview}"</td>
+          <td style="padding:5px 10px;color:${existed?'var(--teal)':'var(--red)'}">${existed?'✓ exists — append':'✗ new — create list'}</td>
+          <td style="padding:5px 10px;color:var(--teal)">[${map[key].map(w=>'"'+w+'"').join(', ')}]</td>`;
+        tbody.appendChild(tr);
+      });
+      const groups=document.getElementById('wt-groups');
+      groups.innerHTML='';
+      Object.entries(map).forEach(([key,words])=>{
+        const label=shortKey(words[0]);
+        groups.innerHTML+=`<div class="group-card">
+          <div class="group-key">counts: ${label}</div>
+          <div class="group-words">${words.map(w=>`<span class="chip done">"${w}"</span>`).join('')}</div>
+        </div>`;
+      });
+      document.getElementById('wt-result').textContent=
+        `✅  ${Object.keys(map).length} groups → [[${Object.values(map).map(g=>g.map(w=>'"'+w+'"').join(',')).join('], [')}]]`;
+    }
+
+    // ── Build all trace steps ──
+    function buildSteps(words){
+      const st=[];
+      const map={};
+      const done=new Set();
+
+      st.push({line:0,word:null,key:null,count:null,map:{},done:new Set(),act:'init',
+        log:'Map<String, List<String>> map = new HashMap<>()  →  empty'});
+
+      words.forEach(word=>{
+        // loop
+        st.push({line:1,word,key:null,count:null,map:cp(map),done:new Set(done),act:'loop',
+          log:`Processing word: "${word}"`});
+        // init count
+        st.push({line:2,word,key:null,count:new Array(26).fill(0),map:cp(map),done:new Set(done),act:'initcount',
+          log:`int[] count = new int[26]  →  all zeros`});
+        // fill count
+        const count=buildCount(word);
+        st.push({line:3,word,key:null,count:[...count],map:cp(map),done:new Set(done),act:'fillcount',
+          log:`count filled: ${shortKey(word)}`});
+        // sb init
+        st.push({line:4,word,key:null,count:[...count],map:cp(map),done:new Set(done),act:'sb',
+          log:`StringBuilder sb = new StringBuilder()`});
+        // encode
+        const key=encodeKey(count);
+        st.push({line:5,word,key,count:[...count],map:cp(map),done:new Set(done),act:'encode',
+          log:`sb built: "${key.substring(0,30)}..."`});
+        // key
+        st.push({line:6,word,key,count:[...count],map:cp(map),done:new Set(done),act:'key',
+          log:`key = sb.toString()  (${shortKey(word)})`});
+        // computeIfAbsent
+        const existed=!!map[key];
+        if(!map[key]) map[key]=[];
+        map[key].push(word);
+        done.add(word);
+        st.push({line:7,word,key,count:[...count],map:cp(map),done:new Set(done),
+          act:existed?'append':'create',
+          log:existed
+            ? `"${shortKey(word)}" key exists → append "${word}"  →  [${map[key].map(w=>'"'+w+'"').join(', ')}]`
+            : `new key → create list, add "${word}"`});
+      });
+
+      st.push({line:9,word:null,key:null,count:null,map:cp(map),done:new Set(done),act:'done',
+        log:`✅  return ${Object.keys(map).length} group(s): [[${Object.values(map).map(g=>g.map(w=>'"'+w+'"').join(',')).join('], [')}]]`});
+      return st;
+    }
+
+    function cp(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    // ── Render freq bars ──
+    function renderFreqVis(count){
+      const el=document.getElementById('freq-vis');
+      if(!count){el.innerHTML='';return;}
+      const maxV=Math.max(1,...count);
+      el.innerHTML='';
+      for(let i=0;i<26;i++){
+        const pct=count[i]===0?0:Math.max(15,(count[i]/maxV)*100);
+        const bg=count[i]>0?'var(--teal)':'var(--border)';
+        el.innerHTML+=`<div class="fbar-wrap">
+          <div class="fbar" style="height:${pct}%;width:18px;background:${bg}"></div>
+          <div class="fbar-lbl" style="color:${count[i]>0?'var(--teal)':'var(--border)'}">${ALPHA[i]}</div>
+        </div>`;
+      }
+    }
+
+    // ── Render live map ──
+    function renderMap(map, activeKey){
+      const el=document.getElementById('map-display');
+      if(!map||Object.keys(map).length===0){el.textContent='{ }';return;}
+      el.innerHTML='';
+      Object.entries(map).forEach(([k,v])=>{
+        const hi=k===activeKey;
+        // show human-readable label for key
+        const label=shortKey(v[0]);
+        el.innerHTML+=`<div class="map-entry">
+          <span class="mk">[${label}]</span>
+          <span style="color:var(--muted)">→</span>
+          <span class="mv ${hi?'hi':''}">[${v.map(w=>'"'+w+'"').join(', ')}]</span>
+        </div>`;
+      });
+    }
+
+    // ── Render word chips ──
+    function renderChips(words, activeWord, done){
+      const el=document.getElementById('word-chips');
+      el.innerHTML='';
+      words.forEach(w=>{
+        const cls=w===activeWord?'chip active':done.has(w)?'chip done':'chip';
+        el.innerHTML+=`<span class="${cls}">"${w}"</span>`;
+      });
+    }
+
+    const lineHL={0:'at',1:'at',2:'at',3:'at',4:'ap',5:'ap',6:'ap',7:'aa',8:'at',9:'ag'};
+    const actLabel={
+      init:'🔧 init map',loop:'➡ next word',initcount:'🔢 new int[26]',
+      fillcount:'✏ fill count',sb:'📝 StringBuilder',encode:'🔑 encode key',
+      key:'🔑 key ready',create:'✨ new group',append:'➕ append',done:'✅ return'
+    };
+    const actClass={
+      init:'',loop:'teal',initcount:'teal',fillcount:'teal',sb:'purple',
+      encode:'purple',key:'purple',create:'amber',append:'teal',done:'green'
+    };
+
+    function applyStep(s){
+      renderChips(traceWords, s.word, s.done||new Set());
+      renderMap(s.map, s.key);
+      renderFreqVis(s.count);
+
+      document.getElementById('vp-word').textContent=s.word?`word = "${s.word}"`: 'word = —';
+      document.getElementById('vp-word').className='var-pill'+(s.word?' teal':'');
+
+      const keyShort=s.key?`key = ${shortKey(s.word||'')||'...'}` : 'key = —';
+      document.getElementById('vp-key').textContent=keyShort;
+      document.getElementById('vp-key').className='var-pill'+(s.key?' purple':'');
+
+      document.getElementById('vp-act').textContent=`action = ${actLabel[s.act]||s.act}`;
+      document.getElementById('vp-act').className='var-pill '+(actClass[s.act]||'');
+      document.getElementById('vp-grp').textContent=`groups = ${Object.keys(s.map||{}).length}`;
+
+      for(let k=0;k<=9;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      const isDone=s.log.startsWith('✅');
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='create'?'var(--amber)':
+        s.act==='append'?'var(--teal)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('words-input').value.trim();
+      const words=raw.split(',').map(w=>w.trim().toLowerCase()).filter(w=>w.length>0);
+      const errEl=document.getElementById('input-err');
+      const valid=words.length>=2&&words.length<=8&&words.every(w=>/^[a-z]{1,8}$/.test(w));
+      if(!valid){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceWords=words;
+      steps=buildSteps(traceWords);
+      cur=0;
+      renderChips(traceWords,null,new Set());
+      renderMap({},null);
+      renderFreqVis(null);
+      for(let k=0;k<=9;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-word').textContent='word = —'; document.getElementById('vp-word').className='var-pill teal';
+      document.getElementById('vp-key').textContent='key = —';  document.getElementById('vp-key').className='var-pill purple';
+      document.getElementById('vp-act').textContent='action = —';document.getElementById('vp-act').className='var-pill amber';
+      document.getElementById('vp-grp').textContent='groups = 0';document.getElementById('vp-grp').className='var-pill green';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing strs = [${traceWords.map(w=>'"'+w+'"').join(', ')}] — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
