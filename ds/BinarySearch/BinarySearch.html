@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>704. Binary Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.easy{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.r{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.6;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        /* array cell */
+        .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+        .cell-val{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--font-mono);font-size:1rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s}
+        .cell-val.left{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .cell-val.right{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .cell-val.mid{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .cell-val.found{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+        .cell-val.eliminated{background:#0a0e1a;border-color:#1e2d45;color:#2a3a4a}
+        .cell-idx{font-family:var(--font-mono);font-size:.62rem;color:var(--muted)}
+        .cell-ptr{font-family:var(--font-mono);font-size:.62rem;height:14px;display:flex;align-items:center;justify-content:center}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}.cell-val{width:36px;height:36px;font-size:.82rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>704. Binary Search</h1>
+        <p>LeetCode Easy — Divide & Conquer on sorted array</p>
+        <span class="badge easy">easy</span>
+        <span class="badge">O(log n) time</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given a <strong style="color:var(--text)">sorted</strong> integer array
+            <code style="color:var(--teal);font-family:var(--font-mono)">nums</code> and a target integer
+            <code style="color:var(--amber);font-family:var(--font-mono)">target</code>,
+            return the <strong style="color:var(--text)">index</strong> of target if it exists, otherwise return
+            <code style="color:var(--red);font-family:var(--font-mono)">-1</code>.
+            You must write an algorithm with <strong style="color:var(--text)">O(log n)</strong> runtime.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Linear scan is O(n). Binary search halves the search space each iteration — O(log n). On 1 billion elements it takes only ~30 steps.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Two Pointers (left, right)</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Initialise:</strong>
+                    <code style="font-family:var(--font-mono);color:var(--teal)">left = 0</code>,
+                    <code style="font-family:var(--font-mono);color:var(--purple)">right = nums.length - 1</code>.
+                    The search window is <code style="font-family:var(--font-mono)">[left … right]</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Compute mid:</strong>
+                    <code style="font-family:var(--font-mono);color:var(--amber)">mid = left + (right - left) / 2</code>.
+                    Using <code style="font-family:var(--font-mono)">left + (right-left)/2</code> instead of
+                    <code style="font-family:var(--font-mono)">(left+right)/2</code> avoids integer overflow.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Three-way compare:</strong><br>
+                    • <code style="font-family:var(--font-mono);color:var(--green)">nums[mid] == target</code> → return <code style="font-family:var(--font-mono);color:var(--green)">mid</code><br>
+                    • <code style="font-family:var(--font-mono);color:var(--teal)">nums[mid] &lt; target</code> → <code style="font-family:var(--font-mono);color:var(--teal)">left = mid + 1</code> (discard left half)<br>
+                    • <code style="font-family:var(--font-mono);color:var(--purple)">nums[mid] &gt; target</code> → <code style="font-family:var(--font-mono);color:var(--purple)">right = mid - 1</code> (discard right half)
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num r">4</div>
+                <div class="step-body">
+                    <strong>Not found:</strong> If <code style="font-family:var(--font-mono);color:var(--red)">left &gt; right</code> the window is empty — return
+                    <code style="font-family:var(--font-mono);color:var(--red)">-1</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; nums = [-1,0,3,5,9,12], target = 9</div>
+
+        <div style="overflow-x:auto;margin-bottom:1rem">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">iter</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">left</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 10px;text-align:left">right</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 10px;text-align:left">mid</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">nums[mid]</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">compare</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">action</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(log n)</div>
+                <div class="desc">Search space halves every iteration. n=1,000,000,000 → at most 30 iterations.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc">Only three integer variables: <code>left</code>, <code>right</code>, <code>mid</code>. No extra data structures.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why <code style="font-family:var(--font-mono)">left + (right-left)/2</code>?</strong>
+            If <code style="font-family:var(--font-mono)">left</code> and <code style="font-family:var(--font-mono)">right</code> are both large,
+            <code style="font-family:var(--font-mono)">(left+right)</code> can overflow a 32-bit integer.
+            Subtracting first keeps the value in range.<br><br>
+            <strong style="color:var(--text)">Condition is <code style="font-family:var(--font-mono)">left &lt;= right</code>, not <code style="font-family:var(--font-mono)">left &lt; right</code>:</strong>
+            When <code style="font-family:var(--font-mono)">left == right</code> there is still one element to check — using <code style="font-family:var(--font-mono)">&lt;</code> would miss it.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public int</span> <span class="fn">search</span>(<span class="kw">int</span>[] nums, <span class="kw">int</span> target) {
+        <span class="kw">int</span> left  = <span class="num-c">0</span>;
+        <span class="kw">int</span> right = nums.length - <span class="num-c">1</span>;
+
+        <span class="kw">while</span> (left &lt;= right) {
+            <span class="kw">int</span> mid = left + (right - left) / <span class="num-c">2</span>;  <span class="cm">// overflow-safe</span>
+
+            <span class="kw">if</span>      (nums[mid] == target) <span class="kw">return</span> mid;         <span class="cm">// found</span>
+            <span class="kw">else if</span> (nums[mid] &lt;  target) left  = mid + <span class="num-c">1</span>;   <span class="cm">// go right</span>
+            <span class="kw">else</span>                          right = mid - <span class="num-c">1</span>;   <span class="cm">// go left</span>
+        }
+
+        <span class="kw">return</span> -<span class="num-c">1</span>;  <span class="cm">// not found</span>
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.8;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.5rem">3 things to remember</div>
+            <div style="color:var(--text);line-height:2">
+                1. Condition: <code style="font-family:var(--font-mono);color:var(--teal)">while (left &lt;= right)</code>  — not &lt;<br>
+                2. Mid: <code style="font-family:var(--font-mono);color:var(--amber)">left + (right - left) / 2</code>  — overflow safe<br>
+                3. Shrink: <code style="font-family:var(--font-mono);color:var(--purple)">left = mid+1</code> or <code style="font-family:var(--font-mono);color:var(--purple)">right = mid-1</code>  — never mid
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            Every iteration <strong style="color:var(--text)">eliminates half the remaining elements</strong>.
+            The array doesn't need to be touched — you only move two pointers.
+            <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--text);margin:.7rem 0 .5rem 1rem;line-height:2.2">
+                n=6 → 3 → 2 → 1 → done &nbsp;<span style="color:var(--muted)">(at most ⌈log₂ n⌉ iterations)</span>
+            </div>
+            <strong style="color:var(--text)">Common bugs:</strong><br>
+            • Using <code style="font-family:var(--font-mono)">&lt;</code> instead of <code style="font-family:var(--font-mono)">&lt;=</code> → misses single-element window<br>
+            • <code style="font-family:var(--font-mono)">left = mid</code> instead of <code style="font-family:var(--font-mono)">left = mid+1</code> → infinite loop<br>
+            • <code style="font-family:var(--font-mono)">(left+right)/2</code> → integer overflow on large arrays
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any sorted array</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">nums =</label>
+            <input id="nums-input" type="text" value="-1,0,3,5,9,12"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:200px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">target =</label>
+            <input id="target-input" type="number" value="9"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--amber);color:var(--amber);border-radius:6px;width:80px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ sorted integers only, 2–14 elements</span>
+        </div>
+
+        <!-- array visualiser -->
+        <div style="display:flex;gap:0;align-items:flex-end;flex-wrap:wrap;margin-bottom:.3rem;overflow-x:auto">
+            <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:60px;padding-bottom:4px">nums[]</span>
+            <div id="arr-cells" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <!-- pointer labels row -->
+        <div style="display:flex;gap:0;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.2rem;overflow-x:auto">
+            <span style="min-width:60px"></span>
+            <div id="arr-ptrs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill teal"   id="vp-left">left = 0</div>
+            <div class="var-pill purple" id="vp-right">right = —</div>
+            <div class="var-pill amber"  id="vp-mid">mid = —</div>
+            <div class="var-pill"        id="vp-cmp">compare = —</div>
+            <div class="var-pill"        id="vp-res">result = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  int left  = 0;</div>
+            <div class="tl" id="tl1">  int right = nums.length - 1;</div>
+            <div class="tl" id="tl2">  while (left &lt;= right) {</div>
+            <div class="tl" id="tl3">      int mid = left + (right - left) / 2;</div>
+            <div class="tl" id="tl4">      if (nums[mid] == target)  return mid;</div>
+            <div class="tl" id="tl5">      else if (nums[mid] &lt; target)  left  = mid + 1;</div>
+            <div class="tl" id="tl6">      else                           right = mid - 1;</div>
+            <div class="tl" id="tl7">  }</div>
+            <div class="tl" id="tl8">  return -1;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter a sorted array and target, then press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let traceNums=[], traceTarget=0, steps=[], cur=0;
+
+    // ── Static walkthrough table ──
+    function buildWalkthrough(){
+      const nums=[-1,0,3,5,9,12], target=9;
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let left=0, right=nums.length-1, iter=1;
+      while(left<=right){
+        const mid=left+Math.floor((right-left)/2);
+        const val=nums[mid];
+        const cmp=val===target?'=='  :val<target?'<':'>';
+        const action=val===target?`return ${mid}`:val<target?`left = ${mid+1}`:`right = ${mid-1}`;
+        const resColor=val===target?'var(--green)':val<target?'var(--teal)':'var(--purple)';
+        const tr=document.createElement('tr');
+        if(iter%2===0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${iter}</td>
+          <td style="padding:5px 10px;color:var(--teal);font-weight:700">${left}</td>
+          <td style="padding:5px 10px;color:var(--purple);font-weight:700">${right}</td>
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">${mid}</td>
+          <td style="padding:5px 10px;color:var(--text)">${val}</td>
+          <td style="padding:5px 10px;color:${resColor}">${val} ${cmp} ${target}</td>
+          <td style="padding:5px 10px;color:${resColor};font-weight:600">${action}</td>`;
+        tbody.appendChild(tr);
+        if(val===target) break;
+        if(val<target) left=mid+1; else right=mid-1;
+        iter++;
+      }
+      const found=nums.indexOf(target);
+      const res=document.getElementById('wt-result');
+      if(found>=0){
+        res.style.background='var(--green-dim)';res.style.border='1px solid var(--green)';res.style.color='var(--green)';
+        res.textContent=`✅  target ${target} found at index ${found}`;
+      } else {
+        res.style.background='var(--red-dim)';res.style.border='1px solid var(--red)';res.style.color='var(--red)';
+        res.textContent=`✗  target ${target} not found → return -1`;
+      }
+    }
+
+    // ── Build all trace steps ──
+    function buildSteps(nums, target){
+      const st=[];
+      const n=nums.length;
+
+      st.push({line:0,left:0,right:null,mid:null,eliminated:new Set(),res:null,act:'init',
+        log:`left = 0`});
+      st.push({line:1,left:0,right:n-1,mid:null,eliminated:new Set(),res:null,act:'init',
+        log:`right = nums.length - 1 = ${n-1}`});
+
+      let left=0, right=n-1;
+      const eliminated=new Set();
+
+      while(left<=right){
+        st.push({line:2,left,right,mid:null,eliminated:new Set(eliminated),res:null,act:'check',
+          log:`while (${left} <= ${right}) ✓`});
+
+        const mid=left+Math.floor((right-left)/2);
+        st.push({line:3,left,right,mid,eliminated:new Set(eliminated),res:null,act:'mid',
+          log:`mid = ${left} + (${right} - ${left}) / 2 = ${mid}  →  nums[${mid}] = ${nums[mid]}`});
+
+        if(nums[mid]===target){
+          st.push({line:4,left,right,mid,eliminated:new Set(eliminated),res:mid,act:'found',
+            log:`nums[${mid}] (${nums[mid]}) == target (${target})  →  return ${mid}`});
+          return st;
+        } else if(nums[mid]<target){
+          st.push({line:5,left,right,mid,eliminated:new Set(eliminated),res:null,act:'goleft',
+            log:`nums[${mid}] (${nums[mid]}) < target (${target})  →  left = ${mid+1}`});
+          for(let i=left;i<=mid;i++) eliminated.add(i);
+          left=mid+1;
+        } else {
+          st.push({line:6,left,right,mid,eliminated:new Set(eliminated),res:null,act:'goright',
+            log:`nums[${mid}] (${nums[mid]}) > target (${target})  →  right = ${mid-1}`});
+          for(let i=mid;i<=right;i++) eliminated.add(i);
+          right=mid-1;
+        }
+      }
+
+      st.push({line:7,left,right,mid:null,eliminated:new Set(eliminated),res:null,act:'exit',
+        log:`while (${left} <= ${right}) ✗  →  exit loop`});
+      st.push({line:8,left,right,mid:null,eliminated:new Set(eliminated),res:-1,act:'notfound',
+        log:`✗  target ${target} not found  →  return -1`});
+      return st;
+    }
+
+    // ── Render array cells ──
+    function renderCells(nums, left, right, mid, eliminated, foundIdx){
+      const cellsEl=document.getElementById('arr-cells');
+      const ptrsEl=document.getElementById('arr-ptrs');
+      cellsEl.innerHTML=''; ptrsEl.innerHTML='';
+      nums.forEach((v,i)=>{
+        let cls='cell-val';
+        if(foundIdx===i) cls='cell-val found';
+        else if(eliminated&&eliminated.has(i)) cls='cell-val eliminated';
+        else if(i===mid) cls='cell-val mid';
+        else if(i===left) cls='cell-val left';
+        else if(i===right) cls='cell-val right';
+
+        cellsEl.innerHTML+=`<div class="cell">
+          <div class="${cls}" id="cv-${i}">${v}</div>
+          <div class="cell-idx">[${i}]</div>
+        </div>`;
+
+        const labels=[];
+        if(i===left&&left===right) labels.push('<span style="color:var(--teal)">L</span><span style="color:var(--purple)">=R</span>');
+        else if(i===left) labels.push('<span style="color:var(--teal)">L</span>');
+        else if(i===right) labels.push('<span style="color:var(--purple)">R</span>');
+        if(i===mid&&foundIdx===null) labels.push('<span style="color:var(--amber)">M</span>');
+
+        ptrsEl.innerHTML+=`<div class="cell-ptr" style="width:48px;font-family:var(--font-mono);font-size:.65rem">${labels.join('')}</div>`;
+      });
+    }
+
+    const lineHL={0:'at',1:'ap',2:'at',3:'aa',4:'ag',5:'at',6:'ap',7:'ar',8:'ar'};
+    const cmpClass={found:'green',goleft:'teal',goright:'purple',notfound:'red',check:'teal',exit:'red'};
+
+    function applyStep(s){
+      const foundIdx=s.res!==null&&s.res>=0?s.res:null;
+      renderCells(traceNums,s.left,s.right,s.mid,s.eliminated,foundIdx);
+
+      document.getElementById('vp-left').textContent=`left = ${s.left}`;
+      document.getElementById('vp-left').className='var-pill teal';
+      document.getElementById('vp-right').textContent=s.right!==null?`right = ${s.right}`:'right = —';
+      document.getElementById('vp-right').className='var-pill purple';
+      document.getElementById('vp-mid').textContent=s.mid!==null?`mid = ${s.mid}`:'mid = —';
+      document.getElementById('vp-mid').className='var-pill amber';
+
+      const cmpText=s.act==='found'?`${traceNums[s.mid]} == ${traceTarget} ✓`
+        :s.act==='goleft'?`${traceNums[s.mid]} < ${traceTarget} → go right`
+        :s.act==='goright'?`${traceNums[s.mid]} > ${traceTarget} → go left`
+        :s.act==='notfound'?'not found':'—';
+      document.getElementById('vp-cmp').textContent=`cmp = ${cmpText}`;
+      document.getElementById('vp-cmp').className='var-pill '+(cmpClass[s.act]||'');
+
+      const resText=s.res===null?'—':s.res===-1?'-1 (not found)':`index ${s.res} ✓`;
+      document.getElementById('vp-res').textContent=`result = ${resText}`;
+      document.getElementById('vp-res').className='var-pill'+(s.res===null?'':s.res>=0?' green':' red');
+
+      for(let k=0;k<=8;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      const isDone=s.log.startsWith('✅')||s.act==='notfound'||s.act==='found';
+      document.getElementById('trace-log').style.color=
+        s.act==='found'?'var(--green)':s.act==='notfound'||s.act==='exit'?'var(--red)':
+        s.act==='goleft'?'var(--teal)':s.act==='goright'?'var(--purple)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('nums-input').value.trim();
+      const tgt=parseInt(document.getElementById('target-input').value);
+      const nums=raw.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const errEl=document.getElementById('input-err');
+      const sorted=nums.every((v,i)=>i===0||v>=nums[i-1]);
+      if(nums.length<2||nums.length>14||isNaN(tgt)||!sorted){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceNums=nums; traceTarget=tgt;
+      steps=buildSteps(traceNums,traceTarget);
+      cur=0;
+      renderCells(traceNums,0,nums.length-1,null,new Set(),null);
+      for(let k=0;k<=8;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-left').textContent='left = 0';   document.getElementById('vp-left').className='var-pill teal';
+      document.getElementById('vp-right').textContent=`right = ${nums.length-1}`; document.getElementById('vp-right').className='var-pill purple';
+      document.getElementById('vp-mid').textContent='mid = —';     document.getElementById('vp-mid').className='var-pill amber';
+      document.getElementById('vp-cmp').textContent='compare = —'; document.getElementById('vp-cmp').className='var-pill';
+      document.getElementById('vp-res').textContent='result = —';  document.getElementById('vp-res').className='var-pill';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing nums=[${nums}], target=${tgt} — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
