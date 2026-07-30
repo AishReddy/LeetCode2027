@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>88. Merge Sorted Array</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --amber:#f59e0b;--amber-dim:#f59e0b18;--amber-mid:#f59e0b44;
+          --violet:#8b5cf6;--violet-dim:#8b5cf618;--violet-mid:#8b5cf644;
+          --emerald:#10b981;--emerald-dim:#10b98118;--emerald-mid:#10b98144;
+          --rose:#fb7185;--rose-dim:#fb718518;
+          --sky:#38bdf8;--sky-dim:#38bdf818;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:900px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.easy   {background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)}
+        .badge.time   {background:var(--amber-dim);  color:var(--amber);  border-color:var(--amber)}
+        .badge.space  {background:var(--violet-dim); color:var(--violet); border-color:var(--violet)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .problem-example{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;font-size:.82rem;line-height:2.4;margin-top:1rem}
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.amber  {background:var(--amber-dim);  border-left:3px solid var(--amber);  color:#d4c08a}
+        .callout.violet {background:var(--violet-dim); border-left:3px solid var(--violet); color:#b0a8d4}
+        .callout.emerald{background:var(--emerald-dim);border-left:3px solid var(--emerald);color:#9ad4bc}
+        .callout.rose   {background:var(--rose-dim);   border-left:3px solid var(--rose);   color:#d4a0a8}
+        .callout.sky    {background:var(--sky-dim);    border-left:3px solid var(--sky);    color:#9ad0e0}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.pa{background:var(--amber-dim);  color:var(--amber);  border:1px solid var(--amber)}
+        .phase-badge.pb{background:var(--violet-dim); color:var(--violet); border:1px solid var(--violet)}
+        .phase-badge.pk{background:var(--emerald-dim);color:var(--emerald);border:1px solid var(--emerald)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* ── array canvas ── */
+        .arr-canvas{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1.4rem 1rem 1.2rem;margin:.8rem 0;overflow-x:auto}
+        .arr-canvas svg{display:block;margin:0 auto}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.amber  {background:var(--amber-dim);  color:var(--amber);  border-color:var(--amber)}
+        .pill.violet {background:var(--violet-dim); color:var(--violet); border-color:var(--violet)}
+        .pill.emerald{background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)}
+        .pill.rose   {background:var(--rose-dim);   color:var(--rose);   border-color:var(--rose)}
+        .pill.sky    {background:var(--sky-dim);    color:var(--sky);    border-color:var(--sky)}
+
+        .code-line{display:block;transition:background .2s;border-radius:3px;padding:0 4px}
+        .code-line.active{background:#f59e0b14}
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--amber)}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.75rem 0;transition:color .2s}
+        .step-log.amber  {color:var(--amber)}
+        .step-log.violet {color:var(--violet)}
+        .step-log.emerald{color:var(--emerald)}
+        .step-log.rose   {color:var(--rose)}
+        .step-log.sky    {color:var(--sky)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary  {background:var(--amber-dim);  border-color:var(--amber);  color:var(--amber)}
+        .btn-primary:hover:not(:disabled){background:var(--amber-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--amber);color:var(--amber)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--rose);border-color:var(--rose)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        /* why wrong approach */
+        .wrong-right{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+        .wr-card{border-radius:8px;padding:1rem;border:1px solid}
+        .wr-card.wrong{background:#200a0a;border-color:var(--rose)}
+        .wr-card.right{background:#0a1f10;border-color:var(--emerald)}
+        .wr-label{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .wr-card.wrong .wr-label{color:var(--rose)}
+        .wr-card.right .wr-label{color:var(--emerald)}
+        .wr-body{font-size:.76rem;line-height:1.7;color:var(--muted2)}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time {background:var(--amber-dim);  border-color:var(--amber)}
+        .cx-card.space{background:var(--violet-dim); border-color:var(--violet)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--amber)}
+        .cx-card.space .cx-label{color:var(--violet)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--amber)}
+        .cx-card.space .cx-big{color:var(--violet)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        @media(max-width:560px){.cx-grid{grid-template-columns:1fr}.wrong-right{grid-template-columns:1fr}.header h1{font-size:2rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">LeetCode 88</div>
+        <h1>Merge Sorted Array</h1>
+        <p>Three-pointer merge from the back — in-place, no extra space</p>
+        <div class="badges">
+            <span class="badge easy">easy</span>
+            <span class="badge time">O(m+n) time</span>
+            <span class="badge space">O(1) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            You are given two sorted integer arrays <code style="color:var(--amber)">nums1</code> (size <code style="color:var(--amber)">m+n</code>, last <code style="color:var(--sky)">n</code> slots are zeros) and <code style="color:var(--violet)">nums2</code> (size <code style="color:var(--violet)">n</code>).
+            Merge <code style="color:var(--violet)">nums2</code> into <code style="color:var(--amber)">nums1</code> <strong style="color:var(--text)">in-place</strong> so that <code style="color:var(--amber)">nums1</code> becomes sorted.
+        </p>
+        <div class="problem-example">
+            <span style="color:var(--amber)">nums1</span> = [2, 3, 4, <span style="color:var(--sky)">0, 0</span>] &nbsp; m=3<br>
+            <span style="color:var(--violet)">nums2</span> = [4, 5] &nbsp; n=2<br>
+            Output: <span style="color:var(--emerald)">[2, 3, 4, 4, 5]</span>
+        </div>
+        <div class="callout amber">
+            ⚡ Key insight: merging from the <strong style="color:var(--amber)">front</strong> requires shifting elements — expensive. Merging from the <strong style="color:var(--amber)">back</strong> fills the empty zero slots directly. The largest element always goes to the last empty slot — no shifting needed.
+        </div>
+    </div>
+
+    <!-- why back not front -->
+    <div class="card">
+        <div class="card-title">Why merge from the back?</div>
+        <div class="wrong-right">
+            <div class="wr-card wrong">
+                <div class="wr-label">✗ Front-to-back (naive)</div>
+                <div class="wr-body">
+                    Insert into position → must shift everything right to make room.<br>
+                    Each insertion = O(n) shift → total O(n²). Also risks overwriting unread values in nums1.
+                </div>
+            </div>
+            <div class="wr-card right">
+                <div class="wr-label">✓ Back-to-front (optimal)</div>
+                <div class="wr-body">
+                    Empty slots at the tail of nums1 are waiting to be filled. Place the largest element there first. Pointers only move backward — no shifting, no overwriting.
+                </div>
+            </div>
+        </div>
+        <div class="callout emerald" style="margin-top:1rem">
+            ✓ The zero-padding in nums1 is not a bug — it's the space reserved for the merge. Back-to-front uses it perfectly.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">Three-pointer approach</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge pa">p1</div>
+                <div class="phase-body"><strong>p1</strong> — points to the last real element of <code style="color:var(--amber)">nums1</code>, starts at index <code style="color:var(--amber)">m-1</code>. Moves left after each placement.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pb">p2</div>
+                <div class="phase-body"><strong>p2</strong> — points to the last element of <code style="color:var(--violet)">nums2</code>, starts at index <code style="color:var(--violet)">n-1</code>. Moves left after each placement.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pk">k</div>
+                <div class="phase-body"><strong>k</strong> — the write cursor, starts at the very last index <code style="color:var(--emerald)">m+n-1</code>. Always receives the larger of <code>nums1[p1]</code> vs <code>nums2[p2]</code>. Moves left every iteration.</div>
+            </div>
+        </div>
+        <div class="callout violet">
+            ✓ When p2 reaches -1, nums2 is fully merged — done. Any remaining nums1 elements are already in place. If p1 reaches -1 first, copy remaining nums2 elements to the front of nums1.
+        </div>
+    </div>
+
+    <!-- interactive trace -->
+    <div class="card">
+        <div class="card-title">Interactive trace &nbsp;—&nbsp; nums1=[2,3,4,0,0] &nbsp; nums2=[4,5]</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <!-- nums1 canvas -->
+        <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:4px;letter-spacing:.08em;text-transform:uppercase">nums1</div>
+        <div class="arr-canvas">
+            <svg id="arr1-svg" width="100%" viewBox="0 0 420 100" style="max-width:420px"></svg>
+        </div>
+
+        <!-- nums2 canvas -->
+        <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:4px;letter-spacing:.08em;text-transform:uppercase">nums2</div>
+        <div class="arr-canvas">
+            <svg id="arr2-svg" width="100%" viewBox="0 0 180 100" style="max-width:180px"></svg>
+        </div>
+
+        <div class="pills">
+            <div class="pill amber"   id="pill-p1">p1 = —</div>
+            <div class="pill violet"  id="pill-p2">p2 = —</div>
+            <div class="pill emerald" id="pill-k">k = —</div>
+            <div class="pill"         id="pill-v1">nums1[p1] = —</div>
+            <div class="pill"         id="pill-v2">nums2[p2] = —</div>
+            <div class="pill sky"     id="pill-place">place = —</div>
+        </div>
+
+        <pre id="code-viewer" style="margin:.5rem 0 0;font-size:.76rem"></pre>
+
+        <div class="step-log amber" id="step-log">Press "Next step" to begin the trace.</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Full walkthrough table &nbsp;—&nbsp; nums1=[2,3,4,0,0] &nbsp; nums2=[4,5]</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">step</th>
+                    <th style="padding:6px 10px;color:var(--amber);  font-weight:500">p1</th>
+                    <th style="padding:6px 10px;color:var(--violet); font-weight:500">p2</th>
+                    <th style="padding:6px 10px;color:var(--emerald);font-weight:500">k</th>
+                    <th style="padding:6px 10px;color:var(--amber);  font-weight:400;text-align:left">nums1[p1]</th>
+                    <th style="padding:6px 10px;color:var(--violet); font-weight:400;text-align:left">nums2[p2]</th>
+                    <th style="padding:6px 10px;color:var(--muted);  font-weight:400;text-align:left">action</th>
+                    <th style="padding:6px 10px;color:var(--muted);  font-weight:400;text-align:left">nums1 after</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- code -->
+    <div class="card">
+        <div class="card-title">Java solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public void</span> <span class="fn">merge</span>(<span class="kw">int</span>[] nums1, <span class="kw">int</span> m, <span class="kw">int</span>[] nums2, <span class="kw">int</span> n) {
+        <span class="kw">int</span> p1 = m - <span class="num">1</span>;           <span class="cm">// last real element of nums1</span>
+        <span class="kw">int</span> p2 = n - <span class="num">1</span>;           <span class="cm">// last element of nums2</span>
+        <span class="kw">int</span> k  = m + n - <span class="num">1</span>;       <span class="cm">// write position (last slot)</span>
+
+        <span class="kw">while</span> (p2 &gt;= <span class="num">0</span>) {         <span class="cm">// keep going until nums2 exhausted</span>
+            <span class="kw">if</span> (p1 &gt;= <span class="num">0</span> &amp;&amp; nums1[p1] &gt; nums2[p2]) {
+                nums1[k--] = nums1[p1--];   <span class="cm">// nums1 wins</span>
+            } <span class="kw">else</span> {
+                nums1[k--] = nums2[p2--];   <span class="cm">// nums2 wins (or p1 exhausted)</span>
+            }
+        }
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--amber);font-weight:600;margin-bottom:.4rem">Why loop on <code>p2 ≥ 0</code>?</div>
+                <div style="color:var(--muted2)">
+                    If nums2 is exhausted (<code>p2 &lt; 0</code>), the remaining nums1 elements are already in their correct positions — nothing to do. But if nums1 is exhausted first, nums2 remainders must still be copied.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--violet);font-weight:600;margin-bottom:.4rem">Why check <code>p1 ≥ 0</code> inside?</div>
+                <div style="color:var(--muted2)">
+                    If nums1 is exhausted (<code>p1 &lt; 0</code>), skip the comparison and always take from nums2. The <code>else</code> branch handles both "nums2 wins" AND "nums1 is empty".
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9;grid-column:1/-1">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:.4rem">Invariant</div>
+                <div style="color:var(--muted2)">
+                    After each iteration: <code style="color:var(--emerald)">nums1[k+1 .. m+n-1]</code> is finalized and sorted. The region <code>[0..k]</code> still contains unprocessed elements. <code>k</code> always moves left by exactly 1 per iteration.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(m+n)</div>
+                <div class="cx-desc">Each element from both arrays is placed exactly once. No inner loops, no shifting. Single backward pass.</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(1)</div>
+                <div class="cx-desc">Three integer pointers. All writes go directly into nums1's pre-allocated tail space.</div>
+            </div>
+        </div>
+        <div class="callout amber" style="margin-top:1rem">
+            The naive approach (merge into temp array, copy back) is O(m+n) time but O(m+n) space. This back-to-front approach achieves the same time at O(1) space by exploiting the reserved zeros.
+        </div>
+    </div>
+
+    <!-- edge cases -->
+    <div class="card">
+        <div class="card-title">Edge cases</div>
+        <div style="font-size:.8rem;line-height:2.2;color:var(--muted2)">
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:baseline">
+                <code style="color:var(--amber)">n = 0</code>
+                <span>nums2 is empty → p2=-1 → loop never runs → nums1 unchanged ✓</span>
+                <code style="color:var(--violet)">m = 0</code>
+                <span>nums1 has no real elements → p1=-1 → always take from nums2 until exhausted ✓</span>
+                <code style="color:var(--emerald)">all nums2 &gt; nums1</code>
+                <span>p1 exhausts first → remainder of nums2 fills the front of nums1 ✓</span>
+                <code style="color:var(--rose)">all nums2 &lt; nums1</code>
+                <span>nums1 elements fill k..m positions first, then nums2 fills [0..n-1] ✓</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- related -->
+    <div class="card">
+        <div class="card-title">Related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Merge Two Sorted Lists (21)</strong> — same merge logic on linked lists<br>
+            • <strong style="color:var(--text)">Sort Colors (75)</strong> — Dutch national flag, 3-pointer partition<br>
+            • <strong style="color:var(--text)">Interval List Intersections (986)</strong> — two-pointer merge on intervals<br>
+            • <strong style="color:var(--text)">Merge k Sorted Lists (23)</strong> — generalization using a min-heap
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ── constants ─────────────────────────────────────────────────────────
+    const ORIG1 = [2, 3, 4, 0, 0];
+    const ORIG2 = [4, 5];
+    const M = 3, N_LEN = 2;
+
+    const CW = 58, CH = 44, GAP = 12;
+    const AMBER   = '#f59e0b';
+    const VIOLET  = '#8b5cf6';
+    const EMERALD = '#10b981';
+    const ROSE    = '#fb7185';
+    const SKY     = '#38bdf8';
+    const MUTED   = '#32324a';
+
+    function bx(i, startX) { return startX + i*(CW+GAP); }
+    function cx_(i, startX) { return bx(i,startX) + CW/2; }
+
+    function renderArr1(arr, hl) {
+      const svg = document.getElementById('arr1-svg');
+      const n = arr.length;
+      const totalW = n*CW+(n-1)*GAP;
+      const startX = (420-totalW)/2;
+      let html = '';
+      for (let i = 0; i < n; i++) {
+        const x = bx(i,startX), mx = cx_(i,startX);
+        const isZero = arr[i]===0 && i>=M && !hl.filled?.includes(i);
+        let fill = isZero?'#1a0a0a':'#0d1820', stroke=MUTED, textCol=isZero?'#3a2a2a':'#5a7888', sw='1';
+        if (hl.k===i)  { fill='#0a1f10'; stroke=EMERALD; textCol=EMERALD; sw='2'; }
+        if (hl.p1===i) { fill='#1f1508'; stroke=AMBER;   textCol=AMBER;   sw='1.8'; }
+        if (hl.filled?.includes(i) && hl.k!==i && hl.p1!==i) { fill='#0a1f10'; stroke=EMERALD; textCol=EMERALD; sw='1'; }
+        if (hl.done)   { fill='#0a1f10'; stroke=EMERALD; textCol=EMERALD; sw='1'; }
+        html += `<rect x="${x}" y="20" width="${CW}" height="${CH}" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        html += `<text x="${mx}" y="${20+CH/2+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="17" font-weight="600" fill="${textCol}">${arr[i]===0&&isZero?'_':arr[i]}</text>`;
+        html += `<text x="${mx}" y="${20+CH+16}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3a3a55">[${i}]</text>`;
+      }
+      // pointer labels
+      if (hl.p1!==undefined && hl.p1>=0 && hl.p1<n) {
+        const ax=cx_(hl.p1,startX);
+        html+=`<text x="${ax}" y="12" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${AMBER}">p1</text>`;
+        html+=`<polygon points="${ax-4},16 ${ax+4},16 ${ax},20" fill="${AMBER}"/>`;
+      }
+      if (hl.k!==undefined && hl.k>=0 && hl.k<n) {
+        const ax=cx_(hl.k,startX);
+        const off = hl.p1===hl.k?-10:0;
+        html+=`<text x="${ax+off}" y="12" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${EMERALD}">k</text>`;
+        html+=`<polygon points="${ax+off-4},16 ${ax+off+4},16 ${ax+off},20" fill="${EMERALD}"/>`;
+      }
+      svg.innerHTML = html;
+    }
+
+    function renderArr2(arr, hl) {
+      const svg = document.getElementById('arr2-svg');
+      const n = arr.length;
+      const totalW = n*CW+(n-1)*GAP;
+      const startX = (180-totalW)/2;
+      let html = '';
+      for (let i = 0; i < n; i++) {
+        const x = bx(i,startX), mx = cx_(i,startX);
+        let fill='#140a20', stroke=MUTED, textCol='#7a5a88', sw='1';
+        if (hl.p2===i) { fill='#1a0a28'; stroke=VIOLET; textCol=VIOLET; sw='1.8'; }
+        if (hl.usedp2?.includes(i)) { fill='#0a0a0a'; stroke='#2a2a3a'; textCol='#3a3a4a'; }
+        html += `<rect x="${x}" y="20" width="${CW}" height="${CH}" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        html += `<text x="${mx}" y="${20+CH/2+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="17" font-weight="600" fill="${textCol}">${arr[i]}</text>`;
+        html += `<text x="${mx}" y="${20+CH+16}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3a3a55">[${i}]</text>`;
+      }
+      if (hl.p2!==undefined && hl.p2>=0 && hl.p2<n) {
+        const ax=cx_(hl.p2,startX);
+        html+=`<text x="${ax}" y="12" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="${VIOLET}">p2</text>`;
+        html+=`<polygon points="${ax-4},16 ${ax+4},16 ${ax},20" fill="${VIOLET}"/>`;
+      }
+      svg.innerHTML = html;
+    }
+
+    // ── build steps ────────────────────────────────────────────────────────
+    function buildSteps() {
+      const steps = [];
+      const a1 = [...ORIG1], a2 = [...ORIG2];
+      let p1=M-1, p2=N_LEN-1, k=M+N_LEN-1;
+      const filled=[], usedP2=[];
+
+      function snap(hl1,hl2,title,badge,badgeStyle,log,logColor,pills,codeLines){
+        steps.push({a1:[...a1],a2:[...a2],hl1:{...hl1,filled:[...filled]},hl2:{...hl2,usedp2:[...usedP2]},
+          title,badge,badgeStyle,log,logColor,pills,codeLines});
+      }
+
+      snap({p1,k},{p2}, 'Initial state', '—', 'surface',
+        `p1=${p1} (nums1[p1]=${a1[p1]}), p2=${p2} (nums2[p2]=${a2[p2]}), k=${k} (write here).`, 'amber',
+        {p1:String(p1),p2:String(p2),k:String(k),v1:String(a1[p1]),v2:String(a2[p2]),place:'—'}, [2,3,4]);
+
+      while (p2 >= 0) {
+        const v1 = p1>=0?a1[p1]:null, v2=a2[p2];
+        snap({p1,k},{p2},`Compare: p1=${p1>=0?a1[p1]:'—'} vs p2=${v2}`,'compare','amber',
+          `p2=${p2}≥0 → loop. p1=${p1}${p1>=0?` (${v1})`:'exhausted'}, nums2[p2]=${v2}.`, 'amber',
+          {p1:String(p1),p2:String(p2),k:String(k),v1:p1>=0?String(v1):'—',v2:String(v2),place:'?'}, [6,7]);
+
+        if (p1>=0 && v1>v2) {
+          snap({p1,k},{p2},`nums1[${p1}]=${v1} > nums2[${p2}]=${v2} → place ${v1}`,'←nums1','amber',
+            `${v1} > ${v2} → place nums1[p1]=${v1} at k=${k}. p1--, k--.`, 'amber',
+            {p1:String(p1),p2:String(p2),k:String(k),v1:String(v1),v2:String(v2),place:String(v1)}, [8]);
+          a1[k]=v1; filled.push(k); k--; p1--;
+        } else {
+          snap({p1,k},{p2},`nums2[${p2}]=${v2} wins → place ${v2}`,'←nums2','violet',
+            `${p1<0?'p1 exhausted':v2+' ≥ '+v1} → place nums2[p2]=${v2} at k=${k}. p2--, k--.`, 'violet',
+            {p1:String(p1),p2:String(p2),k:String(k),v1:p1>=0?String(v1):'—',v2:String(v2),place:String(v2)}, [9,10]);
+          a1[k]=v2; filled.push(k); usedP2.push(p2); k--; p2--;
+        }
+      }
+
+      snap({done:true,k},{p2}, 'Done! ✓', '✓ done', 'emerald',
+        `p2=${p2} < 0 → loop exits. nums1 is fully merged: [${a1}]`, 'emerald',
+        {p1:String(p1),p2:String(p2),k:String(k),v1:'—',v2:'—',place:'done'}, [6]);
+
+      return steps;
+    }
+
+    const BADGE_STYLES = {
+      surface: 'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      amber:   'background:var(--amber-dim);color:var(--amber);border-color:var(--amber)',
+      violet:  'background:var(--violet-dim);color:var(--violet);border-color:var(--violet)',
+      emerald: 'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+      compare: 'background:var(--amber-dim);color:var(--amber);border-color:var(--amber)',
+      '←nums1':'background:var(--amber-dim);color:var(--amber);border-color:var(--amber)',
+      '←nums2':'background:var(--violet-dim);color:var(--violet);border-color:var(--violet)',
+      '✓ done':'background:var(--emerald-dim);color:var(--emerald);border-color:var(--emerald)',
+    };
+
+    const CODE_DISPLAY = [
+      {text:'  int p1 = m - 1;'},
+      {text:'  int p2 = n - 1;'},
+      {text:'  int k  = m + n - 1;'},
+      {text:''},
+      {text:'  while (p2 >= 0) {'},
+      {text:'      if (p1 >= 0 && nums1[p1] > nums2[p2]) {'},
+      {text:'          nums1[k--] = nums1[p1--];'},
+      {text:'      } else {'},
+      {text:'          nums1[k--] = nums2[p2--];'},
+      {text:'      }'},
+      {text:'  }'},
+    ];
+    const CODE_MAP = {2:[0],3:[1],4:[2],6:[4],7:[5],8:[6],9:[7,8],10:[7,8]};
+
+    function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    function buildCodeHTML(codeLines) {
+      const active=new Set();
+      for(const c of codeLines)(CODE_MAP[c]||[]).forEach(i=>active.add(i));
+      return CODE_DISPLAY.map(({text},i)=>
+        `<span class="code-line${active.has(i)?' active':''}">${escHtml(text)||' '}</span>`
+      ).join('\n');
+    }
+
+    function applyStep(idx) {
+      const s = steps[idx];
+      renderArr1(s.a1, s.hl1);
+      renderArr2(s.a2, s.hl2);
+      document.getElementById('step-title').textContent = s.title;
+      const badge=document.getElementById('step-badge');
+      badge.textContent=s.badge;
+      badge.setAttribute('style', BADGE_STYLES[s.badgeStyle]||BADGE_STYLES[s.badge]||BADGE_STYLES.surface);
+      const log=document.getElementById('step-log');
+      log.textContent=s.log; log.className='step-log '+s.logColor;
+
+      const defs=[
+        {id:'pill-p1',  label:'p1',         val:s.pills.p1,    col:'amber'},
+        {id:'pill-p2',  label:'p2',         val:s.pills.p2,    col:'violet'},
+        {id:'pill-k',   label:'k',          val:s.pills.k,     col:'emerald'},
+        {id:'pill-v1',  label:'nums1[p1]',  val:s.pills.v1,    col:s.pills.v1==='—'?'':'amber'},
+        {id:'pill-v2',  label:'nums2[p2]',  val:s.pills.v2,    col:s.pills.v2==='—'?'':'violet'},
+        {id:'pill-place',label:'place',     val:s.pills.place,
+          col:s.pills.place==='done'?'emerald':s.pills.place==='?'||s.pills.place==='—'?'':'sky'},
+      ];
+      for(const d of defs){
+        const el=document.getElementById(d.id);
+        el.textContent=d.label+' = '+d.val;
+        el.className='pill '+(d.col||'');
+      }
+      document.getElementById('code-viewer').innerHTML=buildCodeHTML(s.codeLines);
+      document.getElementById('step-counter').textContent=`step ${idx} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=idx===0;
+      document.getElementById('btn-next').disabled=idx===steps.length-1;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(cur);}}
+    function prevStep(){if(cur>0){cur--;applyStep(cur);}}
+    function resetTrace(){cur=0;applyStep(0);}
+
+    function buildWT() {
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      // simulate manually for the example
+      const rows=[
+        [1,2,1,4,'4','5','5 ≥ 4 → place 5 at k=4, p2--,k--','[2,3,4,0,5]'],
+        [2,2,0,3,'4','4','4 ≥ 4 → place 4 at k=3, p2--,k--','[2,3,4,4,5]'],
+        [3,2,-1,2,'—','—','p2<0 → exit loop','[2,3,4,4,5] ✓'],
+      ];
+      rows.forEach(([step,p1,p2,k,v1,v2,action,after],i)=>{
+        const tr=document.createElement('tr');
+        if(i%2===1)tr.style.background='#ffffff04';
+        const isDone=action.includes('exit');
+        const fromNums2=action.includes('place')&&v2!=='—'&&(v2>=v1||v1==='—');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 10px;color:var(--amber);text-align:center;font-weight:600">${p1}</td>
+          <td style="padding:5px 10px;color:var(--violet);text-align:center;font-weight:600">${p2}</td>
+          <td style="padding:5px 10px;color:var(--emerald);text-align:center;font-weight:600">${k}</td>
+          <td style="padding:5px 10px;color:var(--amber)">${v1}</td>
+          <td style="padding:5px 10px;color:var(--violet)">${v2}</td>
+          <td style="padding:5px 10px;color:${isDone?'var(--emerald)':fromNums2?'var(--violet)':'var(--amber)'};font-size:.72rem">${action}</td>
+          <td style="padding:5px 10px;color:var(--muted2);font-size:.7rem">${after}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    let steps=[],cur=0;
+    steps=buildSteps();
+    resetTrace();
+    buildWT();
+</script>
+</body>
+</html>
