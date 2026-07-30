@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>242. Valid Anagram</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal);border-radius:4px;padding:2px 8px;margin-top:.5rem}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.r{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+        .step-body{font-size:.83rem;line-height:1.6;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+        .var-pill.green{border-color:#4ade80;background:#4ade8022;color:#4ade80}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.active-teal{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.active-amber{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.active-red{background:var(--red-dim);color:var(--red);font-weight:700}
+        .tl.active-purple{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.active-green{background:#4ade8022;color:#4ade80;font-weight:700}
+
+        /* freq bar chart */
+        .freq-grid{display:grid;grid-template-columns:repeat(26,1fr);gap:2px;align-items:end;height:80px;margin:0.8rem 0}
+        .freq-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+        .freq-bar{width:100%;border-radius:2px 2px 0 0;transition:height .3s,background .3s;min-height:0}
+        .freq-lbl{font-family:var(--font-mono);font-size:8px;color:var(--muted)}
+        .freq-val{font-family:var(--font-mono);font-size:8px}
+
+        @media(max-width:520px){
+          .complexity-grid{grid-template-columns:1fr}
+          .freq-grid{height:60px}
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>242. Valid Anagram</h1>
+        <p>LeetCode Easy — Frequency Count with int[26]</p>
+        <span class="badge">O(n) time &nbsp;|&nbsp; O(1) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given two strings <code style="color:var(--teal);font-family:var(--font-mono)">s</code> and
+            <code style="color:var(--teal);font-family:var(--font-mono)">t</code>, return
+            <code style="color:var(--amber);font-family:var(--font-mono)">true</code> if
+            <code style="color:var(--teal);font-family:var(--font-mono)">t</code> is an anagram of
+            <code style="color:var(--teal);font-family:var(--font-mono)">s</code>, and
+            <code style="color:var(--red);font-family:var(--font-mono)">false</code> otherwise.
+            An anagram uses <strong style="color:var(--text)">exactly the same characters the same number of times</strong>.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Sorting both strings is O(n log n). Counting frequencies is O(n) with O(1) space — always prefer this for lowercase-only problems.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Frequency Count with int[26]</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num r">0</div>
+                <div class="step-body">
+                    <strong>Early exit:</strong> If <code style="font-family:var(--font-mono);color:var(--red)">s.length() != t.length()</code> return <code style="font-family:var(--font-mono);color:var(--red)">false</code> immediately. Different lengths can never be anagrams.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Count s:</strong> For each char in <code style="font-family:var(--font-mono);color:var(--teal)">s</code>,
+                    increment <code style="font-family:var(--font-mono);color:var(--teal)">sa[c - 'a']++</code>.
+                    The trick <code style="font-family:var(--font-mono);color:var(--teal)">c - 'a'</code> maps
+                    <code style="font-family:var(--font-mono)">'a'→0, 'b'→1 … 'z'→25</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Count t:</strong> Same process for <code style="font-family:var(--font-mono);color:var(--purple)">t</code> into
+                    <code style="font-family:var(--font-mono);color:var(--purple)">ta[]</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Compare:</strong> Loop <code style="font-family:var(--font-mono)">i = 0..25</code>.
+                    If any <code style="font-family:var(--font-mono);color:var(--amber)">sa[i] != ta[i]</code> → return <code style="font-family:var(--font-mono);color:var(--red)">false</code>.
+                    If all match → return <code style="font-family:var(--font-mono);color:var(--teal)">true</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Step-by-Step Walkthrough &nbsp; s = "anagram" &nbsp; t = "nagaram"</div>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div>
+                <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--teal);margin-bottom:.4rem">sa[] — counts for s = "anagram"</div>
+                <div class="freq-grid" id="wt-sa"></div>
+            </div>
+        </div>
+        <div>
+            <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--purple);margin-bottom:.4rem">ta[] — counts for t = "nagaram"</div>
+            <div class="freq-grid" id="wt-ta"></div>
+        </div>
+
+        <hr>
+
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">i</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">char</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">sa[i]</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 10px;text-align:left">ta[i]</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 10px;text-align:left">match?</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">Three loops — each O(n), O(n), O(26). The comparison loop is always exactly 26 iterations regardless of input size.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc"><code>sa[26]</code> and <code>ta[26]</code> are fixed-size arrays. Size never changes with input — always exactly 52 integers.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Unicode follow-up:</strong> If the problem allows Unicode (not just lowercase letters), <code style="font-family:var(--font-mono)">int[26]</code> breaks. Switch to <code style="font-family:var(--font-mono)">HashMap&lt;Character, Integer&gt;</code> — same idea, O(n) time but now O(k) space where k is the unique character count.<br><br>
+            <strong style="color:var(--text)">The - 'a' trick:</strong> Characters in Java are just numbers. <code style="font-family:var(--font-mono)">'a' = 97, 'b' = 98 … 'z' = 122</code>. Subtracting <code style="font-family:var(--font-mono)">'a'</code> (97) maps each char to an index 0–25.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution — Your Code</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public boolean</span> <span class="fn">isAnagram</span>(String s, String t) {
+
+        <span class="cm">// early exit — different lengths can never be anagrams</span>
+        <span class="kw">if</span> (s.<span class="fn">length</span>() != t.<span class="fn">length</span>()) <span class="kw">return false</span>;
+
+        <span class="kw">int</span>[] sa = <span class="kw">new int</span>[<span class="num-c">26</span>];   <span class="cm">// frequency count for s</span>
+        <span class="kw">int</span>[] ta = <span class="kw">new int</span>[<span class="num-c">26</span>];   <span class="cm">// frequency count for t</span>
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num-c">0</span>; i &lt; s.<span class="fn">length</span>(); i++)
+            sa[s.<span class="fn">charAt</span>(i) - <span class="str">'a'</span>]++;
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num-c">0</span>; i &lt; t.<span class="fn">length</span>(); i++)
+            ta[t.<span class="fn">charAt</span>(i) - <span class="str">'a'</span>]++;
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num-c">0</span>; i &lt; sa.length; i++)
+            <span class="kw">if</span> (sa[i] != ta[i]) <span class="kw">return false</span>;
+
+        <span class="kw">return true</span>;
+    }
+}</pre>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            Two strings are anagrams if and only if their character frequency arrays are identical.
+            <div style="font-family:var(--font-mono);font-size:.88rem;color:var(--text);margin:.6rem 0 .6rem 1rem">
+                sa[<span style="color:var(--teal)">c - 'a'</span>]++  &nbsp;maps any lowercase char to index 0–25
+            </div>
+            The comparison loop is always exactly <strong style="color:var(--text)">26 iterations</strong> — constant time regardless of string length. That's why space is O(1).
+            <br><br>
+            <strong style="color:var(--text)">If asked about Unicode:</strong> replace <code style="font-family:var(--font-mono)">int[26]</code> with <code style="font-family:var(--font-mono)">HashMap&lt;Character,Integer&gt;</code>.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any two strings</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">s = "</label>
+            <input id="s-input" type="text" value="anagram"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:140px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">"&nbsp;&nbsp; t = "</label>
+            <input id="t-input" type="text" value="nagaram"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--purple);color:var(--purple);border-radius:6px;width:140px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">"</label>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ lowercase letters only, max 12 chars each</span>
+        </div>
+
+        <!-- Live frequency bars -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div>
+                <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--teal);margin-bottom:.4rem">sa[] — s frequency</div>
+                <div class="freq-grid" id="tr-sa"></div>
+            </div>
+            <div>
+                <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--purple);margin-bottom:.4rem">ta[] — t frequency</div>
+                <div class="freq-grid" id="tr-ta"></div>
+            </div>
+        </div>
+
+        <!-- Pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill" id="vp-phase">phase = —</div>
+            <div class="var-pill teal" id="vp-i">i = —</div>
+            <div class="var-pill teal" id="vp-sc">s[i] = —</div>
+            <div class="var-pill purple" id="vp-tc">t[i] = —</div>
+            <div class="var-pill amber" id="vp-res">result = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  if (s.length() != t.length()) return false;</div>
+            <div class="tl" id="tl1">  int[] sa = new int[26];  int[] ta = new int[26];</div>
+            <div class="tl" id="tl2">  for (int i = 0; i &lt; s.length(); i++)   sa[s.charAt(i)-'a']++;</div>
+            <div class="tl" id="tl3">  for (int i = 0; i &lt; t.length(); i++)   ta[t.charAt(i)-'a']++;</div>
+            <div class="tl" id="tl4">  for (int i = 0; i &lt; 26; i++)</div>
+            <div class="tl" id="tl5">      if (sa[i] != ta[i]) return false;</div>
+            <div class="tl" id="tl6">  return true;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter two strings and press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let traceS='', traceT='', steps=[], cur=0;
+    const ALPHA='abcdefghijklmnopqrstuvwxyz';
+
+    // ── Frequency bar renderers ──
+    function renderBars(containerId, counts, color) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const maxV = Math.max(1, ...counts);
+      el.innerHTML = '';
+      for (let i=0;i<26;i++) {
+        const pct = counts[i] === 0 ? 0 : Math.max(8, (counts[i]/maxV)*100);
+        el.innerHTML += `<div class="freq-bar-wrap">
+          <div class="freq-val" style="color:${counts[i]>0?color:'var(--border)'}">${counts[i]||''}</div>
+          <div class="freq-bar" style="height:${pct}%;background:${counts[i]>0?color:'var(--border)'}"></div>
+          <div class="freq-lbl">${ALPHA[i]}</div>
+        </div>`;
+      }
+    }
+
+    function countFreq(str) {
+      const arr = new Array(26).fill(0);
+      for (const c of str) arr[c.charCodeAt(0)-97]++;
+      return arr;
+    }
+
+    // ── Static walkthrough ──
+    function buildWalkthrough() {
+      const ws='anagram', wt='nagaram';
+      const sa=countFreq(ws), ta=countFreq(wt);
+      renderBars('wt-sa', sa, 'var(--teal)');
+      renderBars('wt-ta', ta, 'var(--purple)');
+
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let anyMismatch=false;
+      for (let i=0;i<26;i++) {
+        if (sa[i]===0 && ta[i]===0) continue;
+        const match=sa[i]===ta[i];
+        if (!match) anyMismatch=true;
+        const tr=document.createElement('tr');
+        if (tbody.children.length%2!==0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--text)">${i}</td>
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">'${ALPHA[i]}'</td>
+          <td style="padding:5px 10px;color:var(--teal)">${sa[i]}</td>
+          <td style="padding:5px 10px;color:var(--purple)">${ta[i]}</td>
+          <td style="padding:5px 10px;color:${match?'var(--teal)':'var(--red)'};font-weight:600">${match?'✓ match':'✗ mismatch'}</td>`;
+        tbody.appendChild(tr);
+      }
+      const res=document.getElementById('wt-result');
+      if (!anyMismatch) {
+        res.style.background='var(--teal-dim)'; res.style.border='1px solid var(--teal)'; res.style.color='var(--teal)';
+        res.textContent='✅  All 26 frequency counts match → return true  (valid anagram)';
+      } else {
+        res.style.background='var(--red-dim)'; res.style.border='1px solid var(--red)'; res.style.color='var(--red)';
+        res.textContent='✗  At least one count differs → return false  (not an anagram)';
+      }
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(s, t) {
+      const st=[];
+      const sa=new Array(26).fill(0);
+      const ta=new Array(26).fill(0);
+
+      // step 0: length check
+      const lenMatch = s.length===t.length;
+      st.push({line:0, phase:'length check', i:null, sc:null, tc:null, sa:[...sa], ta:[...ta],
+        res: lenMatch?'—':'false',
+        log: lenMatch
+          ? `s.length()=${s.length} == t.length()=${t.length}  →  continue`
+          : `s.length()=${s.length} != t.length()=${t.length}  →  return false`});
+      if (!lenMatch) return st;
+
+      // step 1: init arrays
+      st.push({line:1, phase:'init', i:null, sc:null, tc:null, sa:[...sa], ta:[...ta], res:'—',
+        log:`sa[26] = {0…0},  ta[26] = {0…0}`});
+
+      // step 2: count s
+      for (let i=0;i<s.length;i++) {
+        sa[s.charCodeAt(i)-97]++;
+        st.push({line:2, phase:'count s', i, sc:s[i], tc:null, sa:[...sa], ta:[...ta], res:'—',
+          log:`sa['${s[i]}'-'a'] = sa[${s.charCodeAt(i)-97}]++  →  ${sa[s.charCodeAt(i)-97]}`});
+      }
+
+      // step 3: count t
+      for (let i=0;i<t.length;i++) {
+        ta[t.charCodeAt(i)-97]++;
+        st.push({line:3, phase:'count t', i, sc:null, tc:t[i], sa:[...sa], ta:[...ta], res:'—',
+          log:`ta['${t[i]}'-'a'] = ta[${t.charCodeAt(i)-97}]++  →  ${ta[t.charCodeAt(i)-97]}`});
+      }
+
+      // step 4-5: compare
+      let resultFalseAt=-1;
+      for (let i=0;i<26;i++) {
+        if (sa[i]===0 && ta[i]===0) continue;
+        st.push({line:4, phase:'compare', i, sc:null, tc:null, sa:[...sa], ta:[...ta], res:'—',
+          log:`i=${i} ('${ALPHA[i]}'):  sa[${i}]=${sa[i]},  ta[${i}]=${ta[i]}`});
+        if (sa[i]!==ta[i]) {
+          resultFalseAt=i;
+          st.push({line:5, phase:'mismatch', i, sc:null, tc:null, sa:[...sa], ta:[...ta], res:'false',
+            log:`sa[${i}] (${sa[i]}) != ta[${i}] (${ta[i]})  →  return false`});
+          return st;
+        } else {
+          st.push({line:5, phase:'match', i, sc:null, tc:null, sa:[...sa], ta:[...ta], res:'—',
+            log:`sa[${i}] == ta[${i}] == ${sa[i]}  ✓`});
+        }
+      }
+
+      st.push({line:6, phase:'done', i:null, sc:null, tc:null, sa:[...sa], ta:[...ta], res:'true',
+        log:`✅  All counts match  →  return true`});
+      return st;
+    }
+
+    // ── Render trace freq bars with highlight ──
+    function renderTraceBars(saArr, taArr, hiIdx) {
+      const maxS=Math.max(1,...saArr), maxT=Math.max(1,...taArr);
+      ['tr-sa','tr-ta'].forEach((id,which)=>{
+        const el=document.getElementById(id);
+        if (!el) return;
+        const arr=which===0?saArr:taArr;
+        const color=which===0?'var(--teal)':'var(--purple)';
+        const maxV=which===0?maxS:maxT;
+        el.innerHTML='';
+        for(let i=0;i<26;i++){
+          const isHi=i===hiIdx;
+          const pct=arr[i]===0?0:Math.max(8,(arr[i]/maxV)*100);
+          const bg=isHi?'var(--amber)':(arr[i]>0?color:'var(--border)');
+          el.innerHTML+=`<div class="freq-bar-wrap">
+            <div class="freq-val" style="color:${arr[i]>0||isHi?bg:'var(--border)'}">${arr[i]||''}</div>
+            <div class="freq-bar" style="height:${pct}%;background:${bg}"></div>
+            <div class="freq-lbl" style="color:${isHi?'var(--amber)':'var(--muted)'}">${ALPHA[i]}</div>
+          </div>`;
+        }
+      });
+    }
+
+    function buildTrace() {
+      const sv=document.getElementById('s-input').value.trim().toLowerCase();
+      const tv=document.getElementById('t-input').value.trim().toLowerCase();
+      const errEl=document.getElementById('input-err');
+      const valid=/^[a-z]+$/.test(sv)&&/^[a-z]+$/.test(tv)&&sv.length<=12&&tv.length<=12&&sv.length>=1&&tv.length>=1;
+      if (!valid){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceS=sv; traceT=tv;
+      steps=buildSteps(traceS,traceT);
+      cur=0;
+      resetUI();
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing s="${traceS}", t="${traceT}" — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+      renderTraceBars(new Array(26).fill(0), new Array(26).fill(0), -1);
+    }
+
+    const phaseClass={
+      'length check':'teal','init':'teal',
+      'count s':'teal','count t':'purple',
+      'compare':'amber','match':'green','mismatch':'red','done':'green'
+    };
+    const lineHL={0:'active-teal',1:'active-teal',2:'active-teal',3:'active-purple',4:'active-amber',5:'active-amber',6:'active-green'};
+
+    function applyStep(s) {
+      renderTraceBars(s.sa, s.ta, s.i!==null&&(s.phase==='compare'||s.phase==='match'||s.phase==='mismatch')?s.i:-1);
+
+      // pills
+      document.getElementById('vp-phase').textContent=`phase = ${s.phase}`;
+      document.getElementById('vp-phase').className='var-pill '+(phaseClass[s.phase]||'');
+      document.getElementById('vp-i').textContent=s.i!==null?`i = ${s.i}`:'i = —';
+      document.getElementById('vp-i').className='var-pill'+(s.i!==null?' teal':'');
+      document.getElementById('vp-sc').textContent=s.sc!==null?`s[i] = '${s.sc}'`:'s[i] = —';
+      document.getElementById('vp-sc').className='var-pill'+(s.sc!==null?' teal':'');
+      document.getElementById('vp-tc').textContent=s.tc!==null?`t[i] = '${s.tc}'`:'t[i] = —';
+      document.getElementById('vp-tc').className='var-pill'+(s.tc!==null?' purple':'');
+      const resV=s.res;
+      document.getElementById('vp-res').textContent=`result = ${resV}`;
+      document.getElementById('vp-res').className='var-pill'+(resV==='true'?' teal':resV==='false'?' red':' amber');
+
+      // code line
+      for(let k=0;k<=6;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'active-teal'):'');
+      }
+
+      // log
+      const isDone=s.log.startsWith('✅');
+      const isErr=s.phase==='mismatch'||s.res==='false';
+      document.getElementById('trace-log').style.color=isDone?'var(--teal)':isErr?'var(--red)':s.phase==='match'||s.phase==='done'?'#4ade80':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function resetUI() {
+      for(let k=0;k<=6;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-phase').textContent='phase = —'; document.getElementById('vp-phase').className='var-pill';
+      document.getElementById('vp-i').textContent='i = —'; document.getElementById('vp-i').className='var-pill teal';
+      document.getElementById('vp-sc').textContent='s[i] = —'; document.getElementById('vp-sc').className='var-pill teal';
+      document.getElementById('vp-tc').textContent='t[i] = —'; document.getElementById('vp-tc').className='var-pill purple';
+      document.getElementById('vp-res').textContent='result = —'; document.getElementById('vp-res').className='var-pill amber';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=true;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
