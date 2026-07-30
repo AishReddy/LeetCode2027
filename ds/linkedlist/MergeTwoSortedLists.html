@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>21. Merge Two Sorted Lists</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--green-dim);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+
+        /* linked list node */
+        .ll-row{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:.4rem 0}
+        .ll-label{font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:60px}
+        .node{display:flex;align-items:center}
+        .node-box{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--font-mono);font-size:.9rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s}
+        .node-box.cur1{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .node-box.cur2{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .node-box.picked{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .node-box.done{opacity:.35}
+        .node-box.null{background:transparent;border:1px dashed var(--border);color:var(--muted);font-size:.65rem}
+        .arrow{font-family:var(--font-mono);font-size:.9rem;color:var(--muted);padding:0 4px}
+
+        /* result list */
+        .result-row{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:.4rem 0}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>21. Merge Two Sorted Lists</h1>
+        <p>LeetCode Easy — Dummy Node + Two Pointers</p>
+        <span class="badge">easy</span>
+        <span class="badge info">O(n+m) time &nbsp;|&nbsp; O(1) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given the heads of two sorted linked lists
+            <code style="color:var(--teal);font-family:var(--font-mono)">list1</code> and
+            <code style="color:var(--purple);font-family:var(--font-mono)">list2</code>,
+            merge them into one <strong style="color:var(--text)">sorted</strong> linked list and return its head.
+            Merge by <strong style="color:var(--text)">splicing</strong> existing nodes — no new nodes.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Use a <strong style="color:var(--amber)">dummy head node</strong> to simplify edge cases — no special handling for the first node. The real result starts at <code style="font-family:var(--font-mono)">dummy.next</code>.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Dummy Node + Two Pointers</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Create dummy node:</strong> <code style="font-family:var(--font-mono);color:var(--amber)">ListNode dummy = new ListNode(0)</code>.
+                    Keep a <code style="font-family:var(--font-mono);color:var(--amber)">curr</code> pointer at dummy — we'll attach nodes here.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Compare heads:</strong> while both lists have nodes, compare
+                    <code style="font-family:var(--font-mono);color:var(--teal)">list1.val</code> vs
+                    <code style="font-family:var(--font-mono);color:var(--purple)">list2.val</code>.
+                    Attach the smaller one to <code style="font-family:var(--font-mono);color:var(--amber)">curr.next</code> and advance that list's pointer.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Attach remainder:</strong> when one list is exhausted,
+                    attach the remaining nodes of the other directly —
+                    they're already sorted.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Return</strong> <code style="font-family:var(--font-mono);color:var(--green)">dummy.next</code> — the head of the merged list.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; list1=[1,2,4] &nbsp; list2=[1,3,4]</div>
+
+        <div class="ll-row">
+            <span class="ll-label">list1</span>
+            <div class="node"><div class="node-box cur1">1</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box">2</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box">4</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box null">null</div></div>
+        </div>
+        <div class="ll-row">
+            <span class="ll-label">list2</span>
+            <div class="node"><div class="node-box cur2">1</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box">3</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box">4</div><span class="arrow">→</span></div>
+            <div class="node"><div class="node-box null">null</div></div>
+        </div>
+
+        <hr>
+
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">step</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 8px">list1.val</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 8px">list2.val</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">compare</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 8px;text-align:left">pick & advance</th>
+                    <th style="color:var(--green);font-weight:500;padding:6px 8px;text-align:left">result so far</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n+m)</div>
+                <div class="desc">Every node from both lists is visited exactly once. n = length of list1, m = length of list2.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc">Only the dummy node and a few pointers. No new nodes are created — existing nodes are re-linked.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why dummy node?</strong> Without it you'd need to handle "what is the first node of the result?" as a special case. The dummy lets <code style="font-family:var(--font-mono)">curr.next = ...</code> work uniformly from the start.<br><br>
+            <strong style="color:var(--text)">Why not create new nodes?</strong> We just re-wire the <code style="font-family:var(--font-mono)">next</code> pointers of existing nodes — O(1) space instead of O(n+m).
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> ListNode <span class="fn">mergeTwoLists</span>(ListNode list1, ListNode list2) {
+        ListNode dummy = <span class="kw">new</span> <span class="fn">ListNode</span>(<span class="num-c">0</span>);  <span class="cm">// dummy head</span>
+        ListNode curr  = dummy;
+
+        <span class="kw">while</span> (list1 != <span class="kw">null</span> && list2 != <span class="kw">null</span>) {
+            <span class="kw">if</span> (list1.val &lt;= list2.val) {
+                curr.next = list1;
+                list1     = list1.next;
+            } <span class="kw">else</span> {
+                curr.next = list2;
+                list2     = list2.next;
+            }
+            curr = curr.next;
+        }
+
+        <span class="cm">// attach remaining nodes</span>
+        curr.next = (list1 != <span class="kw">null</span>) ? list1 : list2;
+
+        <span class="kw">return</span> dummy.next;
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">4 things to remember</div>
+            <div style="color:var(--text)">
+                1. Dummy: <code style="font-family:var(--font-mono);color:var(--amber)">ListNode dummy = new ListNode(0);  ListNode curr = dummy;</code><br>
+                2. Compare: <code style="font-family:var(--font-mono);color:var(--teal)">list1.val &lt;= list2.val</code> → attach list1, advance list1<br>
+                3. Tail: <code style="font-family:var(--font-mono);color:var(--purple)">curr.next = (list1 != null) ? list1 : list2</code><br>
+                4. Return: <code style="font-family:var(--font-mono);color:var(--green)">dummy.next</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            The dummy node is a <strong style="color:var(--text)">sentinel</strong> — it has no real value but gives <code style="font-family:var(--font-mono)">curr</code> something to point to before the first real node is picked. This eliminates the need to special-case the head of the result.<br><br>
+            <strong style="color:var(--text)">After the while loop</strong>, at least one list is null. The other (if non-null) is already sorted and just needs to be attached — one line instead of another loop.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any two sorted lists</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--teal)">list1 =</label>
+            <input id="l1-input" type="text" value="1,2,4"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:140px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--purple)">list2 =</label>
+            <input id="l2-input" type="text" value="1,3,4"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--purple);color:var(--purple);border-radius:6px;width:140px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ sorted integers, 1–8 per list</span>
+        </div>
+
+        <!-- List 1 -->
+        <div class="ll-row">
+            <span class="ll-label" style="color:var(--teal)">list1</span>
+            <div id="tr-l1" style="display:flex;align-items:center;gap:0;flex-wrap:wrap"></div>
+        </div>
+        <!-- List 2 -->
+        <div class="ll-row">
+            <span class="ll-label" style="color:var(--purple)">list2</span>
+            <div id="tr-l2" style="display:flex;align-items:center;gap:0;flex-wrap:wrap"></div>
+        </div>
+
+        <hr>
+
+        <!-- Result -->
+        <div class="ll-row" style="margin-top:.4rem">
+            <span class="ll-label" style="color:var(--green)">result</span>
+            <div id="tr-result" style="display:flex;align-items:center;gap:0;flex-wrap:wrap">
+                <span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted)">—</span>
+            </div>
+        </div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0">
+            <div class="var-pill teal"   id="vp-l1">list1 = —</div>
+            <div class="var-pill purple" id="vp-l2">list2 = —</div>
+            <div class="var-pill amber"  id="vp-pick">pick = —</div>
+            <div class="var-pill green"  id="vp-res">result = []</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  ListNode dummy = new ListNode(0);  ListNode curr = dummy;</div>
+            <div class="tl" id="tl1">  while (list1 != null &amp;&amp; list2 != null) {</div>
+            <div class="tl" id="tl2">      if (list1.val &lt;= list2.val) {</div>
+            <div class="tl" id="tl3">          curr.next = list1;  list1 = list1.next;</div>
+            <div class="tl" id="tl4">      } else {</div>
+            <div class="tl" id="tl5">          curr.next = list2;  list2 = list2.next;</div>
+            <div class="tl" id="tl6">      }</div>
+            <div class="tl" id="tl7">      curr = curr.next;</div>
+            <div class="tl" id="tl8">  }</div>
+            <div class="tl" id="tl9">  curr.next = (list1 != null) ? list1 : list2;</div>
+            <div class="tl" id="tl10"> return dummy.next;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter two sorted lists and press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    let traceL1=[], traceL2=[], steps=[], cur=0;
+
+    // ── Static walkthrough ──
+    function buildWalkthrough(){
+      const l1=[1,2,4], l2=[1,3,4];
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let i1=0,i2=0,result=[],step=1;
+      while(i1<l1.length&&i2<l2.length){
+        const v1=l1[i1],v2=l2[i2];
+        const pickL1=v1<=v2;
+        const picked=pickL1?v1:v2;
+        if(pickL1) i1++; else i2++;
+        result.push(picked);
+        const tr=document.createElement('tr');
+        if(step%2===0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 8px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 8px;color:var(--teal);text-align:center;font-weight:700">${i1<l1.length?l1[i1-1+(pickL1?0:0)]:'—'} → ${i1<l1.length?l1[i1]:'null'}</td>
+          <td style="padding:5px 8px;color:var(--purple);text-align:center;font-weight:700">${i2<l2.length?l2[i2-1+(!pickL1?0:0)]:'—'} → ${i2<l2.length?l2[i2]:'null'}</td>
+          <td style="padding:5px 8px;color:var(--muted)">${v1} ${pickL1?'≤':'>'}  ${v2}</td>
+          <td style="padding:5px 8px;color:var(--amber);font-weight:600">pick ${picked} from list${pickL1?'1':'2'}</td>
+          <td style="padding:5px 8px;color:var(--green)">[${result.join('→')}]</td>`;
+        tbody.appendChild(tr);
+        step++;
+      }
+      // remainder
+      const rem=i1<l1.length?l1.slice(i1):l2.slice(i2);
+      result.push(...rem);
+      if(rem.length>0){
+        const tr=document.createElement('tr');
+        if(step%2===0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 8px;color:var(--muted)">${step}</td>
+          <td colspan="3" style="padding:5px 8px;color:var(--muted)">one list exhausted → attach remainder [${rem.join('→')}]</td>
+          <td style="padding:5px 8px;color:var(--amber);font-weight:600">attach rest</td>
+          <td style="padding:5px 8px;color:var(--green)">[${result.join('→')}]</td>`;
+        tbody.appendChild(tr);
+      }
+      const res=document.getElementById('wt-result');
+      res.style.cssText='background:var(--green-dim);border:1px solid var(--green);border-radius:8px;color:var(--green)';
+      res.textContent=`✅  return dummy.next = [${result.join('→')}]`;
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(l1,l2){
+      const st=[];
+      let i1=0,i2=0;
+      const result=[];
+
+      st.push({line:0,i1,i2,result:[],pick:null,act:'init',
+        log:`dummy = new ListNode(0),  curr = dummy`});
+
+      while(i1<l1.length&&i2<l2.length){
+        st.push({line:1,i1,i2,result:[...result],pick:null,act:'check',
+          log:`while: list1=${l1[i1]}, list2=${l2[i2]} — both non-null ✓`});
+        st.push({line:2,i1,i2,result:[...result],pick:null,act:'compare',
+          log:`list1.val(${l1[i1]}) ${l1[i1]<=l2[i2]?'≤':'>'} list2.val(${l2[i2]})`});
+        if(l1[i1]<=l2[i2]){
+          const picked=l1[i1]; i1++;
+          result.push(picked);
+          st.push({line:3,i1,i2,result:[...result],pick:'l1',act:'pickl1',
+            log:`pick list1(${picked}) → curr.next=list1, list1=list1.next`});
+        } else {
+          const picked=l2[i2]; i2++;
+          result.push(picked);
+          st.push({line:5,i1,i2,result:[...result],pick:'l2',act:'pickl2',
+            log:`pick list2(${picked}) → curr.next=list2, list2=list2.next`});
+        }
+        st.push({line:7,i1,i2,result:[...result],pick:null,act:'advance',
+          log:`curr = curr.next`});
+      }
+
+      // exit while
+      st.push({line:8,i1,i2,result:[...result],pick:null,act:'exit',
+        log:`while exit: ${i1>=l1.length?'list1=null':'list2=null'}`});
+
+      // attach remainder
+      const rem=i1<l1.length?l1.slice(i1):l2.slice(i2);
+      result.push(...rem);
+      st.push({line:9,i1:l1.length,i2:l2.length,result:[...result],pick:null,act:'tail',
+        log:`curr.next = ${rem.length?'['+rem.join('→')+']':'null'}  (attach remainder)`});
+
+      st.push({line:10,i1:l1.length,i2:l2.length,result:[...result],pick:null,act:'done',
+        log:`✅  return dummy.next = [${result.join('→')}]`});
+      return st;
+    }
+
+    // ── Render list row ──
+    function renderList(containerId, arr, curIdx, color){
+      const el=document.getElementById(containerId);
+      el.innerHTML='';
+      arr.forEach((v,i)=>{
+        const isDone=i<curIdx;
+        const isCur=i===curIdx;
+        const cls=isCur?(color==='teal'?'node-box cur1':'node-box cur2'):isDone?'node-box done':'node-box';
+        el.innerHTML+=`<div class="node"><div class="${cls}">${v}</div><span class="arrow">→</span></div>`;
+      });
+      el.innerHTML+=`<div class="node"><div class="node-box null">null</div></div>`;
+    }
+
+    function renderResult(result){
+      const el=document.getElementById('tr-result');
+      if(!result||result.length===0){
+        el.innerHTML='<span style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted)">—</span>';
+        return;
+      }
+      el.innerHTML='';
+      result.forEach(v=>{
+        el.innerHTML+=`<div class="node"><div class="node-box" style="background:var(--green-dim);border-color:var(--green);color:var(--green)">${v}</div><span class="arrow" style="color:var(--green)">→</span></div>`;
+      });
+      el.innerHTML+=`<div class="node"><div class="node-box null">null</div></div>`;
+    }
+
+    const lineHL={0:'at',1:'at',2:'aa',3:'at',4:'at',5:'ap',6:'at',7:'at',8:'at',9:'ap',10:'ag'};
+
+    function applyStep(s){
+      renderList('tr-l1', traceL1, s.i1, 'teal');
+      renderList('tr-l2', traceL2, s.i2, 'purple');
+      renderResult(s.result);
+
+      const l1val=s.i1<traceL1.length?traceL1[s.i1]:'null';
+      const l2val=s.i2<traceL2.length?traceL2[s.i2]:'null';
+      document.getElementById('vp-l1').textContent=`list1 = ${l1val}`;
+      document.getElementById('vp-l1').className='var-pill'+(l1val!=='null'?' teal':' red');
+      document.getElementById('vp-l2').textContent=`list2 = ${l2val}`;
+      document.getElementById('vp-l2').className='var-pill'+(l2val!=='null'?' purple':' red');
+
+      const pickText=s.act==='pickl1'?`← list1`:s.act==='pickl2'?`← list2`:s.act==='tail'?'attach rest':'—';
+      document.getElementById('vp-pick').textContent=`pick = ${pickText}`;
+      document.getElementById('vp-pick').className='var-pill'+(s.act==='pickl1'?' teal':s.act==='pickl2'?' purple':s.act==='tail'?' amber':'amber');
+
+      document.getElementById('vp-res').textContent=`result = [${s.result.join('→')||''}]`;
+      document.getElementById('vp-res').className='var-pill'+(s.result.length?' green':'');
+
+      for(let k=0;k<=10;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      const isDone=s.act==='done';
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='pickl1'?'var(--teal)':s.act==='pickl2'?'var(--purple)':
+        s.act==='tail'?'var(--amber)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const r1=document.getElementById('l1-input').value.trim();
+      const r2=document.getElementById('l2-input').value.trim();
+      const l1=r1.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const l2=r2.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const errEl=document.getElementById('input-err');
+      const sorted1=l1.every((v,i)=>i===0||v>=l1[i-1]);
+      const sorted2=l2.every((v,i)=>i===0||v>=l2[i-1]);
+      if(l1.length<1||l1.length>8||l2.length<1||l2.length>8||!sorted1||!sorted2){
+        errEl.style.display='inline';return;
+      }
+      errEl.style.display='none';
+      traceL1=l1; traceL2=l2;
+      steps=buildSteps(traceL1,traceL2);
+      cur=0;
+      renderList('tr-l1',traceL1,0,'teal');
+      renderList('tr-l2',traceL2,0,'purple');
+      renderResult([]);
+      for(let k=0;k<=10;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-l1').textContent=`list1 = ${l1[0]}`;  document.getElementById('vp-l1').className='var-pill teal';
+      document.getElementById('vp-l2').textContent=`list2 = ${l2[0]}`;  document.getElementById('vp-l2').className='var-pill purple';
+      document.getElementById('vp-pick').textContent='pick = —';          document.getElementById('vp-pick').className='var-pill amber';
+      document.getElementById('vp-res').textContent='result = []';        document.getElementById('vp-res').className='var-pill';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing list1=[${l1}], list2=[${l2}] — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
