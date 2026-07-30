@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRU Cache — Java Implementation</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg: #0b0d0f;
+          --surface: #13161a;
+          --surface2: #1c2026;
+          --border: #2a2f38;
+          --accent: #00d4aa;
+          --accent2: #ff6b35;
+          --accent3: #7c6af7;
+          --text: #e8eaed;
+          --muted: #6b7280;
+          --keyword: #ff6b97;
+          --type: #79c0ff;
+          --string: #a5d6ff;
+          --comment: #484f58;
+          --number: #f0883e;
+          --method: #d2a8ff;
+          --annotation: #00d4aa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: 'Sora', sans-serif;
+          min-height: 100vh;
+          overflow-x: hidden;
+        }
+
+        /* Grid background */
+        body::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+          background-size: 40px 40px;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .container {
+          position: relative;
+          z-index: 1;
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 48px 24px 80px;
+        }
+
+        /* Header */
+        header {
+          margin-bottom: 48px;
+        }
+
+        .tag {
+          display: inline-block;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 500;
+          color: var(--accent);
+          background: rgba(0,212,170,0.08);
+          border: 1px solid rgba(0,212,170,0.2);
+          border-radius: 4px;
+          padding: 4px 10px;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          margin-bottom: 16px;
+        }
+
+        h1 {
+          font-size: clamp(32px, 5vw, 52px);
+          font-weight: 700;
+          letter-spacing: -1.5px;
+          line-height: 1.1;
+          margin-bottom: 12px;
+        }
+
+        h1 span {
+          color: var(--accent);
+        }
+
+        .subtitle {
+          color: var(--muted);
+          font-size: 15px;
+          font-weight: 300;
+          max-width: 500px;
+          line-height: 1.6;
+        }
+
+        /* Stats bar */
+        .stats {
+          display: flex;
+          gap: 32px;
+          margin-bottom: 40px;
+          padding: 20px 24px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          flex-wrap: wrap;
+        }
+
+        .stat {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .stat-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          color: var(--muted);
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+
+        .stat-value {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--accent);
+        }
+
+        .stat-value.orange { color: var(--accent2); }
+        .stat-value.purple { color: var(--accent3); }
+
+        /* Tabs */
+        .tabs {
+          display: flex;
+          gap: 4px;
+          margin-bottom: 0;
+          padding: 6px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 10px 10px 0 0;
+          border-bottom: none;
+          width: fit-content;
+        }
+
+        .tab {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          padding: 8px 18px;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          background: transparent;
+          color: var(--muted);
+          transition: all 0.2s;
+          font-weight: 500;
+        }
+
+        .tab.active {
+          background: var(--surface2);
+          color: var(--text);
+          border: 1px solid var(--border);
+        }
+
+        .tab:hover:not(.active) {
+          color: var(--text);
+        }
+
+        /* Code card */
+        .code-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 0 12px 12px 12px;
+          overflow: hidden;
+        }
+
+        .code-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 20px;
+          border-bottom: 1px solid var(--border);
+          background: var(--surface2);
+        }
+
+        .code-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot.r { background: #ff5f57; }
+        .dot.y { background: #ffbd2e; }
+        .dot.g { background: #28c840; }
+
+        .file-name {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          color: var(--muted);
+          margin-left: 8px;
+        }
+
+        .copy-btn {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          color: var(--muted);
+          background: transparent;
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          padding: 5px 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          letter-spacing: 0.5px;
+        }
+
+        .copy-btn:hover {
+          color: var(--accent);
+          border-color: var(--accent);
+        }
+
+        .copy-btn.copied {
+          color: var(--accent);
+          border-color: var(--accent);
+        }
+
+        /* Code area */
+        .code-scroll {
+          overflow-x: auto;
+          overflow-y: auto;
+          max-height: 600px;
+        }
+
+        .code-block {
+          display: none;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+          line-height: 1.75;
+          padding: 24px 0;
+          min-width: max-content;
+        }
+
+        .code-block.active { display: block; }
+
+        .line {
+          display: flex;
+          padding: 0 24px;
+          min-height: 22px;
+        }
+
+        .line:hover { background: rgba(255,255,255,0.025); }
+
+        .ln {
+          color: var(--comment);
+          min-width: 40px;
+          user-select: none;
+          text-align: right;
+          margin-right: 24px;
+          font-size: 12px;
+        }
+
+        .code {
+          color: var(--text);
+          white-space: pre;
+        }
+
+        /* Syntax highlighting */
+        .kw { color: var(--keyword); }
+        .ty { color: var(--type); }
+        .cm { color: var(--comment); font-style: italic; }
+        .st { color: var(--string); }
+        .nm { color: var(--number); }
+        .fn { color: var(--method); }
+        .an { color: var(--annotation); }
+        .cl { color: #ffa657; }
+
+        /* Complexity section */
+        .complexity {
+          margin-top: 32px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .complexity-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 24px;
+        }
+
+        .complexity-title {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          color: var(--muted);
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          margin-bottom: 16px;
+        }
+
+        .op-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--border);
+          font-size: 14px;
+        }
+
+        .op-row:last-child { border-bottom: none; }
+
+        .op-name { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+        .op-val {
+          font-family: 'JetBrains Mono', monospace;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 3px 10px;
+          border-radius: 4px;
+        }
+
+        .op-val.green { color: var(--accent); background: rgba(0,212,170,0.1); }
+        .op-val.orange { color: var(--accent2); background: rgba(255,107,53,0.1); }
+        .op-val.purple { color: var(--accent3); background: rgba(124,106,247,0.1); }
+
+        /* How it works */
+        .how-it-works {
+          margin-top: 32px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 28px;
+        }
+
+        .how-title {
+          font-size: 16px;
+          font-weight: 600;
+          margin-bottom: 20px;
+          color: var(--text);
+        }
+
+        .steps {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .step {
+          display: flex;
+          gap: 16px;
+          align-items: flex-start;
+        }
+
+        .step-num {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--accent);
+          background: rgba(0,212,170,0.08);
+          border: 1px solid rgba(0,212,170,0.2);
+          border-radius: 4px;
+          padding: 3px 8px;
+          min-width: 32px;
+          text-align: center;
+          margin-top: 2px;
+        }
+
+        .step-text {
+          font-size: 14px;
+          color: var(--muted);
+          line-height: 1.6;
+        }
+
+        .step-text strong { color: var(--text); font-weight: 500; }
+
+        code {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          background: rgba(255,255,255,0.06);
+          padding: 1px 6px;
+          border-radius: 3px;
+          color: var(--accent3);
+        }
+
+        @media (max-width: 640px) {
+          .complexity { grid-template-columns: 1fr; }
+          .stats { gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="tag">LeetCode #146</div>
+        <h1>LRU <span>Cache</span></h1>
+        <p class="subtitle">O(1) get &amp; put using a HashMap + Doubly Linked List. Java implementation with full annotations.</p>
+    </header>
+
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-label">Difficulty</span>
+            <span class="stat-value orange">Medium</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">get() Time</span>
+            <span class="stat-value">O(1)</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">put() Time</span>
+            <span class="stat-value">O(1)</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Space</span>
+            <span class="stat-value purple">O(n)</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Pattern</span>
+            <span class="stat-value" style="color:var(--accent3)">HashMap + DLL</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('custom')">Custom DLL</button>
+        <button class="tab" onclick="switchTab('linked')">LinkedHashMap</button>
+    </div>
+
+    <div class="code-card">
+        <div class="code-header">
+            <div class="code-header-left">
+                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+                <span class="file-name" id="fname">LRUCache.java</span>
+            </div>
+            <button class="copy-btn" id="copyBtn" onclick="copyCode()">copy</button>
+        </div>
+        <div class="code-scroll">
+
+            <!-- Tab 1: Custom DLL -->
+            <div class="code-block active" id="tab-custom">
+
+                <div class="line"><span class="ln">1</span><span class="code"><span class="cm">// ─── LRU Cache — Custom Doubly Linked List + HashMap ─────────────────────</span></span></div>
+                <div class="line"><span class="ln">2</span><span class="code"><span class="cm">// Time: O(1) for get/put  |  Space: O(capacity)</span></span></div>
+                <div class="line"><span class="ln">3</span><span class="code"></span></div>
+                <div class="line"><span class="ln">4</span><span class="code"><span class="kw">import</span> java.util.HashMap;</span></div>
+                <div class="line"><span class="ln">5</span><span class="code"></span></div>
+                <div class="line"><span class="ln">6</span><span class="code"><span class="kw">class</span> <span class="cl">LRUCache</span> {</span></div>
+                <div class="line"><span class="ln">7</span><span class="code"></span></div>
+                <div class="line"><span class="ln">8</span><span class="code">    <span class="cm">// ── Inner Node class ─────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">9</span><span class="code">    <span class="kw">private class</span> <span class="cl">Node</span> {</span></div>
+                <div class="line"><span class="ln">10</span><span class="code">        <span class="ty">int</span> key, val;</span></div>
+                <div class="line"><span class="ln">11</span><span class="code">        <span class="cl">Node</span> prev, next;</span></div>
+                <div class="line"><span class="ln">12</span><span class="code"></span></div>
+                <div class="line"><span class="ln">13</span><span class="code">        <span class="fn">Node</span>(<span class="ty">int</span> key, <span class="ty">int</span> val) {</span></div>
+                <div class="line"><span class="ln">14</span><span class="code">            <span class="kw">this</span>.key = key;</span></div>
+                <div class="line"><span class="ln">15</span><span class="code">            <span class="kw">this</span>.val = val;</span></div>
+                <div class="line"><span class="ln">16</span><span class="code">        }</span></div>
+                <div class="line"><span class="ln">17</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">18</span><span class="code"></span></div>
+                <div class="line"><span class="ln">19</span><span class="code">    <span class="cm">// ── Fields ────────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">20</span><span class="code">    <span class="kw">private final</span> <span class="ty">int</span> capacity;</span></div>
+                <div class="line"><span class="ln">21</span><span class="code">    <span class="kw">private final</span> HashMap&lt;<span class="ty">Integer</span>, <span class="cl">Node</span>&gt; map;</span></div>
+                <div class="line"><span class="ln">22</span><span class="code"></span></div>
+                <div class="line"><span class="ln">23</span><span class="code">    <span class="cm">// Dummy head (MRU side) and tail (LRU side)</span></span></div>
+                <div class="line"><span class="ln">24</span><span class="code">    <span class="kw">private final</span> <span class="cl">Node</span> head = <span class="kw">new</span> <span class="fn">Node</span>(<span class="nm">0</span>, <span class="nm">0</span>);  <span class="cm">// most recent</span></span></div>
+                <div class="line"><span class="ln">25</span><span class="code">    <span class="kw">private final</span> <span class="cl">Node</span> tail = <span class="kw">new</span> <span class="fn">Node</span>(<span class="nm">0</span>, <span class="nm">0</span>);  <span class="cm">// least recent</span></span></div>
+                <div class="line"><span class="ln">26</span><span class="code"></span></div>
+                <div class="line"><span class="ln">27</span><span class="code">    <span class="cm">// ── Constructor ───────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">28</span><span class="code">    <span class="kw">public</span> <span class="fn">LRUCache</span>(<span class="ty">int</span> capacity) {</span></div>
+                <div class="line"><span class="ln">29</span><span class="code">        <span class="kw">this</span>.capacity = capacity;</span></div>
+                <div class="line"><span class="ln">30</span><span class="code">        map = <span class="kw">new</span> HashMap&lt;&gt;();</span></div>
+                <div class="line"><span class="ln">31</span><span class="code"></span></div>
+                <div class="line"><span class="ln">32</span><span class="code">        <span class="cm">// Wire the two dummy sentinels together</span></span></div>
+                <div class="line"><span class="ln">33</span><span class="code">        head.next = tail;</span></div>
+                <div class="line"><span class="ln">34</span><span class="code">        tail.prev = head;</span></div>
+                <div class="line"><span class="ln">35</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">36</span><span class="code"></span></div>
+                <div class="line"><span class="ln">37</span><span class="code">    <span class="cm">// ── get ───────────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">38</span><span class="code">    <span class="an">@Override</span></span></div>
+                <div class="line"><span class="ln">39</span><span class="code">    <span class="kw">public</span> <span class="ty">int</span> <span class="fn">get</span>(<span class="ty">int</span> key) {</span></div>
+                <div class="line"><span class="ln">40</span><span class="code">        <span class="kw">if</span> (!map.<span class="fn">containsKey</span>(key)) <span class="kw">return</span> -<span class="nm">1</span>;</span></div>
+                <div class="line"><span class="ln">41</span><span class="code"></span></div>
+                <div class="line"><span class="ln">42</span><span class="code">        <span class="cl">Node</span> node = map.<span class="fn">get</span>(key);</span></div>
+                <div class="line"><span class="ln">43</span><span class="code">        <span class="fn">remove</span>(node);          <span class="cm">// unlink from current position</span></span></div>
+                <div class="line"><span class="ln">44</span><span class="code">        <span class="fn">insertFront</span>(node);     <span class="cm">// re-insert at MRU position</span></span></div>
+                <div class="line"><span class="ln">45</span><span class="code">        <span class="kw">return</span> node.val;</span></div>
+                <div class="line"><span class="ln">46</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">47</span><span class="code"></span></div>
+                <div class="line"><span class="ln">48</span><span class="code">    <span class="cm">// ── put ───────────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">49</span><span class="code">    <span class="kw">public void</span> <span class="fn">put</span>(<span class="ty">int</span> key, <span class="ty">int</span> value) {</span></div>
+                <div class="line"><span class="ln">50</span><span class="code">        <span class="kw">if</span> (map.<span class="fn">containsKey</span>(key)) {</span></div>
+                <div class="line"><span class="ln">51</span><span class="code">            <span class="fn">remove</span>(map.<span class="fn">get</span>(key));  <span class="cm">// remove stale node</span></span></div>
+                <div class="line"><span class="ln">52</span><span class="code">        }</span></div>
+                <div class="line"><span class="ln">53</span><span class="code"></span></div>
+                <div class="line"><span class="ln">54</span><span class="code">        <span class="cl">Node</span> node = <span class="kw">new</span> <span class="fn">Node</span>(key, value);</span></div>
+                <div class="line"><span class="ln">55</span><span class="code">        map.<span class="fn">put</span>(key, node);</span></div>
+                <div class="line"><span class="ln">56</span><span class="code">        <span class="fn">insertFront</span>(node);</span></div>
+                <div class="line"><span class="ln">57</span><span class="code"></span></div>
+                <div class="line"><span class="ln">58</span><span class="code">        <span class="kw">if</span> (map.<span class="fn">size</span>() &gt; capacity) {</span></div>
+                <div class="line"><span class="ln">59</span><span class="code">            <span class="cl">Node</span> lru = tail.prev;  <span class="cm">// node just before dummy tail</span></span></div>
+                <div class="line"><span class="ln">60</span><span class="code">            <span class="fn">remove</span>(lru);</span></div>
+                <div class="line"><span class="ln">61</span><span class="code">            map.<span class="fn">remove</span>(lru.key);</span></div>
+                <div class="line"><span class="ln">62</span><span class="code">        }</span></div>
+                <div class="line"><span class="ln">63</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">64</span><span class="code"></span></div>
+                <div class="line"><span class="ln">65</span><span class="code">    <span class="cm">// ── Helpers ───────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">66</span><span class="code"></span></div>
+                <div class="line"><span class="ln">67</span><span class="code">    <span class="cm">/** Unlinks a node from wherever it is in the list. */</span></span></div>
+                <div class="line"><span class="ln">68</span><span class="code">    <span class="kw">private void</span> <span class="fn">remove</span>(<span class="cl">Node</span> node) {</span></div>
+                <div class="line"><span class="ln">69</span><span class="code">        node.prev.next = node.next;</span></div>
+                <div class="line"><span class="ln">70</span><span class="code">        node.next.prev = node.prev;</span></div>
+                <div class="line"><span class="ln">71</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">72</span><span class="code"></span></div>
+                <div class="line"><span class="ln">73</span><span class="code">    <span class="cm">/** Inserts a node right after the dummy head (MRU position). */</span></span></div>
+                <div class="line"><span class="ln">74</span><span class="code">    <span class="kw">private void</span> <span class="fn">insertFront</span>(<span class="cl">Node</span> node) {</span></div>
+                <div class="line"><span class="ln">75</span><span class="code">        node.next       = head.next;</span></div>
+                <div class="line"><span class="ln">76</span><span class="code">        node.prev       = head;</span></div>
+                <div class="line"><span class="ln">77</span><span class="code">        head.next.prev  = node;</span></div>
+                <div class="line"><span class="ln">78</span><span class="code">        head.next       = node;</span></div>
+                <div class="line"><span class="ln">79</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">80</span><span class="code">}</span></div>
+                <div class="line"><span class="ln">81</span><span class="code"></span></div>
+                <div class="line"><span class="ln">82</span><span class="code"><span class="cm">// ─── Example usage ───────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">83</span><span class="code"><span class="cm">// LRUCache cache = new LRUCache(2);</span></span></div>
+                <div class="line"><span class="ln">84</span><span class="code"><span class="cm">// cache.put(1, 1);   // cache: {1=1}</span></span></div>
+                <div class="line"><span class="ln">85</span><span class="code"><span class="cm">// cache.put(2, 2);   // cache: {1=1, 2=2}</span></span></div>
+                <div class="line"><span class="ln">86</span><span class="code"><span class="cm">// cache.get(1);      // return 1, cache: {2=2, 1=1}</span></span></div>
+                <div class="line"><span class="ln">87</span><span class="code"><span class="cm">// cache.put(3, 3);   // evicts key 2, cache: {1=1, 3=3}</span></span></div>
+                <div class="line"><span class="ln">88</span><span class="code"><span class="cm">// cache.get(2);      // return -1 (evicted)</span></span></div>
+
+            </div>
+
+            <!-- Tab 2: LinkedHashMap shortcut -->
+            <div class="code-block" id="tab-linked">
+
+                <div class="line"><span class="ln">1</span><span class="code"><span class="cm">// ─── LRU Cache — LinkedHashMap one-liner approach ────────────────────────</span></span></div>
+                <div class="line"><span class="ln">2</span><span class="code"><span class="cm">// Leverages Java's built-in access-ordered LinkedHashMap.</span></span></div>
+                <div class="line"><span class="ln">3</span><span class="code"><span class="cm">// Simpler code, same O(1) amortized complexity.</span></span></div>
+                <div class="line"><span class="ln">4</span><span class="code"></span></div>
+                <div class="line"><span class="ln">5</span><span class="code"><span class="kw">import</span> java.util.LinkedHashMap;</span></div>
+                <div class="line"><span class="ln">6</span><span class="code"><span class="kw">import</span> java.util.Map;</span></div>
+                <div class="line"><span class="ln">7</span><span class="code"></span></div>
+                <div class="line"><span class="ln">8</span><span class="code"><span class="kw">class</span> <span class="cl">LRUCache</span> <span class="kw">extends</span> LinkedHashMap&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; {</span></div>
+                <div class="line"><span class="ln">9</span><span class="code"></span></div>
+                <div class="line"><span class="ln">10</span><span class="code">    <span class="kw">private final</span> <span class="ty">int</span> capacity;</span></div>
+                <div class="line"><span class="ln">11</span><span class="code"></span></div>
+                <div class="line"><span class="ln">12</span><span class="code">    <span class="kw">public</span> <span class="fn">LRUCache</span>(<span class="ty">int</span> capacity) {</span></div>
+                <div class="line"><span class="ln">13</span><span class="code">        <span class="cm">// accessOrder=true → iterates from least to most recently accessed</span></span></div>
+                <div class="line"><span class="ln">14</span><span class="code">        <span class="kw">super</span>(capacity, <span class="nm">0.75f</span>, <span class="kw">true</span>);</span></div>
+                <div class="line"><span class="ln">15</span><span class="code">        <span class="kw">this</span>.capacity = capacity;</span></div>
+                <div class="line"><span class="ln">16</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">17</span><span class="code"></span></div>
+                <div class="line"><span class="ln">18</span><span class="code">    <span class="kw">public</span> <span class="ty">int</span> <span class="fn">get</span>(<span class="ty">int</span> key) {</span></div>
+                <div class="line"><span class="ln">19</span><span class="code">        <span class="cm">// getOrDefault also re-orders the entry → marks it as most recent</span></span></div>
+                <div class="line"><span class="ln">20</span><span class="code">        <span class="kw">return</span> <span class="kw">super</span>.<span class="fn">getOrDefault</span>(key, -<span class="nm">1</span>);</span></div>
+                <div class="line"><span class="ln">21</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">22</span><span class="code"></span></div>
+                <div class="line"><span class="ln">23</span><span class="code">    <span class="kw">public void</span> <span class="fn">put</span>(<span class="ty">int</span> key, <span class="ty">int</span> value) {</span></div>
+                <div class="line"><span class="ln">24</span><span class="code">        <span class="kw">super</span>.<span class="fn">put</span>(key, value);</span></div>
+                <div class="line"><span class="ln">25</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">26</span><span class="code"></span></div>
+                <div class="line"><span class="ln">27</span><span class="code">    <span class="cm">// Called automatically by LinkedHashMap after every put()</span></span></div>
+                <div class="line"><span class="ln">28</span><span class="code">    <span class="an">@Override</span></span></div>
+                <div class="line"><span class="ln">29</span><span class="code">    <span class="kw">protected boolean</span> <span class="fn">removeEldestEntry</span>(Map.Entry&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; eldest) {</span></div>
+                <div class="line"><span class="ln">30</span><span class="code">        <span class="cm">// eldest = the LRU entry (head of access-ordered list)</span></span></div>
+                <div class="line"><span class="ln">31</span><span class="code">        <span class="kw">return</span> <span class="fn">size</span>() &gt; capacity;</span></div>
+                <div class="line"><span class="ln">32</span><span class="code">    }</span></div>
+                <div class="line"><span class="ln">33</span><span class="code">}</span></div>
+                <div class="line"><span class="ln">34</span><span class="code"></span></div>
+                <div class="line"><span class="ln">35</span><span class="code"><span class="cm">// ─── Note ────────────────────────────────────────────────────────────────────</span></span></div>
+                <div class="line"><span class="ln">36</span><span class="code"><span class="cm">// This approach is concise but LinkedHashMap is NOT thread-safe.</span></span></div>
+                <div class="line"><span class="ln">37</span><span class="code"><span class="cm">// For interviews, the custom DLL solution is preferred as it shows</span></span></div>
+                <div class="line"><span class="ln">38</span><span class="code"><span class="cm">// a deeper understanding of the underlying data structure.</span></span></div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="complexity">
+        <div class="complexity-card">
+            <div class="complexity-title">Time Complexity</div>
+            <div class="op-row">
+                <span class="op-name">get(key)</span>
+                <span class="op-val green">O(1)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">put(key, val)</span>
+                <span class="op-val green">O(1)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">remove (internal)</span>
+                <span class="op-val green">O(1)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">insertFront (internal)</span>
+                <span class="op-val green">O(1)</span>
+            </div>
+        </div>
+        <div class="complexity-card">
+            <div class="complexity-title">Space Complexity</div>
+            <div class="op-row">
+                <span class="op-name">HashMap</span>
+                <span class="op-val purple">O(n)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">Doubly Linked List</span>
+                <span class="op-val purple">O(n)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">Total</span>
+                <span class="op-val purple">O(n)</span>
+            </div>
+            <div class="op-row">
+                <span class="op-name">n = capacity</span>
+                <span class="op-val orange">bounded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="how-it-works">
+        <div class="how-title">How it works</div>
+        <div class="steps">
+            <div class="step">
+                <span class="step-num">01</span>
+                <span class="step-text">Two <strong>dummy sentinel nodes</strong> (<code>head</code> and <code>tail</code>) bracket the list, so insert/delete never needs null checks — every real node always has a valid prev and next.</span>
+            </div>
+            <div class="step">
+                <span class="step-num">02</span>
+                <span class="step-text">The <strong>HashMap</strong> maps each key to its <code>Node</code> reference, giving O(1) lookup. The list maintains <strong>access order</strong> — head side = most recently used, tail side = least recently used.</span>
+            </div>
+            <div class="step">
+                <span class="step-num">03</span>
+                <span class="step-text"><strong>get(key):</strong> Look up the node in the map. If found, call <code>remove()</code> then <code>insertFront()</code> to move it to the MRU position. Return its value (or -1 if absent).</span>
+            </div>
+            <div class="step">
+                <span class="step-num">04</span>
+                <span class="step-text"><strong>put(key, val):</strong> If the key exists, remove its old node first. Create and insert a fresh node at the front. If size exceeds capacity, evict <code>tail.prev</code> (the LRU node) and delete it from the map.</span>
+            </div>
+            <div class="step">
+                <span class="step-num">05</span>
+                <span class="step-text"><strong>LinkedHashMap shortcut:</strong> Setting <code>accessOrder = true</code> in the super-constructor makes Java maintain access order internally. Override <code>removeEldestEntry()</code> to auto-evict when over capacity.</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const codes = {
+      custom: `// LRU Cache — Custom Doubly Linked List + HashMap
+    // Time: O(1) for get/put  |  Space: O(capacity)
+
+    import java.util.HashMap;
+
+    class LRUCache {
+
+        private class Node {
+            int key, val;
+            Node prev, next;
+
+            Node(int key, int val) {
+                this.key = key;
+                this.val = val;
+            }
+        }
+
+        private final int capacity;
+        private final HashMap<Integer, Node> map;
+        private final Node head = new Node(0, 0); // most recent
+        private final Node tail = new Node(0, 0); // least recent
+
+        public LRUCache(int capacity) {
+            this.capacity = capacity;
+            map = new HashMap<>();
+            head.next = tail;
+            tail.prev = head;
+        }
+
+        public int get(int key) {
+            if (!map.containsKey(key)) return -1;
+            Node node = map.get(key);
+            remove(node);
+            insertFront(node);
+            return node.val;
+        }
+
+        public void put(int key, int value) {
+            if (map.containsKey(key)) {
+                remove(map.get(key));
+            }
+            Node node = new Node(key, value);
+            map.put(key, node);
+            insertFront(node);
+            if (map.size() > capacity) {
+                Node lru = tail.prev;
+                remove(lru);
+                map.remove(lru.key);
+            }
+        }
+
+        private void remove(Node node) {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+        }
+
+        private void insertFront(Node node) {
+            node.next      = head.next;
+            node.prev      = head;
+            head.next.prev = node;
+            head.next      = node;
+        }
+    }`,
+      linked: `// LRU Cache — LinkedHashMap approach
+    import java.util.LinkedHashMap;
+    import java.util.Map;
+
+    class LRUCache extends LinkedHashMap<Integer, Integer> {
+
+        private final int capacity;
+
+        public LRUCache(int capacity) {
+            super(capacity, 0.75f, true); // accessOrder = true
+            this.capacity = capacity;
+        }
+
+        public int get(int key) {
+            return super.getOrDefault(key, -1);
+        }
+
+        public void put(int key, int value) {
+            super.put(key, value);
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {
+            return size() > capacity;
+        }
+    }`
+    };
+
+    let currentTab = 'custom';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (i === 0 && tab === 'custom') || (i === 1 && tab === 'linked'));
+      });
+      document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('fname').textContent = tab === 'custom' ? 'LRUCache.java' : 'LRUCache_Simple.java';
+
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(codes[currentTab]).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+</script>
+</body>
+</html>
