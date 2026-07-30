@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>875. Koko Eating Bananas</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+        .callout-green{background:#0d1f12;border:1px solid #1a4028;border-left:3px solid var(--green);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#a3e4b8;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-num.r{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.6rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        /* pile cells */
+        .pile-row{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;margin:.6rem 0}
+        .pile{display:flex;flex-direction:column;align-items:center;gap:3px}
+        .pile-bar{border-radius:4px 4px 0 0;width:44px;transition:height .3s,background .3s;min-height:6px}
+        .pile-val{font-family:var(--font-mono);font-size:.72rem;font-weight:700}
+        .pile-idx{font-family:var(--font-mono);font-size:.62rem;color:var(--muted)}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>875. Koko Eating Bananas</h1>
+        <p>LeetCode Medium — Binary Search on Answer</p>
+        <span class="badge">medium</span>
+        <span class="badge info">O(n log m) time</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Koko has <code style="color:var(--teal);font-family:var(--font-mono)">piles</code> of bananas.
+            She can eat at most <code style="color:var(--amber);font-family:var(--font-mono)">k</code> bananas per hour.
+            Each hour she picks one pile and eats up to <code style="color:var(--amber);font-family:var(--font-mono)">k</code> from it
+            (a partial pile still costs a full hour).
+            Given <code style="color:var(--purple);font-family:var(--font-mono)">h</code> hours, find the
+            <strong style="color:var(--text)">minimum k</strong> that lets her finish all piles in time.
+        </p>
+        <div style="margin-top:.8rem;font-family:var(--font-mono);font-size:.82rem;background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;line-height:2.2;color:var(--muted)">
+            piles = [<span style="color:var(--text)">3, 6, 7, 11</span>],  h = <span style="color:var(--purple)">8</span><br>
+            k=4: hours = ⌈3/4⌉+⌈6/4⌉+⌈7/4⌉+⌈11/4⌉ = 1+2+2+3 = <span style="color:var(--teal)">8 ✓</span><br>
+            Answer: <span style="color:var(--amber)">4</span>
+        </div>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Key insight: the answer lies in range <strong style="color:var(--amber)">[1, max(piles)]</strong>. As k increases, hours needed decreases — monotone! Binary search on k.
+        </div>
+    </div>
+
+    <!-- Core Idea -->
+    <div class="section">
+        <div class="section-title">Core Idea — Binary Search on the Answer</div>
+        <div style="font-size:.83rem;line-height:1.9;color:var(--muted)">
+            Instead of searching an array for a value, we binary search the <strong style="color:var(--text)">answer space</strong> [1…max(piles)].
+            For any candidate k, we can check in O(n) whether it's feasible:
+            <div style="font-family:var(--font-mono);font-size:.88rem;color:var(--text);margin:.6rem 0 .6rem 1rem">
+                hours(k) = Σ ⌈pile / k⌉ &nbsp; ≤ h ?
+            </div>
+            If feasible → try smaller k (go left). If not → need bigger k (go right).
+        </div>
+        <div style="margin-top:.8rem" class="callout-green">
+            ✓ The feasibility function is <strong>monotone</strong>: if k works, every k' &gt; k also works. This is the condition needed for binary search on the answer.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Set search range:</strong>
+                    <code style="font-family:var(--font-mono);color:var(--teal)">left = 1</code> (min possible k),
+                    <code style="font-family:var(--font-mono);color:var(--purple)">right = max(piles)</code> (worst case: eat biggest pile in one hour).
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Compute mid:</strong> <code style="font-family:var(--font-mono);color:var(--amber)">mid = left + (right - left) / 2</code>.
+                    This is the candidate eating speed.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Check feasibility:</strong> compute total hours at speed <code style="font-family:var(--font-mono);color:var(--amber)">mid</code>
+                    using <code style="font-family:var(--font-mono)">(pile + mid - 1) / mid</code> (integer ceiling division).
+                    If total hours ≤ h → feasible.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Binary decision:</strong><br>
+                    • Feasible → record <code style="font-family:var(--font-mono);color:var(--green)">result = mid</code>, try smaller → <code style="font-family:var(--font-mono);color:var(--green)">right = mid - 1</code><br>
+                    • Not feasible → need faster → <code style="font-family:var(--font-mono);color:var(--red)">left = mid + 1</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; piles = [3,6,7,11], h = 8</div>
+
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.6rem">
+            Search range: <code style="font-family:var(--font-mono);color:var(--teal)">left=1</code> to
+            <code style="font-family:var(--font-mono);color:var(--purple)">right=11</code>
+        </div>
+
+        <!-- pile bars -->
+        <div class="pile-row" id="wt-piles"></div>
+
+        <div style="overflow-x:auto;margin-bottom:1rem">
+            <table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">iter</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 8px">left</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 8px">right</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 8px">mid (k)</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">hours(mid)</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">≤ h=8?</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 8px;text-align:left">action</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n log m)</div>
+                <div class="desc">n = number of piles, m = max(piles). Binary search over [1…m] = O(log m) iterations. Each check = O(n). Total = O(n log m).</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc">Only left, right, mid, result. No extra data structures.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Ceiling division without Math.ceil:</strong>
+            <code style="font-family:var(--font-mono)">(pile + k - 1) / k</code> gives ⌈pile/k⌉ using integer arithmetic — no floating point needed.<br><br>
+            <strong style="color:var(--text)">Why right = max(piles) not Integer.MAX_VALUE?</strong>
+            Eating at speed = max(piles) means every pile takes exactly 1 hour = n hours total. You never need k &gt; max(piles).
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public int</span> <span class="fn">minEatingSpeed</span>(<span class="kw">int</span>[] piles, <span class="kw">int</span> h) {
+        <span class="kw">int</span> l = <span class="num-c">1</span>;
+        <span class="kw">int</span> r = <span class="num-c">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> pile : piles)
+            r = Math.<span class="fn">max</span>(r, pile);       <span class="cm">// r = max(piles)</span>
+
+        <span class="kw">while</span> (l &lt; r) {                    <span class="cm">// l==r when done → that's the answer</span>
+            <span class="kw">int</span> mid = l + (r - l) / <span class="num-c">2</span>;
+            <span class="kw">int</span> count = <span class="num-c">0</span>;
+            <span class="kw">for</span> (<span class="kw">int</span> i : piles)
+                count += (i + mid - <span class="num-c">1</span>) / mid;  <span class="cm">// ceiling division</span>
+
+            <span class="kw">if</span> (count &lt;= h) {
+                r = mid;           <span class="cm">// feasible — mid could be answer, keep it</span>
+            } <span class="kw">else</span> {
+                l = mid + <span class="num-c">1</span>;       <span class="cm">// too slow — mid definitely not answer</span>
+            }
+        }
+        <span class="kw">return</span> l;                          <span class="cm">// l == r == minimum k</span>
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.9">
+                <div style="color:var(--teal);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Your version ✓ cleaner</div>
+                <div style="color:var(--muted)">
+                    Condition: <code style="font-family:var(--font-mono);color:var(--teal)">while (l &lt; r)</code><br>
+                    Feasible: <code style="font-family:var(--font-mono);color:var(--teal)">r = mid</code>  (keep mid)<br>
+                    Returns: <code style="font-family:var(--font-mono);color:var(--teal)">l</code>  (l == r == answer)
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:1.9">
+                <div style="color:var(--muted);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Alternate version</div>
+                <div style="color:var(--muted)">
+                    Condition: <code style="font-family:var(--font-mono)">while (l &lt;= r)</code><br>
+                    Feasible: <code style="font-family:var(--font-mono)">result=mid; right=mid-1</code><br>
+                    Returns: <code style="font-family:var(--font-mono)">result</code>  (extra variable)
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Pattern to remember</div>
+            <div style="color:var(--text)">
+                1. Range: <code style="font-family:var(--font-mono);color:var(--teal)">l=1, r=max(piles)</code><br>
+                2. Check: <code style="font-family:var(--font-mono);color:var(--amber)">(i + mid - 1) / mid</code> → ceiling without Math.ceil<br>
+                3. Feasible → <code style="font-family:var(--font-mono);color:var(--green)">r = mid</code>  (mid kept — it could be the answer)<br>
+                4. Not feasible → <code style="font-family:var(--font-mono);color:var(--red)">l = mid + 1</code>  (mid discarded — too slow)<br>
+                5. Return <code style="font-family:var(--font-mono);color:var(--teal)">l</code>  when loop ends
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            This is <strong style="color:var(--text)">binary search on the answer</strong> — not on the input array.
+            The search space is the range of possible answers [1…max(piles)].<br><br>
+            The pattern applies whenever:
+            <div style="font-family:var(--font-mono);font-size:.82rem;color:var(--text);margin:.5rem 0 .5rem 1rem;line-height:2.2">
+                1. Answer is an integer in a known range<br>
+                2. There's a <span style="color:var(--teal)">feasibility function</span> that's monotone<br>
+                3. You want the min (or max) feasible value
+            </div>
+            <strong style="color:var(--text)">Same pattern used in:</strong> Capacity to Ship Packages, Split Array Largest Sum, Minimum Days to Make Bouquets.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any piles</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">piles =</label>
+            <input id="piles-input" type="text" value="3,6,7,11"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:180px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">h =</label>
+            <input id="h-input" type="number" value="8"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--purple);color:var(--purple);border-radius:6px;width:70px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ 2–8 positive integers, h ≥ 1</span>
+        </div>
+
+        <!-- pile bars -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">piles[]</div>
+        <div class="pile-row" id="tr-piles"></div>
+
+        <!-- speed range visualiser -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">search range [left … right]</div>
+        <div id="range-bar" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;font-family:var(--font-mono);font-size:.76rem;margin-bottom:1rem;min-height:36px;color:var(--muted)">—</div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill teal"   id="vp-left">left = 1</div>
+            <div class="var-pill purple" id="vp-right">right = —</div>
+            <div class="var-pill amber"  id="vp-mid">mid = —</div>
+            <div class="var-pill"        id="vp-hours">hours = —</div>
+            <div class="var-pill green"  id="vp-res">result = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  int l=1, r=max(piles);</div>
+            <div class="tl" id="tl1">  while (l &lt; r) {</div>
+            <div class="tl" id="tl2">      int mid = l + (r - l) / 2;</div>
+            <div class="tl" id="tl3">      int count = 0;</div>
+            <div class="tl" id="tl4">      for (int i : piles)  count += (i + mid - 1) / mid;</div>
+            <div class="tl" id="tl5">      if (count &lt;= h) {</div>
+            <div class="tl" id="tl6">          r = mid;         // feasible — keep mid</div>
+            <div class="tl" id="tl7">      } else {</div>
+            <div class="tl" id="tl8">          l = mid + 1;     // too slow</div>
+            <div class="tl" id="tl9">      }</div>
+            <div class="tl" id="tl10"> }</div>
+            <div class="tl" id="tl11"> return l;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter piles and h, then press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    let tracePiles=[], traceH=0, steps=[], cur=0;
+
+    function hoursNeeded(piles, k){
+      return piles.reduce((s,p)=>s+Math.ceil(p/k), 0);
+    }
+
+    // ── Static walkthrough piles ──
+    function renderPileBars(containerId, piles, maxP, activeMid){
+      const el=document.getElementById(containerId);
+      if(!el) return;
+      el.innerHTML='';
+      piles.forEach((p,i)=>{
+        const pct=Math.max(10,(p/maxP)*80);
+        el.innerHTML+=`<div class="pile">
+          <div class="pile-val" style="color:var(--teal)">${p}</div>
+          <div class="pile-bar" style="height:${pct}px;background:var(--teal);opacity:.8"></div>
+          <div class="pile-idx">[${i}]</div>
+        </div>`;
+      });
+      if(activeMid!==undefined){
+        el.innerHTML+=`<div style="margin-left:1rem;display:flex;align-items:center;gap:.4rem">
+          <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--amber)">k=${activeMid}</div>
+          <div class="pile-bar" style="height:${Math.max(6,(activeMid/maxP)*80)}px;width:8px;background:var(--amber);border-radius:4px"></div>
+        </div>`;
+      }
+    }
+
+    function buildWalkthrough(){
+      const piles=[3,6,7,11], h=8;
+      const maxP=Math.max(...piles);
+      renderPileBars('wt-piles', piles, maxP, undefined);
+
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      let left=1, right=maxP, result=maxP, iter=1;
+      while(left<=right){
+        const mid=left+Math.floor((right-left)/2);
+        const hours=hoursNeeded(piles,mid);
+        const feasible=hours<=h;
+        const hoursStr=piles.map(p=>`⌈${p}/${mid}⌉=${Math.ceil(p/mid)}`).join('+')+'='+hours;
+        const tr=document.createElement('tr');
+        if(iter%2===0) tr.style.background='#ffffff06';
+        tr.innerHTML=`
+          <td style="padding:5px 8px;color:var(--muted)">${iter}</td>
+          <td style="padding:5px 8px;color:var(--teal);text-align:center;font-weight:700">${left}</td>
+          <td style="padding:5px 8px;color:var(--purple);text-align:center;font-weight:700">${right}</td>
+          <td style="padding:5px 8px;color:var(--amber);text-align:center;font-weight:700">${mid}</td>
+          <td style="padding:5px 8px;color:var(--muted);font-size:.7rem">${hoursStr}</td>
+          <td style="padding:5px 8px;color:${feasible?'var(--green)':'var(--red)'};font-weight:600">${feasible?'✓ yes':'✗ no'}</td>
+          <td style="padding:5px 8px;color:${feasible?'var(--green)':'var(--red)'};font-weight:600">${feasible?`result=${mid}, right=${mid-1}`:`left=${mid+1}`}</td>`;
+        tbody.appendChild(tr);
+        if(feasible){result=mid;right=mid-1;}else{left=mid+1;}
+        iter++;
+      }
+      const res=document.getElementById('wt-result');
+      res.style.cssText='background:var(--amber-dim);border:1px solid var(--amber);border-radius:8px;color:var(--amber)';
+      res.textContent=`✅  minimum eating speed k = ${l}  (l == r == ${l})`;
+    }
+
+    // ── Build trace steps ──
+    function buildSteps(piles, h){
+      const st=[];
+      const maxP=Math.max(...piles);
+      let l=1, r=maxP;
+
+      st.push({line:0,left:l,right:r,mid:null,hours:null,result:r,act:'init',
+        log:`l=1, r=max(piles)=${maxP}`});
+
+      while(l<r){
+        st.push({line:1,left:l,right:r,mid:null,hours:null,result:r,act:'check',
+          log:`while(${l} < ${r}) ✓`});
+        const mid=l+Math.floor((r-l)/2);
+        st.push({line:2,left:l,right:r,mid,hours:null,result:r,act:'mid',
+          log:`mid = ${l} + (${r}-${l})/2 = ${mid}`});
+        st.push({line:3,left:l,right:r,mid,hours:0,result:r,act:'inithr',
+          log:`count = 0`});
+        const hours=hoursNeeded(piles,mid);
+        const breakdown=piles.map(p=>`⌈${p}/${mid}⌉=${Math.ceil(p/mid)}`).join(' + ');
+        st.push({line:4,left:l,right:r,mid,hours,result:r,act:'calchr',
+          log:`count = ${breakdown} = ${hours}`});
+        st.push({line:5,left:l,right:r,mid,hours,result:r,act:'feascheck',
+          log:`count(${hours}) ${hours<=h?'≤':'>'} h(${h}) → ${hours<=h?'feasible ✓':'not feasible ✗'}`});
+        if(hours<=h){
+          r=mid;
+          st.push({line:6,left:l,right:r,mid,hours,result:r,act:'feasible',
+            log:`✓ feasible → r = mid = ${r}  (keep mid, try smaller k)`});
+        } else {
+          l=mid+1;
+          st.push({line:8,left:l,right:r,mid,hours,result:r,act:'infeasible',
+            log:`✗ not feasible → l = mid+1 = ${l}  (discard mid, need faster)`});
+        }
+      }
+      st.push({line:10,left:l,right:r,mid:null,hours:null,result:l,act:'exit',
+        log:`while(${l} < ${r}) ✗  →  l == r == ${l}`});
+      st.push({line:11,left:l,right:r,mid:null,hours:null,result:l,act:'done',
+        log:`✅  return l = ${l}  (minimum eating speed)`});
+      return st;
+    }
+
+    function renderRangeBar(left, right, mid, maxR){
+      const el=document.getElementById('range-bar');
+      if(!maxR){el.textContent='—';return;}
+      const w=Math.min(400, maxR*14);
+      let html=`<div style="position:relative;height:22px;width:${w}px;background:var(--surface2);border-radius:4px;overflow:hidden">`;
+      // eliminated left
+      if(left>1){
+        const lw=((left-1)/maxR)*100;
+        html+=`<div style="position:absolute;left:0;top:0;height:100%;width:${lw}%;background:var(--border)"></div>`;
+      }
+      // eliminated right
+      if(right<maxR){
+        const rstart=((right+1)/maxR)*100;
+        html+=`<div style="position:absolute;left:${rstart}%;top:0;height:100%;width:${100-rstart}%;background:var(--border)"></div>`;
+      }
+      // mid marker
+      if(mid){
+        const mpos=((mid-0.5)/maxR)*100;
+        html+=`<div style="position:absolute;left:${mpos}%;top:0;height:100%;width:${14/w*100}%;background:var(--amber);border-radius:2px"></div>`;
+      }
+      html+=`</div>`;
+      html+=`<div style="margin-top:4px;font-size:.7rem;color:var(--muted)">`;
+      html+=`<span style="color:var(--teal)">L=${left}</span> &nbsp; `;
+      if(mid) html+=`<span style="color:var(--amber)">mid=${mid}</span> &nbsp; `;
+      html+=`<span style="color:var(--purple)">R=${right}</span>`;
+      html+=`</div>`;
+      el.innerHTML=html;
+    }
+
+    const lineHL={0:'at',1:'at',2:'aa',3:'at',4:'at',5:'at',6:'ag',7:'at',8:'ar',9:'at',10:'ar',11:'ag'};
+
+    function applyStep(s){
+      renderPileBars('tr-piles', tracePiles, Math.max(...tracePiles), s.mid);
+      renderRangeBar(s.left, s.right, s.mid, Math.max(...tracePiles));
+
+      document.getElementById('vp-left').textContent=`l = ${s.left}`;
+      document.getElementById('vp-left').className='var-pill teal';
+      document.getElementById('vp-right').textContent=`r = ${s.right}`;
+      document.getElementById('vp-right').className='var-pill purple';
+      document.getElementById('vp-mid').textContent=s.mid!==null?`mid = ${s.mid}`:'mid = —';
+      document.getElementById('vp-mid').className='var-pill amber';
+      document.getElementById('vp-hours').textContent=s.hours!==null?`hours = ${s.hours}`:'hours = —';
+      document.getElementById('vp-hours').className='var-pill'+(s.hours!==null?s.hours<=traceH?' green':' red':'');
+      document.getElementById('vp-res').textContent=`result = ${s.result}`;
+      document.getElementById('vp-res').className='var-pill green';
+
+      for(let k=0;k<=11;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      document.getElementById('trace-log').style.color=
+        s.act==='done'?'var(--green)':s.act==='feasible'?'var(--green)':
+        s.act==='infeasible'?'var(--red)':s.act==='exit'?'var(--amber)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('piles-input').value.trim();
+      const hv=parseInt(document.getElementById('h-input').value);
+      const piles=raw.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v)&&v>0);
+      const errEl=document.getElementById('input-err');
+      if(piles.length<2||piles.length>8||isNaN(hv)||hv<1){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      tracePiles=piles; traceH=hv;
+      steps=buildSteps(tracePiles,traceH);
+      cur=0;
+      renderPileBars('tr-piles', tracePiles, Math.max(...tracePiles), undefined);
+      renderRangeBar(1, Math.max(...tracePiles), null, Math.max(...tracePiles));
+      for(let k=0;k<=11;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-left').textContent='l = 1';document.getElementById('vp-left').className='var-pill teal';
+      document.getElementById('vp-right').textContent=`r = ${Math.max(...piles)}`;document.getElementById('vp-right').className='var-pill purple';
+      document.getElementById('vp-mid').textContent='mid = —';document.getElementById('vp-mid').className='var-pill amber';
+      document.getElementById('vp-hours').textContent='hours = —';document.getElementById('vp-hours').className='var-pill';
+      document.getElementById('vp-res').textContent=`result = ${Math.max(...piles)}`;document.getElementById('vp-res').className='var-pill green';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing piles=[${piles}], h=${hv} — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
