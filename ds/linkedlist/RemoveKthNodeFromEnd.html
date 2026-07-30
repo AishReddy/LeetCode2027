@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>19. Remove Nth Node From End of List</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+          --teal:#00d4aa;--teal-dim:#00d4aa22;
+          --purple:#a78bfa;--purple-dim:#a78bfa22;
+          --amber:#fbbf24;--amber-dim:#fbbf2422;
+          --red:#f87171;--red-dim:#f8717122;
+          --green:#4ade80;--green-dim:#4ade8022;
+          --text:#e2e8f0;--muted:#64748b;
+          --font-mono:'JetBrains Mono',monospace;
+          --font-sans:'Sora',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;padding:2rem 1rem 4rem}
+        .page{max-width:860px;margin:0 auto}
+
+        header{margin-bottom:2.5rem;border-left:3px solid var(--teal);padding-left:1.2rem}
+        header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:#fff}
+        header p{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+        .badge{display:inline-block;font-family:var(--font-mono);font-size:.7rem;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-top:.5rem;margin-right:6px}
+        .badge.info{background:var(--teal-dim);color:var(--teal);border-color:var(--teal)}
+
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+
+        .callout{background:#1a1506;border:1px solid #3d2e04;border-left:3px solid var(--amber);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#cbd5a0;line-height:1.6}
+
+        .step-item{display:flex;gap:1rem;margin-bottom:1.2rem;align-items:flex-start}
+        .step-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.72rem;font-weight:700;flex-shrink:0}
+        .step-num.t{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+        .step-num.p{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+        .step-num.a{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+        .step-num.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+        .step-body{font-size:.83rem;line-height:1.7;color:var(--muted);padding-top:4px}
+        .step-body strong{color:var(--text);font-weight:600}
+
+        .complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .complexity-card{border-radius:10px;padding:1.2rem 1rem;border:1px solid}
+        .complexity-card.time{background:var(--teal-dim);border-color:var(--teal)}
+        .complexity-card.space{background:var(--purple-dim);border-color:var(--purple)}
+        .complexity-card .clabel{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+        .complexity-card.time .clabel{color:var(--teal)}
+        .complexity-card.space .clabel{color:var(--purple)}
+        .complexity-card .big{font-family:var(--font-mono);font-size:1.8rem;font-weight:700;line-height:1}
+        .complexity-card.time .big{color:var(--teal)}
+        .complexity-card.space .big{color:var(--purple)}
+        .complexity-card .desc{font-size:.75rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+
+        pre{background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.9}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#4b5563;font-style:italic}.num-c{color:#fbbf24}
+
+        .var-pill{font-family:var(--font-mono);font-size:.75rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .25s}
+        .var-pill.teal{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+        .var-pill.purple{border-color:var(--purple);background:var(--purple-dim);color:var(--purple)}
+        .var-pill.amber{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+        .var-pill.green{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+        .var-pill.red{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+
+        .tl{padding:2px 8px;border-radius:4px;color:var(--muted);transition:background .2s,color .2s;white-space:pre;font-family:var(--font-mono);font-size:.77rem;line-height:2}
+        .tl.at{background:var(--teal-dim);color:var(--teal);font-weight:700}
+        .tl.aa{background:var(--amber-dim);color:var(--amber);font-weight:700}
+        .tl.ap{background:var(--purple-dim);color:var(--purple);font-weight:700}
+        .tl.ag{background:var(--green-dim);color:var(--green);font-weight:700}
+        .tl.ar{background:var(--red-dim);color:var(--red);font-weight:700}
+
+        /* node row */
+        .ll-row{display:flex;align-items:flex-end;gap:0;flex-wrap:wrap;margin:.5rem 0;overflow-x:auto}
+        .ll-label{font-family:var(--font-mono);font-size:.75rem;color:var(--muted);min-width:68px;padding-bottom:14px}
+        .nd{display:flex;flex-direction:column;align-items:center;gap:2px}
+        .nd-box{width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--font-mono);font-size:.9rem;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:all .25s;position:relative}
+        .nd-box.fast{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+        .nd-box.slow{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+        .nd-box.target{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+        .nd-box.removed{opacity:.2;text-decoration:line-through}
+        .nd-box.prev{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+        .nd-box.done{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+        .nd-lbl{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);height:14px;text-align:center}
+        .nd-arr{font-family:var(--font-mono);font-size:.85rem;color:var(--muted);padding:0 2px;padding-bottom:14px}
+        .nd-null{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-family:var(--font-mono);font-size:.62rem;border:1px dashed var(--border);color:var(--muted);margin-bottom:14px}
+
+        hr{border:none;border-top:1px solid var(--border);margin:1.2rem 0}
+        @media(max-width:520px){.complexity-grid{grid-template-columns:1fr}.nd-box{width:38px;height:38px;font-size:.8rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <h1>19. Remove Nth Node From End of List</h1>
+        <p>LeetCode Medium — Dummy Node + Two Pointers (gap of k)</p>
+        <span class="badge">medium</span>
+        <span class="badge info">O(n) time &nbsp;|&nbsp; O(1) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+            Given the head of a linked list, remove the
+            <strong style="color:var(--text)">kth node from the end</strong>
+            and return the head of the modified list.
+        </p>
+        <div style="margin-top:.8rem;font-family:var(--font-mono);font-size:.82rem;background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;line-height:2.2;color:var(--muted)">
+            list = [<span style="color:var(--text)">1, 2, 3, 4, 5</span>],  k = <span style="color:var(--amber)">2</span><br>
+            Remove <span style="color:var(--red)">4</span> (2nd from end) → [<span style="color:var(--green)">1, 2, 3, 5</span>]
+        </div>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Key trick: move <code style="font-family:var(--font-mono);color:var(--purple)">fast</code> pointer k steps ahead of <code style="font-family:var(--font-mono);color:var(--teal)">slow</code>. When fast reaches null, slow is right before the node to remove.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Dummy + Two Pointers (k-gap)</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Dummy node:</strong> create <code style="font-family:var(--font-mono);color:var(--amber)">dummy.next = head</code>.
+                    Start both <code style="font-family:var(--font-mono);color:var(--teal)">slow</code> and
+                    <code style="font-family:var(--font-mono);color:var(--purple)">fast</code> at dummy.
+                    Dummy handles the edge case of removing the head node.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Advance fast k+1 steps</strong> from dummy (or k steps from head).
+                    Now fast is exactly k+1 nodes ahead of slow — a gap of k.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Move both together</strong> until <code style="font-family:var(--font-mono);color:var(--purple)">fast == null</code>.
+                    Now slow points to the node <strong style="color:var(--text)">just before</strong> the one to remove.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num g">4</div>
+                <div class="step-body">
+                    <strong>Delete:</strong> <code style="font-family:var(--font-mono);color:var(--green)">slow.next = slow.next.next</code>.
+                    Return <code style="font-family:var(--font-mono);color:var(--green)">dummy.next</code>.
+                </div>
+            </div>
+        </div>
+
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;line-height:1.8;color:var(--muted);margin-top:.5rem">
+            <strong style="color:var(--amber)">Why k+1 steps from dummy (not k from head)?</strong><br>
+            We want slow to land on the node <em>before</em> the target — so we can do <code style="font-family:var(--font-mono)">slow.next = slow.next.next</code>.
+            Starting from dummy and moving fast k+1 steps achieves this gap precisely.
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Walkthrough &nbsp; [1,2,3,4,5], k=2</div>
+
+        <!-- Phase 1: advance fast -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--purple);margin-bottom:.5rem">Phase 1 — advance fast k+1=3 steps from dummy</div>
+        <div class="ll-row" id="wt-phase1"></div>
+
+        <hr>
+
+        <!-- Phase 2: move together -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--teal);margin-bottom:.5rem">Phase 2 — move both until fast=null</div>
+        <div class="ll-row" id="wt-phase2"></div>
+
+        <hr>
+
+        <!-- Phase 3: delete -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--green);margin-bottom:.5rem">Phase 3 — slow.next = slow.next.next</div>
+        <div class="ll-row" id="wt-phase3"></div>
+
+        <div id="wt-result" style="margin-top:1rem;padding:.9rem 1rem;border-radius:8px;font-family:var(--font-mono);font-size:.84rem"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">One pass. fast travels n steps total (k+1 in phase 1, n-k-1 in phase 2). slow travels n-k-1 steps.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(1)</div>
+                <div class="desc">Only dummy, slow, fast pointers. No extra data structures.</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why dummy node?</strong> If k equals the list length, we'd remove the head. Without dummy, slow would have nowhere to start — dummy gives slow a valid "before head" position so <code style="font-family:var(--font-mono)">slow.next = slow.next.next</code> always works.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> ListNode <span class="fn">removeNthFromEnd</span>(ListNode head, <span class="kw">int</span> n) {
+        ListNode dummy = <span class="kw">new</span> <span class="fn">ListNode</span>(<span class="num-c">0</span>);
+        dummy.next = head;
+
+        ListNode slow = dummy;
+        ListNode fast = dummy;
+
+        <span class="cm">// advance fast n+1 steps ahead of slow</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num-c">0</span>; i &lt;= n; i++)
+            fast = fast.next;
+
+        <span class="cm">// move both until fast is null</span>
+        <span class="kw">while</span> (fast != <span class="kw">null</span>) {
+            slow = slow.next;
+            fast = fast.next;
+        }
+
+        <span class="cm">// slow is just before the target node</span>
+        slow.next = slow.next.next;
+
+        <span class="kw">return</span> dummy.next;
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;line-height:2;color:var(--muted)">
+            <div style="color:var(--amber);font-family:var(--font-mono);font-weight:600;margin-bottom:.4rem">Pattern to remember</div>
+            <div style="color:var(--text)">
+                1. Dummy: <code style="font-family:var(--font-mono);color:var(--amber)">dummy.next=head; slow=fast=dummy</code><br>
+                2. Gap: <code style="font-family:var(--font-mono);color:var(--purple)">for i=0 to n: fast=fast.next</code>  (n+1 steps)<br>
+                3. Move: <code style="font-family:var(--font-mono);color:var(--teal)">while fast!=null: slow=slow.next, fast=fast.next</code><br>
+                4. Delete: <code style="font-family:var(--font-mono);color:var(--green)">slow.next = slow.next.next</code><br>
+                5. Return: <code style="font-family:var(--font-mono);color:var(--green)">dummy.next</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:.85rem;line-height:1.9;color:var(--muted)">
+            Maintaining a <strong style="color:var(--text)">gap of k+1</strong> between fast and slow means:
+            when fast reaches null (past the last node),
+            slow is exactly at the node <strong style="color:var(--text)">before</strong> the kth from end.
+            <div style="font-family:var(--font-mono);font-size:.82rem;margin:.6rem 0 .5rem 1rem;line-height:2.4;color:var(--text)">
+                <span style="color:var(--muted)">dummy → 1 → 2 → </span><span style="color:var(--amber)">3</span><span style="color:var(--muted)"> → </span><span style="color:var(--red)">4</span><span style="color:var(--muted)"> → 5 → null</span><br>
+                <span style="color:var(--muted)">slow points to </span><span style="color:var(--amber)">3</span><span style="color:var(--muted)">, fast=null  →  delete </span><span style="color:var(--red)">4</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any list</div>
+
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">list =</label>
+            <input id="list-input" type="text" value="1,2,3,4,5"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:180px;outline:none"/>
+            <label style="font-family:var(--font-mono);font-size:.78rem;color:var(--muted)">k =</label>
+            <input id="k-input" type="number" value="2"
+                   style="font-family:var(--font-mono);font-size:.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--amber);color:var(--amber);border-radius:6px;width:70px;outline:none"/>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:.72rem;color:#f87171;display:none">⚠ 2–8 integers, k ≥ 1 and ≤ list length</span>
+        </div>
+
+        <!-- live list visualiser -->
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px">list (D=dummy)</div>
+        <div class="ll-row" id="tr-list"></div>
+
+        <!-- pills -->
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill amber"  id="vp-phase">phase = —</div>
+            <div class="var-pill teal"   id="vp-slow">slow = —</div>
+            <div class="var-pill purple" id="vp-fast">fast = —</div>
+            <div class="var-pill red"    id="vp-target">target = —</div>
+            <div class="var-pill green"  id="vp-res">result = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  ListNode dummy = new ListNode(0);  dummy.next = head;</div>
+            <div class="tl" id="tl1">  ListNode slow = dummy, fast = dummy;</div>
+            <div class="tl" id="tl2">  for (int i = 0; i &lt;= n; i++)  fast = fast.next;</div>
+            <div class="tl" id="tl3">  while (fast != null) {</div>
+            <div class="tl" id="tl4">      slow = slow.next;  fast = fast.next;</div>
+            <div class="tl" id="tl5">  }</div>
+            <div class="tl" id="tl6">  slow.next = slow.next.next;</div>
+            <div class="tl" id="tl7">  return dummy.next;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter list and k, then press Run Trace…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+<script>
+    let traceList=[], traceK=0, steps=[], cur=0;
+
+    // ── Render a static LL phase ──
+    function renderStaticLL(containerId, vals, slowIdx, fastIdx, targetIdx, removedIdx){
+      const el=document.getElementById(containerId);
+      if(!el) return;
+      el.innerHTML='';
+      // dummy
+      el.innerHTML+=`<div class="nd">
+        <div class="nd-box" style="background:var(--amber-dim);border-color:var(--amber);color:var(--amber);font-size:.65rem">D</div>
+        <div class="nd-lbl">${slowIdx===-1?'slow':''}</div>
+      </div><span class="nd-arr">→</span>`;
+
+      vals.forEach((v,i)=>{
+        const isSlow=i===slowIdx;
+        const isFast=i===fastIdx;
+        const isTarget=i===targetIdx;
+        const isRemoved=i===removedIdx;
+        let cls='nd-box';
+        if(isRemoved) cls='nd-box removed';
+        else if(isTarget) cls='nd-box target';
+        else if(isSlow&&isFast) cls='nd-box prev';
+        else if(isSlow) cls='nd-box slow';
+        else if(isFast) cls='nd-box fast';
+        const lbl=[];
+        if(isSlow) lbl.push('<span style="color:var(--teal)">S</span>');
+        if(isFast) lbl.push('<span style="color:var(--purple)">F</span>');
+        el.innerHTML+=`<div class="nd">
+          <div class="${cls}">${v}</div>
+          <div class="nd-lbl">${lbl.join('')}</div>
+        </div>${i<vals.length-1?'<span class="nd-arr">→</span>':''}`;
+      });
+      el.innerHTML+=`<span class="nd-arr">→</span><div class="nd-null">null</div>`;
+    }
+
+    function buildWalkthrough(){
+      const vals=[1,2,3,4,5], k=2, n=vals.length;
+      const targetIdx=n-k; // 0-based: idx 3 = val 4
+      const prevIdx=targetIdx-1; // idx 2 = val 3
+
+      // Phase 1: fast advanced k+1=3 steps from dummy → fast at idx 2 (val 3)
+      renderStaticLL('wt-phase1', vals, -1, k, -1, -1);
+
+      // Phase 2: move together until fast=null → slow at prevIdx, fast=null
+      renderStaticLL('wt-phase2', vals, prevIdx, -1, targetIdx, -1);
+
+      // Phase 3: after deletion
+      renderStaticLL('wt-phase3', vals, prevIdx, -1, -1, targetIdx);
+
+      const res=document.getElementById('wt-result');
+      const result=vals.filter((_,i)=>i!==targetIdx);
+      res.style.cssText='background:var(--green-dim);border:1px solid var(--green);border-radius:8px;color:var(--green)';
+      res.textContent=`✅  return dummy.next = [${result.join('→')}]  (removed ${vals[targetIdx]})`;
+    }
+
+    // ── Build trace steps ──
+    // Use indices: -1=dummy, 0..n-1=nodes, n=null
+    function buildSteps(vals, k){
+      const st=[];
+      const n=vals.length;
+      const DUMMY=-1, NULL_IDX=n;
+
+      const label=(idx)=>idx===DUMMY?'dummy(D)':idx===NULL_IDX?'null':`${vals[idx]}(idx ${idx})`;
+
+      st.push({line:0,si:DUMMY,fi:DUMMY,target:-1,removed:-1,act:'init',
+        log:`dummy = new ListNode(0),  dummy.next = head`});
+      st.push({line:1,si:DUMMY,fi:DUMMY,target:-1,removed:-1,act:'init2',
+        log:`slow = dummy,  fast = dummy`});
+
+      // Phase 1: advance fast k+1 steps
+      let fi=DUMMY;
+      for(let i=0;i<=k;i++){
+        const prev=fi;
+        fi=fi===DUMMY?0:fi+1;
+        if(fi>n) fi=n;
+        st.push({line:2,si:DUMMY,fi,target:-1,removed:-1,act:'gap',
+          log:`for i=${i}: fast = fast.next  →  fast = ${label(fi)}`});
+      }
+
+      // Phase 2: move both until fast=null
+      let si=DUMMY;
+      while(fi!==NULL_IDX){
+        si=si===DUMMY?0:si+1;
+        fi=fi+1; if(fi>n) fi=n;
+        st.push({line:4,si,fi:fi>=n?NULL_IDX:fi,target:si+1<n?si+1:-1,removed:-1,act:'move',
+          log:`slow=${label(si)},  fast=${fi>=n?'null':label(fi)}`});
+      }
+
+      // slow is now the predecessor of target
+      const targetIdx=si+1;
+      st.push({line:5,si,fi:NULL_IDX,target:targetIdx,removed:-1,act:'found',
+        log:`fast=null → stop. slow=${label(si)},  target=slow.next=${label(targetIdx)}`});
+
+      // delete
+      st.push({line:6,si,fi:NULL_IDX,target:targetIdx,removed:targetIdx,act:'delete',
+        log:`slow.next = slow.next.next  →  removing ${label(targetIdx)}`});
+
+      const result=vals.filter((_,i)=>i!==targetIdx);
+      st.push({line:7,si,fi:NULL_IDX,target:-1,removed:targetIdx,act:'done',
+        log:`✅  return dummy.next = [${result.join('→')}]`});
+      return st;
+    }
+
+    function renderTraceList(vals, si, fi, targetIdx, removedIdx){
+      const el=document.getElementById('tr-list');
+      el.innerHTML='';
+      const DUMMY=-1, NULL_IDX=vals.length;
+
+      // dummy node
+      const isDummySlow=si===DUMMY;
+      const isDummyFast=fi===DUMMY;
+      const dummyCls=isDummySlow&&isDummyFast?'nd-box prev':isDummySlow?'nd-box slow':isDummyFast?'nd-box fast':'nd-box';
+      const dummyLbls=[];
+      if(isDummySlow) dummyLbls.push('<span style="color:var(--teal)">S</span>');
+      if(isDummyFast) dummyLbls.push('<span style="color:var(--purple)">F</span>');
+      el.innerHTML+=`<div class="nd"><div class="${dummyCls}" style="font-size:.65rem">D</div><div class="nd-lbl">${dummyLbls.join('')}</div></div><span class="nd-arr">→</span>`;
+
+      vals.forEach((v,i)=>{
+        const isSlow=i===si;
+        const isFast=i===fi;
+        const isTarget=i===targetIdx&&removedIdx!==i;
+        const isRemoved=i===removedIdx;
+        let cls='nd-box';
+        if(isRemoved) cls='nd-box removed';
+        else if(isTarget) cls='nd-box target';
+        else if(isSlow&&isFast) cls='nd-box prev';
+        else if(isSlow) cls='nd-box slow';
+        else if(isFast) cls='nd-box fast';
+        const lbl=[];
+        if(isSlow) lbl.push('<span style="color:var(--teal)">S</span>');
+        if(isFast) lbl.push('<span style="color:var(--purple)">F</span>');
+        el.innerHTML+=`<div class="nd"><div class="${cls}">${v}</div><div class="nd-lbl">${lbl.join('')}</div></div>${i<vals.length-1?'<span class="nd-arr">→</span>':''}`;
+      });
+      // null marker when fast=null
+      el.innerHTML+=`<span class="nd-arr">→</span><div class="nd-null" style="${fi===vals.length?'border-color:var(--purple)':''};color:${fi===vals.length?'var(--purple)':'var(--muted)'}">null</div>`;
+    }
+
+    const lineHL={0:'at',1:'at',2:'ap',3:'at',4:'at',5:'ar',6:'ar',7:'ag'};
+
+    function applyStep(s){
+      renderTraceList(traceList, s.si, s.fi, s.target, s.removed);
+
+      const DUMMY=-1, NULL_IDX=traceList.length;
+      const lbl=(i)=>i===DUMMY?'dummy':i===NULL_IDX?'null':`${traceList[i]}`;
+      document.getElementById('vp-slow').textContent=`slow = ${lbl(s.si)}`;
+      document.getElementById('vp-slow').className='var-pill teal';
+      document.getElementById('vp-fast').textContent=`fast = ${lbl(s.fi)}`;
+      document.getElementById('vp-fast').className='var-pill'+(s.fi===NULL_IDX?' red':' purple');
+
+      const phaseText=s.act==='gap'?'Phase 1: gap':s.act==='move'?'Phase 2: move':s.act==='delete'||s.act==='found'?'Phase 3: delete':s.act==='done'?'done':'init';
+      document.getElementById('vp-phase').textContent=`phase = ${phaseText}`;
+      document.getElementById('vp-phase').className='var-pill'+(s.act==='gap'?' purple':s.act==='move'?' teal':s.act.includes('delete')||s.act==='found'?' red':'amber');
+
+      document.getElementById('vp-target').textContent=s.target>=0?`target = ${traceList[s.target]}`:'target = —';
+      document.getElementById('vp-target').className='var-pill'+(s.target>=0?' red':'');
+
+      const isDone=s.act==='done';
+      const resText=isDone?`[${traceList.filter((_,i)=>i!==s.removed).join('→')}]`:'—';
+      document.getElementById('vp-res').textContent=`result = ${resText}`;
+      document.getElementById('vp-res').className='var-pill'+(isDone?' green':'');
+
+      for(let k=0;k<=7;k++){
+        const el=document.getElementById('tl'+k);
+        if(el) el.className='tl'+(k===s.line?' '+(lineHL[k]||'at'):'');
+      }
+
+      document.getElementById('trace-log').style.color=
+        isDone?'var(--green)':s.act==='gap'?'var(--purple)':s.act==='move'?'var(--teal)':
+        s.act==='delete'||s.act==='found'?'var(--red)':'var(--teal)';
+      document.getElementById('trace-log').textContent=s.log;
+      document.getElementById('step-counter').textContent=`Step ${cur} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=cur===0;
+      document.getElementById('btn-next').disabled=cur===steps.length-1;
+    }
+
+    function buildTrace(){
+      const raw=document.getElementById('list-input').value.trim();
+      const kv=parseInt(document.getElementById('k-input').value);
+      const vals=raw.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+      const errEl=document.getElementById('input-err');
+      if(vals.length<2||vals.length>8||isNaN(kv)||kv<1||kv>vals.length){errEl.style.display='inline';return;}
+      errEl.style.display='none';
+      traceList=vals; traceK=kv;
+      steps=buildSteps(traceList,traceK);
+      cur=0;
+      renderTraceList(traceList,-1,-1,-1,-1);
+      for(let k=0;k<=7;k++){const el=document.getElementById('tl'+k);if(el)el.className='tl';}
+      document.getElementById('vp-phase').textContent='phase = init';  document.getElementById('vp-phase').className='var-pill amber';
+      document.getElementById('vp-slow').textContent='slow = —';       document.getElementById('vp-slow').className='var-pill teal';
+      document.getElementById('vp-fast').textContent='fast = —';       document.getElementById('vp-fast').className='var-pill purple';
+      document.getElementById('vp-target').textContent='target = —';   document.getElementById('vp-target').className='var-pill red';
+      document.getElementById('vp-res').textContent='result = —';      document.getElementById('vp-res').className='var-pill';
+      document.getElementById('btn-prev').disabled=true;
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('step-counter').textContent=`Step 0 / ${steps.length-1}`;
+      document.getElementById('trace-log').textContent=`Tracing [${vals}], k=${kv} — press Next Step to begin`;
+      document.getElementById('trace-log').style.color='var(--teal)';
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(steps[cur]);}}
+    function prevStep(){if(cur>0){cur--;applyStep(steps[cur]);}}
+
+    window.addEventListener('DOMContentLoaded',()=>{buildWalkthrough();buildTrace();});
+</script>
+</body>
+</html>
