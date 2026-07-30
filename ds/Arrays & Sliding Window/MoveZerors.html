@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>283. Move Zeroes</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --cyan:#22d3ee;--cyan-dim:#22d3ee18;--cyan-mid:#22d3ee44;
+          --orange:#fb923c;--orange-dim:#fb923c18;
+          --violet:#a78bfa;--violet-dim:#a78bfa18;--violet-mid:#a78bfa44;
+          --lime:#a3e635;--lime-dim:#a3e63518;
+          --red:#f87171;--red-dim:#f8717118;
+          --amber:#fbbf24;--amber-dim:#fbbf2418;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:900px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);border:1px solid var(--orange);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.easy{background:var(--lime-dim);color:var(--lime);border-color:var(--lime)}
+        .badge.time{background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan)}
+        .badge.space{background:var(--violet-dim);color:var(--violet);border-color:var(--violet)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .problem-example{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;font-size:.82rem;line-height:2.2;margin-top:1rem}
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.orange{background:var(--orange-dim);border-left:3px solid var(--orange);color:#d4b49a}
+        .callout.cyan{background:var(--cyan-dim);border-left:3px solid var(--cyan);color:#9ad4d4}
+        .callout.violet{background:var(--violet-dim);border-left:3px solid var(--violet);color:#b0aed4}
+        .callout.lime{background:var(--lime-dim);border-left:3px solid var(--lime);color:#b0c87a}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.pi{background:var(--cyan-dim);color:var(--cyan);border:1px solid var(--cyan)}
+        .phase-badge.pj{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange)}
+        .phase-badge.ps{background:var(--violet-dim);color:var(--violet);border:1px solid var(--violet)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* ── Array vis ── */
+        .arr-canvas{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1.2rem 1rem .8rem;margin:.8rem 0;overflow-x:auto}
+        .arr-canvas svg{display:block;margin:0 auto}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.cyan  {background:var(--cyan-dim);  color:var(--cyan);  border-color:var(--cyan)}
+        .pill.orange{background:var(--orange-dim);color:var(--orange);border-color:var(--orange)}
+        .pill.lime  {background:var(--lime-dim);  color:var(--lime);  border-color:var(--lime)}
+        .pill.violet{background:var(--violet-dim);color:var(--violet);border-color:var(--violet)}
+        .pill.red   {background:var(--red-dim);   color:var(--red);   border-color:var(--red)}
+
+        /* code */
+        .code-line{display:block;transition:background .2s;border-radius:3px;padding:0 4px}
+        .code-line.active{background:#22d3ee14}
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--amber)}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.75rem 0;transition:color .2s}
+        .step-log.cyan{color:var(--cyan)}.step-log.orange{color:var(--orange)}.step-log.lime{color:var(--lime)}.step-log.violet{color:var(--violet)}.step-log.amber{color:var(--amber)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
+        .btn-primary:hover:not(:disabled){background:var(--cyan-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--orange);border-color:var(--orange)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time{background:var(--cyan-dim);border-color:var(--cyan)}
+        .cx-card.space{background:var(--violet-dim);border-color:var(--violet)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--cyan)}
+        .cx-card.space .cx-label{color:var(--violet)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--cyan)}
+        .cx-card.space .cx-big{color:var(--violet)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        @media(max-width:540px){.cx-grid{grid-template-columns:1fr}.header h1{font-size:2rem}}
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">LeetCode 283</div>
+        <h1>Move Zeroes</h1>
+        <p>Two-pointer in-place array partition</p>
+        <div class="badges">
+            <span class="badge easy">easy</span>
+            <span class="badge time">O(n) time</span>
+            <span class="badge space">O(1) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            Given an integer array <code style="color:var(--cyan)">nums</code>, move all <code style="color:var(--orange)">0</code>s to the end while maintaining the <strong style="color:var(--text)">relative order</strong> of non-zero elements. Must be done <strong style="color:var(--text)">in-place</strong> with minimal total operations.
+        </p>
+        <div class="problem-example">
+            Input:&nbsp; <span style="color:var(--cyan)">[0, 1, 0, 3, 12]</span><br>
+            Output: <span style="color:var(--lime)">[1, 3, 12, 0, 0]</span><br><br>
+            Input:&nbsp; <span style="color:var(--cyan)">[0, 0, 1]</span><br>
+            Output: <span style="color:var(--lime)">[1, 0, 0]</span>
+        </div>
+        <div class="callout orange">
+            ⚡ Key insight: pointer <code style="color:var(--cyan)">i</code> tracks the next zero slot; pointer <code style="color:var(--orange)">j</code> scans ahead for the next non-zero. When found, swap. The two pointers "push" non-zeroes left and zeroes right without any extra array.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">Two-pointer approach</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge pi">i</div>
+                <div class="phase-body"><strong>Write pointer (i)</strong> — always points to the current zero that needs to be filled. Only advances after a successful swap.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge pj">j</div>
+                <div class="phase-body"><strong>Scan pointer (j)</strong> — races ahead of i looking for a non-zero value. When it finds one, that value swaps with nums[i].</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge ps">swap</div>
+                <div class="phase-body"><strong>Swap condition</strong> — only swap when <code style="color:var(--cyan)">nums[i] == 0</code> AND <code style="color:var(--orange)">nums[j] != 0</code>. Both <code style="color:var(--cyan)">i</code> and <code style="color:var(--orange)">j</code> advance after. If nums[i] != 0, advance both together.</div>
+            </div>
+        </div>
+        <div class="callout lime">
+            ✓ Every element is visited at most once by j. No shifting, no extra passes. Minimal writes (only actual swaps happen — no unnecessary moves).
+        </div>
+    </div>
+
+    <!-- interactive trace -->
+    <div class="card">
+        <div class="card-title">Interactive trace &nbsp;—&nbsp; [0, 1, 0, 3, 12]</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <div class="arr-canvas">
+            <svg id="arr-svg" width="100%" viewBox="0 0 460 90" style="max-width:460px"></svg>
+        </div>
+
+        <div class="pills">
+            <div class="pill cyan"   id="pill-i">i = —</div>
+            <div class="pill orange" id="pill-j">j = —</div>
+            <div class="pill"        id="pill-ni">nums[i] = —</div>
+            <div class="pill"        id="pill-nj">nums[j] = —</div>
+            <div class="pill"        id="pill-action">action = —</div>
+        </div>
+
+        <pre id="code-viewer" style="margin:.5rem 0 0;font-size:.76rem"></pre>
+
+        <div class="step-log cyan" id="step-log">Press "Next step" to begin.</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Full walkthrough table &nbsp;—&nbsp; [0, 1, 0, 3, 12]</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">step</th>
+                    <th style="padding:6px 10px;color:var(--cyan);font-weight:500">i</th>
+                    <th style="padding:6px 10px;color:var(--orange);font-weight:500">j</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">nums[i]</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">nums[j]</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">action</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">array after</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- code -->
+    <div class="card">
+        <div class="card-title">Java solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public void</span> <span class="fn">moveZeroes</span>(<span class="kw">int</span>[] nums) {
+        <span class="kw">if</span> (nums.length &lt;= <span class="num">1</span>) <span class="kw">return</span>;
+
+        <span class="kw">int</span> i = <span class="num">0</span>, j = <span class="num">1</span>;                      <span class="cm">// i = write ptr, j = scan ptr</span>
+
+        <span class="kw">while</span> (j &lt; nums.length) {
+            <span class="kw">if</span> (nums[i] == <span class="num">0</span>) {
+                <span class="kw">if</span> (nums[j] == <span class="num">0</span>) {
+                    j++;                          <span class="cm">// both zero → j skips ahead</span>
+                } <span class="kw">else</span> {
+                    nums[i] = nums[j];            <span class="cm">// swap: pull non-zero to i</span>
+                    nums[j] = <span class="num">0</span>;
+                    i++; j++;
+                }
+            } <span class="kw">else</span> {
+                i++; j++;                         <span class="cm">// nums[i] != 0: both advance</span>
+            }
+        }
+    }
+}</pre>
+
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--cyan);font-weight:600;margin-bottom:.4rem">Why i starts at 0, j at 1?</div>
+                <div style="color:var(--muted2)">
+                    i needs to point at a zero before j can fill it.<br>
+                    If <code style="color:var(--cyan)">nums[0] != 0</code>, both advance together and i "catches up" — i never goes past j.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--orange);font-weight:600;margin-bottom:.4rem">Why j skips when both are 0?</div>
+                <div style="color:var(--muted2)">
+                    No useful swap. i stays locked on its zero position.<br>
+                    j must find the next non-zero before a swap is valid.
+                </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9;grid-column:1/-1">
+                <div style="color:var(--lime);font-weight:600;margin-bottom:.4rem">Invariant</div>
+                <div style="color:var(--muted2)">
+                    At all times: <code style="color:var(--cyan)">nums[0..i-1]</code> contains non-zero values in original order. <code style="color:var(--orange)">j &gt;= i</code> always. When the loop ends, all non-zeroes are packed left and zeroes fill the tail.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">j visits each element exactly once. i only moves on swaps. Single pass.</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(1)</div>
+                <div class="cx-desc">Only two integer pointers. All operations directly on the input array.</div>
+            </div>
+        </div>
+        <div class="callout violet" style="margin-top:1rem">
+            Alternate simpler approach: one pointer, copy non-zeroes forward, then fill tail with zeros — also O(n)/O(1), but does more writes. This two-pointer version minimises total operations (only real swaps).
+        </div>
+    </div>
+
+    <!-- related -->
+    <div class="card">
+        <div class="card-title">Related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Remove Duplicates from Sorted Array (26)</strong> — same write-pointer pattern<br>
+            • <strong style="color:var(--text)">Remove Element (27)</strong> — identical two-pointer, filter by value<br>
+            • <strong style="color:var(--text)">Sort Colors (75)</strong> — Dutch national flag, 3-way partition of same idea
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const ORIG = [0, 1, 0, 3, 12];
+    const N = ORIG.length;
+    const CW = 68, CH = 44, GAP = 12;
+    const TOTAL_W = N * CW + (N-1) * GAP;
+    const START_X = (460 - TOTAL_W) / 2;
+    const Y = 10;
+
+    const CYAN   = '#22d3ee';
+    const ORANGE = '#fb923c';
+    const LIME   = '#a3e635';
+    const VIOLET = '#a78bfa';
+    const RED    = '#f87171';
+    const MUTED  = '#32324a';
+    const ZERO_FILL = '#1a1010';
+    const NONZERO_FILL = '#0d1a1a';
+
+    function cx(i) { return START_X + i * (CW + GAP) + CW / 2; }
+    function bx(i) { return START_X + i * (CW + GAP); }
+
+    function renderArr(arr, hl) {
+      const svg = document.getElementById('arr-svg');
+      let html = '';
+      for (let i = 0; i < N; i++) {
+        const x = bx(i), mx = cx(i);
+        const isZero = arr[i] === 0;
+        let fill = isZero ? ZERO_FILL : NONZERO_FILL;
+        let stroke = MUTED, textCol = isZero ? '#5a3a3a' : '#6b8880', sw = '1';
+        if (hl.i === i)    { fill = '#0a1f2a'; stroke = CYAN;   textCol = CYAN;   sw = '1.5'; }
+        if (hl.j === i)    { fill = '#2a1800'; stroke = ORANGE; textCol = ORANGE; sw = '1.5'; }
+        if (hl.swap && (i === hl.i || i === hl.j)) { fill = '#1a2a0a'; stroke = LIME; textCol = LIME; sw = '2'; }
+        if (hl.done && !isZero) { fill = '#0a1f10'; stroke = LIME; textCol = LIME; }
+        if (hl.done && isZero)  { stroke = '#3a2020'; textCol = '#5a3a3a'; }
+        html += `<rect x="${x}" y="${Y}" width="${CW}" height="${CH}" rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        html += `<text x="${mx}" y="${Y + CH/2 + 1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="17" font-weight="600" fill="${textCol}">${arr[i]}</text>`;
+        // index label
+        html += `<text x="${mx}" y="${Y + CH + 14}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3a3a55">[${i}]</text>`;
+      }
+      // pointer arrows
+      if (hl.i !== undefined && hl.i >= 0 && hl.i < N) {
+        const ax = cx(hl.i);
+        html += `<text x="${ax}" y="${Y - 8}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="${CYAN}">i</text>`;
+        html += `<line x1="${ax}" y1="${Y - 3}" x2="${ax}" y2="${Y + 1}" stroke="${CYAN}" stroke-width="1.2" marker-end="url(#tri-c)"/>`;
+      }
+      if (hl.j !== undefined && hl.j >= 0 && hl.j < N) {
+        const ax = cx(hl.j);
+        const offset = hl.j === hl.i ? 8 : 0;
+        html += `<text x="${ax + offset}" y="${Y - 8}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="${ORANGE}">j</text>`;
+        html += `<line x1="${ax + offset}" y1="${Y - 3}" x2="${ax + offset}" y2="${Y + 1}" stroke="${ORANGE}" stroke-width="1.2" marker-end="url(#tri-o)"/>`;
+      }
+      svg.innerHTML = `<defs>
+        <marker id="tri-c" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 8,4 0,8" fill="${CYAN}"/></marker>
+        <marker id="tri-o" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 8,4 0,8" fill="${ORANGE}"/></marker>
+      </defs>` + html;
+    }
+
+    // Build steps
+    function buildSteps() {
+      const steps = [];
+      const arr = [...ORIG];
+
+      function snap(arr, hl, title, badge, badgeStyle, log, logColor, pills, codeLines) {
+        steps.push({ arr: [...arr], hl, title, badge, badgeStyle, log, logColor, pills, codeLines });
+      }
+
+      snap(arr, {i:0, j:1}, 'Initial array', '—', 'surface',
+        'Init: i=0, j=1. i points at nums[0]=0.', 'cyan',
+        {i:'0', j:'1', ni:'0', nj:'1', action:'—'}, [4]);
+
+      let i = 0, j = 1;
+      while (j < N) {
+        if (arr[i] === 0) {
+          if (arr[j] === 0) {
+            snap(arr, {i, j}, `nums[i]=0, nums[j]=0 → j skips`, 'scan', 'orange',
+              `nums[${i}]=0, nums[${j}]=0 → both zero, j skips ahead.`, 'orange',
+              {i:String(i), j:String(j), ni:String(arr[i]), nj:String(arr[j]), action:'j++'}, [7,8,9]);
+            j++;
+          } else {
+            snap(arr, {i, j, swap:true}, `Swap! nums[${i}]↔nums[${j}]`, 'swap', 'lime',
+              `nums[${i}]=0, nums[${j}]=${arr[j]} → SWAP. Non-zero fills zero slot.`, 'lime',
+              {i:String(i), j:String(j), ni:'0', nj:String(arr[j]), action:`swap, i++ j++`}, [10,11,12,13]);
+            const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+            i++; j++;
+          }
+        } else {
+          snap(arr, {i, j}, `nums[i]!=0 → both advance`, 'advance', 'cyan',
+            `nums[${i}]=${arr[i]} is non-zero → both i and j advance together.`, 'cyan',
+            {i:String(i), j:String(j), ni:String(arr[i]), nj:String(arr[j]), action:'i++ j++'}, [15,16]);
+          i++; j++;
+        }
+      }
+      snap(arr, {done:true}, 'Done! ✓', '✓ done', 'lime',
+        `Loop ends (j=${j} >= ${N}). Non-zeroes packed left, zeroes at tail. Result: [${arr}]`, 'lime',
+        {i:String(i), j:String(j), ni:'—', nj:'—', action:'complete'}, []);
+
+      return steps;
+    }
+
+    const BADGE_STYLES = {
+      surface: 'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      cyan:    'background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan)',
+      orange:  'background:var(--orange-dim);color:var(--orange);border-color:var(--orange)',
+      lime:    'background:var(--lime-dim);color:var(--lime);border-color:var(--lime)',
+      violet:  'background:var(--violet-dim);color:var(--violet);border-color:var(--violet)',
+      scan:    'background:var(--orange-dim);color:var(--orange);border-color:var(--orange)',
+      swap:    'background:var(--lime-dim);color:var(--lime);border-color:var(--lime)',
+      advance: 'background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan)',
+    };
+
+    const CODE_LINES = [
+      '  if (nums.length <= 1) return;',        // 0
+      '',                                         // 1
+      '  // i = write ptr, j = scan ptr',        // 2
+      '',                                         // 3
+      '  int i = 0, j = 1;',                    // 4
+      '',                                         // 5
+      '  while (j < nums.length) {',            // 6
+      '      if (nums[i] == 0) {',              // 7
+      '          if (nums[j] == 0) {',          // 8
+      '              j++;',                      // 9
+      '          } else {',                      // 10
+      '              nums[i] = nums[j];',        // 11
+      '              nums[j] = 0;',             // 12
+      '              i++; j++;',                // 13
+      '          }',                             // 14
+      '      } else {',                          // 15
+      '          i++; j++;',                    // 16
+      '      }',                                 // 17
+      '  }',                                     // 18
+    ];
+
+    const PILL_COLORS = { i:'cyan', j:'orange', ni:'', nj:'', action:'' };
+    function pillColor(key, val) {
+      if (key === 'i') return 'cyan';
+      if (key === 'j') return 'orange';
+      if (key === 'ni') return val === '0' ? 'red' : 'violet';
+      if (key === 'nj') return val === '0' ? 'red' : 'violet';
+      if (key === 'action') return val.includes('swap') ? 'lime' : val === '—' ? '' : 'cyan';
+      return '';
+    }
+
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    let steps = [], cur = 0;
+
+    function applyStep(idx) {
+      const s = steps[idx];
+      renderArr(s.arr, s.hl);
+      document.getElementById('step-title').textContent = s.title;
+      const badge = document.getElementById('step-badge');
+      badge.textContent = s.badge;
+      badge.setAttribute('style', BADGE_STYLES[s.badgeStyle] || BADGE_STYLES.surface);
+      const log = document.getElementById('step-log');
+      log.textContent = s.log; log.className = 'step-log ' + s.logColor;
+      const pillKeys = ['i','j','ni','nj','action'];
+      const pillLabels = { i:'i', j:'j', ni:'nums[i]', nj:'nums[j]', action:'action' };
+      for (const k of pillKeys) {
+        const el = document.getElementById('pill-' + k);
+        const val = s.pills[k] ?? '—';
+        el.textContent = pillLabels[k] + ' = ' + val;
+        el.className = 'pill ' + (val !== '—' ? pillColor(k, val) : '');
+      }
+      document.getElementById('code-viewer').innerHTML =
+        CODE_LINES.map((line, i) =>
+          `<span class="code-line${s.codeLines.includes(i) ? ' active' : ''}">${escHtml(line) || ' '}</span>`
+        ).join('\n');
+      document.getElementById('step-counter').textContent = `step ${idx} / ${steps.length - 1}`;
+      document.getElementById('btn-prev').disabled = idx === 0;
+      document.getElementById('btn-next').disabled = idx === steps.length - 1;
+    }
+
+    function nextStep() { if (cur < steps.length - 1) { cur++; applyStep(cur); } }
+    function prevStep() { if (cur > 0) { cur--; applyStep(cur); } }
+    function resetTrace() { cur = 0; applyStep(0); }
+
+    // walkthrough table
+    function buildWT() {
+      const tbody = document.getElementById('wt-tbody');
+      tbody.innerHTML = '';
+      const rows = [
+        [0, 0, 1, '0', '1', 'swap → pull 1 to front', '[1,0,0,3,12]'],
+        [1, 1, 2, '0', '0', 'j++ (both zero)',         '[1,0,0,3,12]'],
+        [2, 1, 3, '0', '3', 'swap → pull 3 to front',  '[1,3,0,0,12]'],
+        [3, 2, 4, '0', '12','swap → pull 12 to front', '[1,3,12,0,0]'],
+        [4, 3, 5, '0', '—', 'j=5 exits loop',          '[1,3,12,0,0] ✓'],
+      ];
+      rows.forEach(([step,i,j,ni,nj,action,after], idx) => {
+        const tr = document.createElement('tr');
+        if (idx % 2 === 1) tr.style.background = '#ffffff04';
+        const isSwap = action.includes('swap');
+        const actionCol = isSwap ? 'var(--lime)' : action.includes('++') ? 'var(--orange)' : 'var(--muted2)';
+        tr.innerHTML = `
+          <td style="padding:5px 10px;color:var(--muted)">${step}</td>
+          <td style="padding:5px 10px;color:var(--cyan);text-align:center;font-weight:600">${i}</td>
+          <td style="padding:5px 10px;color:var(--orange);text-align:center;font-weight:600">${j}</td>
+          <td style="padding:5px 10px;color:${ni==='0'?'var(--red)':'var(--violet)'}">${ni}</td>
+          <td style="padding:5px 10px;color:${nj==='0'?'var(--red)':'var(--violet)'}">${nj}</td>
+          <td style="padding:5px 10px;color:${actionCol};font-size:.72rem">${action}</td>
+          <td style="padding:5px 10px;color:var(--muted2);font-size:.7rem;font-family:var(--mono)">${after}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    steps = buildSteps();
+    resetTrace();
+    buildWT();
+</script>
+</body>
+</html>
