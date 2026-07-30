@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Longest Substring Without Repeating Characters</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+          --teal: #00d4aa; --teal-dim: #00d4aa22;
+          --purple: #a78bfa; --purple-dim: #a78bfa22;
+          --amber: #fbbf24; --amber-dim: #fbbf2422;
+          --red: #f87171;   --red-dim: #f8717122;
+          --text: #e2e8f0; --muted: #64748b;
+          --font-mono: 'JetBrains Mono', monospace;
+          --font-sans: 'Sora', sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: var(--font-sans); min-height: 100vh; padding: 2rem 1rem 4rem; }
+        .page { max-width: 860px; margin: 0 auto; }
+
+        header { margin-bottom: 2.5rem; border-left: 3px solid var(--teal); padding-left: 1.2rem; }
+        header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+        header p  { font-size: 0.85rem; color: var(--muted); margin-top: 0.35rem; }
+        .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); border-radius: 4px; padding: 2px 8px; margin-top: 0.5rem; }
+
+        .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .section-title { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+
+        /* Char cells */
+        .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .cell-val { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; border: 1px solid var(--border); background: var(--surface2); color: var(--text); transition: all 0.25s; }
+        .cell-val.teal   { background: var(--teal-dim);   border-color: var(--teal);   color: var(--teal); }
+        .cell-val.purple { background: var(--purple-dim); border-color: var(--purple); color: var(--purple); }
+        .cell-val.amber  { background: var(--amber-dim);  border-color: var(--amber);  color: var(--amber); }
+        .cell-val.red    { background: var(--red-dim);    border-color: var(--red);    color: var(--red); }
+        .cell-idx { font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); }
+
+        /* Pills */
+        .var-pill { font-family: var(--font-mono); font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); transition: all 0.25s; }
+        .var-pill.teal   { border-color: var(--teal);   background: var(--teal-dim);   color: var(--teal); }
+        .var-pill.purple { border-color: var(--purple); background: var(--purple-dim); color: var(--purple); }
+        .var-pill.amber  { border-color: var(--amber);  background: var(--amber-dim);  color: var(--amber); }
+        .var-pill.red    { border-color: var(--red);    background: var(--red-dim);    color: var(--red); }
+
+        /* Code trace lines */
+        .tl { padding: 2px 8px; border-radius: 4px; color: var(--muted); transition: background 0.2s, color 0.2s; white-space: pre; font-family: var(--font-mono); font-size: 0.77rem; line-height: 2; }
+        .tl.active-teal   { background: var(--teal-dim);   color: var(--teal);   font-weight: 700; }
+        .tl.active-amber  { background: var(--amber-dim);  color: var(--amber);  font-weight: 700; }
+        .tl.active-red    { background: var(--red-dim);    color: var(--red);    font-weight: 700; }
+        .tl.active-purple { background: var(--purple-dim); color: var(--purple); font-weight: 700; }
+
+        /* Complexity */
+        .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .complexity-card { border-radius: 10px; padding: 1.2rem 1rem; border: 1px solid; }
+        .complexity-card.time  { background: var(--teal-dim);   border-color: var(--teal); }
+        .complexity-card.space { background: var(--purple-dim); border-color: var(--purple); }
+        .complexity-card .clabel { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .complexity-card.time  .clabel { color: var(--teal); }
+        .complexity-card.space .clabel { color: var(--purple); }
+        .complexity-card .big { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; line-height: 1; }
+        .complexity-card.time  .big { color: var(--teal); }
+        .complexity-card.space .big { color: var(--purple); }
+        .complexity-card .desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.5; }
+
+        /* Approach steps */
+        .step-item { display: flex; gap: 1rem; margin-bottom: 1.2rem; align-items: flex-start; }
+        .step-num { min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+        .step-num.t { background: var(--teal-dim);   color: var(--teal);   border: 1px solid var(--teal); }
+        .step-num.p { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple); }
+        .step-num.a { background: var(--amber-dim);  color: var(--amber);  border: 1px solid var(--amber); }
+        .step-num.r { background: var(--red-dim);    color: var(--red);    border: 1px solid var(--red); }
+        .step-body { font-size: 0.83rem; line-height: 1.6; color: var(--muted); padding-top: 4px; }
+        .step-body strong { color: var(--text); font-weight: 600; }
+
+        .callout { background: #1a1506; border: 1px solid #3d2e04; border-left: 3px solid var(--amber); border-radius: 8px; padding: 0.9rem 1rem; font-size: 0.8rem; color: #cbd5a0; line-height: 1.6; }
+        hr { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+        pre { background: #070b14; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.9; }
+        .kw { color: #a78bfa; } .fn { color: #60a5fa; } .cm { color: #4b5563; font-style: italic; } .num-c { color: #fbbf24; } .str { color: #34d399; }
+
+        /* Window legend */
+        .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        /* Set display */
+        .set-box { background: #070b14; border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal); min-height: 38px; margin-bottom: 1rem; }
+
+        @media (max-width: 520px) {
+          .complexity-grid { grid-template-columns: 1fr; }
+          .cell-val { width: 36px; height: 36px; font-size: 0.82rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- Header -->
+    <header>
+        <h1>3. Longest Substring Without Repeating Characters</h1>
+        <p>LeetCode Medium — Sliding Window + HashSet</p>
+        <span class="badge">O(n) time &nbsp;|&nbsp; O(min(n,m)) space</span>
+    </header>
+
+    <!-- Problem -->
+    <div class="section">
+        <div class="section-title">Problem</div>
+        <p style="font-size:0.85rem;line-height:1.7;color:var(--muted)">
+            Given a string <code style="color:var(--teal);font-family:var(--font-mono)">s</code>, find the length of the
+            <strong style="color:var(--text)">longest substring without repeating characters</strong>.
+        </p>
+        <div style="margin-top:1rem" class="callout">
+            ⚡ Brute force checks every substring pair in O(n²) or O(n³). The Sliding Window shrinks and expands a window in a single O(n) pass — each character is added and removed from the set at most once.
+        </div>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Approach — Sliding Window + HashSet</div>
+        <div>
+            <div class="step-item">
+                <div class="step-num t">1</div>
+                <div class="step-body">
+                    <strong>Initialise:</strong>
+                    <code style="font-family:var(--font-mono);color:var(--teal)">left = 0</code>,
+                    <code style="font-family:var(--font-mono);color:var(--amber)">max_sum = 0</code>,
+                    empty <code style="font-family:var(--font-mono);color:var(--purple)">setOfCharacters</code>.
+                    The window is <code style="font-family:var(--font-mono)">[left … right]</code>.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num p">2</div>
+                <div class="step-body">
+                    <strong>Expand right:</strong> Move <code style="font-family:var(--font-mono);color:var(--teal)">right</code> one step.
+                    If <code style="font-family:var(--font-mono);color:var(--teal)">s.charAt(right)</code> is already in
+                    <code style="font-family:var(--font-mono);color:var(--purple)">setOfCharacters</code>, shrink from the left —
+                    remove <code style="font-family:var(--font-mono);color:var(--red)">s.charAt(left)</code> and advance
+                    <code style="font-family:var(--font-mono);color:var(--red)">left++</code> — until the duplicate is gone.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num a">3</div>
+                <div class="step-body">
+                    <strong>Add &amp; measure:</strong> Add <code style="font-family:var(--font-mono);color:var(--teal)">s.charAt(right)</code> to the set.
+                    Compute <code style="font-family:var(--font-mono);color:var(--teal)">length = right - left + 1</code>.
+                    Update <code style="font-family:var(--font-mono);color:var(--amber)">max_sum</code> if
+                    <code style="font-family:var(--font-mono);color:var(--teal)">length</code> is greater.
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num r">4</div>
+                <div class="step-body">
+                    <strong>Return</strong> <code style="font-family:var(--font-mono);color:var(--amber)">max_sum</code> after the loop ends.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Walkthrough -->
+    <div class="section">
+        <div class="section-title">Step-by-Step Walkthrough &nbsp; s = "abcabcbb"</div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>in window (set)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>right pointer (current)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>duplicate → triggers shrink</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--surface2);border:1px solid var(--border)"></div>outside window</div>
+        </div>
+
+        <div style="display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:0.5rem">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--muted);min-width:60px">s[]</span>
+            <div id="wt-cells" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem">
+            <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);min-width:60px;padding-top:4px">pointers</span>
+            <div id="wt-pointers" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+        </div>
+
+        <div style="overflow-x:auto">
+            <table id="wt-table" style="border-collapse:collapse;font-family:var(--font-mono);font-size:0.76rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">right</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">s[right]</th>
+                    <th style="color:var(--red);font-weight:500;padding:6px 10px;text-align:left">duplicate?</th>
+                    <th style="color:var(--muted);font-weight:400;padding:6px 10px;text-align:left">left shrinks to</th>
+                    <th style="color:var(--purple);font-weight:500;padding:6px 10px;text-align:left">setOfCharacters</th>
+                    <th style="color:var(--teal);font-weight:500;padding:6px 10px;text-align:left">length</th>
+                    <th style="color:var(--amber);font-weight:500;padding:6px 10px;text-align:left">max_sum</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div id="wt-result" style="margin-top:1rem;padding:0.9rem 1rem;background:var(--amber-dim);border:1px solid var(--amber);border-radius:8px;font-family:var(--font-mono);font-size:0.84rem;color:var(--amber)"></div>
+    </div>
+
+    <!-- Complexity -->
+    <div class="section">
+        <div class="section-title">Complexity Analysis</div>
+        <div class="complexity-grid">
+            <div class="complexity-card time">
+                <div class="clabel">Time Complexity</div>
+                <div class="big">O(n)</div>
+                <div class="desc">Each character is visited by <code>right</code> once and removed by <code>left</code> at most once — so at most 2n operations total.</div>
+            </div>
+            <div class="complexity-card space">
+                <div class="clabel">Space Complexity</div>
+                <div class="big">O(m)</div>
+                <div class="desc"><code>setOfCharacters</code> holds at most min(n, m) characters, where m is the size of the character set (e.g. 26 for lowercase letters, 128 for ASCII).</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:0.8rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text)">Why O(n) and not O(n²)?</strong> — Even though there's a <code style="font-family:var(--font-mono)">while</code> loop inside the <code style="font-family:var(--font-mono)">for</code> loop,
+            <code style="font-family:var(--font-mono)">left</code> only ever moves forward. It can advance at most <em>n</em> times total across all iterations — so the inner loop doesn't multiply the cost.<br><br>
+            <strong style="color:var(--text)">Why HashSet?</strong> — O(1) average-case <code style="font-family:var(--font-mono)">contains</code>, <code style="font-family:var(--font-mono)">add</code>, and <code style="font-family:var(--font-mono)">remove</code>. This keeps each window operation constant time.
+        </div>
+    </div>
+
+    <!-- Java Code -->
+    <div class="section">
+        <div class="section-title">Java Solution — Your Code</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public int</span> <span class="fn">lengthOfLongestSubstring</span>(String s) {
+        <span class="kw">int</span> left    = <span class="num-c">0</span>;
+        <span class="kw">int</span> length;
+        <span class="kw">int</span> max_sum = <span class="num-c">0</span>;
+        Set&lt;Character&gt; setOfCharacters = <span class="kw">new</span> HashSet&lt;Character&gt;();
+
+        <span class="kw">for</span> (<span class="kw">int</span> right = <span class="num-c">0</span>; right &lt; s.length(); right++) {
+
+            <span class="cm">// shrink window until s[right] is not a duplicate</span>
+            <span class="kw">while</span> (setOfCharacters.<span class="fn">contains</span>(s.<span class="fn">charAt</span>(right))) {
+                setOfCharacters.<span class="fn">remove</span>(s.<span class="fn">charAt</span>(left));
+                left++;
+            }
+
+            setOfCharacters.<span class="fn">add</span>(s.<span class="fn">charAt</span>(right));  <span class="cm">// expand window</span>
+            length  = right - left + <span class="num-c">1</span>;             <span class="cm">// current window size</span>
+            <span class="kw">if</span> (max_sum &lt; length)
+                max_sum = length;                    <span class="cm">// update global best</span>
+        }
+
+        <span class="kw">return</span> max_sum;
+    }
+}</pre>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="section">
+        <div class="section-title">Key Insight</div>
+        <div style="font-size:0.85rem;line-height:1.9;color:var(--muted)">
+            The window <code style="font-family:var(--font-mono);color:var(--teal)">[left … right]</code> always contains <strong style="color:var(--text)">only unique characters</strong> — guaranteed by the <code style="font-family:var(--font-mono);color:var(--red)">while</code> loop that evicts from the left before inserting on the right.<br><br>
+            <div style="font-family:var(--font-mono);font-size:0.88rem;color:var(--text);margin: 0.5rem 0 0.5rem 1rem">
+                <span style="color:var(--teal)">length</span> = <span style="color:var(--teal)">right</span> − <span style="color:var(--red)">left</span> + 1
+            </div>
+            Because <code style="font-family:var(--font-mono);color:var(--red)">left</code> never moves backward, the total number of removals across all iterations is at most <em>n</em> — giving amortised O(1) per step and O(n) overall.
+        </div>
+    </div>
+
+    <!-- Interactive Trace -->
+    <div class="section">
+        <div class="section-title">Interactive Code Trace — Try any string</div>
+
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem">
+            <label style="font-family:var(--font-mono);font-size:0.78rem;color:var(--muted);white-space:nowrap">s = "</label>
+            <input id="str-input" type="text" value="abcabcbb"
+                   style="font-family:var(--font-mono);font-size:0.82rem;padding:7px 12px;background:#070b14;border:1px solid var(--teal);color:var(--teal);border-radius:6px;width:200px;outline:none"
+                   placeholder="e.g. abcabcbb"/>
+            <label style="font-family:var(--font-mono);font-size:0.78rem;color:var(--muted)">"</label>
+            <button onclick="buildTrace()" style="font-family:var(--font-mono);font-size:0.78rem;padding:7px 16px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">▶ Run Trace</button>
+            <span id="input-err" style="font-family:var(--font-mono);font-size:0.72rem;color:#f87171;display:none">⚠ Enter 2–14 characters</span>
+        </div>
+
+        <!-- string row -->
+        <div style="display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:0.6rem">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--muted);min-width:60px">s[]</span>
+            <div id="str-cells" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Set display -->
+        <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);margin-bottom:4px">setOfCharacters</div>
+        <div class="set-box" id="set-display">{ }</div>
+
+        <!-- variable pills -->
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="var-pill teal"  id="vp-right">right = —</div>
+            <div class="var-pill red"   id="vp-left">left = 0</div>
+            <div class="var-pill teal"  id="vp-len">length = —</div>
+            <div class="var-pill amber" id="vp-max">max_sum = 0</div>
+            <div class="var-pill"       id="vp-act">action = —</div>
+        </div>
+
+        <!-- Code viewer -->
+        <div style="background:#070b14;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;overflow-x:auto">
+            <div class="tl" id="tl0">  int left = 0, max_sum = 0;</div>
+            <div class="tl" id="tl1">  Set&lt;Character&gt; setOfCharacters = new HashSet&lt;&gt;();</div>
+            <div class="tl" id="tl2">  for (int right = 0; right &lt; s.length(); right++) {</div>
+            <div class="tl" id="tl3">      while (setOfCharacters.contains(s.charAt(right))) {</div>
+            <div class="tl" id="tl4">          setOfCharacters.remove(s.charAt(left));</div>
+            <div class="tl" id="tl5">          left++;</div>
+            <div class="tl" id="tl6">      }</div>
+            <div class="tl" id="tl7">      setOfCharacters.add(s.charAt(right));</div>
+            <div class="tl" id="tl8">      length = right - left + 1;</div>
+            <div class="tl" id="tl9">      if (max_sum &lt; length)  max_sum = length;</div>
+            <div class="tl" id="tl10"> }</div>
+            <div class="tl" id="tl11"> return max_sum;</div>
+        </div>
+
+        <!-- Log -->
+        <div id="trace-log" style="background:#070b14;border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-family:var(--font-mono);font-size:0.76rem;color:var(--teal);min-height:40px;margin-bottom:1rem">
+            Enter a string and press Run Trace, then step through…
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+            <button onclick="prevStep()" id="btn-prev" disabled
+                    style="font-family:var(--font-mono);font-size:0.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">← Prev</button>
+            <button onclick="nextStep()" id="btn-next" disabled
+                    style="font-family:var(--font-mono);font-size:0.78rem;padding:8px 18px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer">Next Step →</button>
+            <button onclick="buildTrace()"
+                    style="font-family:var(--font-mono);font-size:0.78rem;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer">↺ Restart</button>
+            <span id="step-counter" style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">—</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let traceStr  = '';
+    let steps     = [];
+    let cur       = 0;
+
+    // ── Display helper: space → _ for all visual output ──
+    function disp(ch) { return ch === ' ' ? '_' : ch; }
+    function dispStr(s) { return [...s].map(disp).join(''); }
+
+    // ── Build all trace steps from user's exact algorithm ──
+    function buildSteps(s) {
+      const n = s.length;
+      const st = [];
+
+      let left   = 0;
+      let max_sum = 0;
+      let set    = new Set();
+
+      st.push({ line:0, right:null, left, max_sum, length:null, set:new Set(set), act:'init',
+        log:`left = 0,  max_sum = 0` });
+      st.push({ line:1, right:null, left, max_sum, length:null, set:new Set(set), act:'init',
+        log:`setOfCharacters = {}  (empty HashSet)` });
+
+      for (let right = 0; right < n; right++) {
+        const ch = s[right];
+
+        // for-loop header
+        st.push({ line:2, right, left, max_sum, length:null, set:new Set(set), act:'loop',
+          log:`right=${right}  →  s[${right}]='${ch}'` });
+
+        // while loop — may iterate multiple times
+        while (set.has(ch)) {
+          st.push({ line:3, right, left, max_sum, length:null, set:new Set(set), act:'dup',
+            log:`'${ch}' already in set!  →  enter while: remove s[${left}]='${s[left]}'` });
+          set.delete(s[left]);
+          st.push({ line:4, right, left, max_sum, length:null, set:new Set(set), act:'remove',
+            log:`setOfCharacters.remove('${s[left]}')  →  set = {${[...set].join(', ')}}` });
+          left++;
+          st.push({ line:5, right, left, max_sum, length:null, set:new Set(set), act:'shrink',
+            log:`left++  →  left = ${left}` });
+        }
+
+        // while exit check (no duplicate)
+        st.push({ line:3, right, left, max_sum, length:null, set:new Set(set), act:'no-dup',
+          log:`'${ch}' not in set  →  exit while` });
+
+        // add
+        set.add(ch);
+        st.push({ line:7, right, left, max_sum, length:null, set:new Set(set), act:'add',
+          log:`setOfCharacters.add('${ch}')  →  set = {${[...set].join(', ')}}` });
+
+        // length
+        const length = right - left + 1;
+        st.push({ line:8, right, left, max_sum, length, set:new Set(set), act:'measure',
+          log:`length = ${right} - ${left} + 1 = ${length}` });
+
+        // update max
+        const prevMax = max_sum;
+        if (max_sum < length) max_sum = length;
+        st.push({ line:9, right, left, max_sum, length, set:new Set(set), act: max_sum > prevMax ? 'newmax' : 'nomax',
+          log: max_sum > prevMax
+            ? `max_sum updated: ${prevMax} → ${max_sum}  ★`
+            : `max_sum stays ${max_sum}  (${length} ≤ ${max_sum})` });
+      }
+
+      st.push({ line:11, right:null, left, max_sum, length:null, set:new Set(set), act:'done',
+        log:`✅  return max_sum = ${max_sum}` });
+
+      return st;
+    }
+
+    // ── Render string cells ──
+    function renderStrCells(s, containerId) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = '';
+      [...s].forEach((ch, i) => {
+        el.innerHTML += `<div class="cell"><div class="cell-val" id="${containerId}-v${i}">${ch}</div><div class="cell-idx">[${i}]</div></div>`;
+      });
+    }
+
+    // ── Build static walkthrough table for s="abcabcbb" ──
+    function buildWalkthrough() {
+      const ws = 'abcabcbb';
+      renderStrCells(ws, 'wt-cells');
+
+      let left = 0, max_sum = 0, set = new Set();
+      let bestLeft = 0, bestRight = 0;
+      const tbody = document.getElementById('wt-tbody');
+      tbody.innerHTML = '';
+
+      for (let right = 0; right < ws.length; right++) {
+        const ch = ws[right];
+        let shrunkTo = left;
+        const removedChars = [];
+
+        while (set.has(ch)) {
+          removedChars.push(ws[left]);
+          set.delete(ws[left]);
+          left++;
+          shrunkTo = left;
+        }
+
+        set.add(ch);
+        const length = right - left + 1;
+        const prevMax = max_sum;
+        if (max_sum < length) { max_sum = length; bestLeft = left; bestRight = right; }
+
+        const hasDup   = removedChars.length > 0;
+        const isNewMax = max_sum > prevMax;
+        const tr       = document.createElement('tr');
+        if (right % 2 !== 0) tr.style.background = '#ffffff06';
+        tr.innerHTML = `
+          <td style="padding:5px 10px;color:var(--teal)">${right}</td>
+          <td style="padding:5px 10px;color:var(--amber);font-weight:700">'${ch}'</td>
+          <td style="padding:5px 10px;color:${hasDup?'var(--red)':'var(--muted)'}">${hasDup ? `'${removedChars.join("','")}' removed` : 'none'}</td>
+          <td style="padding:5px 10px;color:var(--muted)">${hasDup ? left : '—'}</td>
+          <td style="padding:5px 10px;color:var(--purple)">{${[...set].join(', ')}}</td>
+          <td style="padding:5px 10px;color:var(--teal);font-weight:700">${length}</td>
+          <td style="padding:5px 10px;color:var(--amber);${isNewMax?'font-weight:700':''}">${max_sum}${isNewMax?' ★':''}</td>`;
+        tbody.appendChild(tr);
+      }
+
+      // Highlight best window in array
+      [...ws].forEach((_, i) => {
+        const el = document.getElementById('wt-cells-v'+i);
+        if (!el) return;
+        el.className = 'cell-val ' + (i >= bestLeft && i <= bestRight ? 'amber' : '');
+      });
+
+      // Pointer row
+      const ptrEl = document.getElementById('wt-pointers');
+      ptrEl.innerHTML = '';
+      [...ws].forEach((_, i) => {
+        const isLeft  = i === bestLeft;
+        const isRight = i === bestRight;
+        const label   = isLeft && isRight ? 'L=R' : isLeft ? 'L' : isRight ? 'R' : '';
+        const color   = isLeft ? 'var(--red)' : isRight ? 'var(--teal)' : 'transparent';
+        ptrEl.innerHTML += `<div style="width:44px;height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.62rem;color:${color}">${label}</div>`;
+      });
+
+      document.getElementById('wt-result').innerHTML =
+        `✅ &nbsp;max_sum = <strong>${max_sum}</strong> &nbsp;→ longest substring "<strong>${ws.slice(bestLeft, bestRight+1)}</strong>"  (indices ${bestLeft}–${bestRight})`;
+    }
+
+    // ── Interactive trace ──
+    function buildTrace() {
+      const raw = document.getElementById('str-input').value.trim();
+      const errEl = document.getElementById('input-err');
+      if (raw.length < 2 || raw.length > 14) { errEl.style.display = 'inline'; return; }
+      errEl.style.display = 'none';
+      traceStr = raw;
+      steps = buildSteps(traceStr);
+      cur = 0;
+
+      renderStrCells(traceStr, 'str-cells');
+      resetUI();
+      document.getElementById('btn-next').disabled = false;
+      document.getElementById('step-counter').textContent = `Step 0 / ${steps.length - 1}`;
+      document.getElementById('trace-log').textContent = `Tracing s = "${traceStr}"  — press Next Step to begin`;
+      document.getElementById('trace-log').style.color = 'var(--teal)';
+      document.getElementById('set-display').textContent = '{ }';
+    }
+
+    function resetUI() {
+      for (let k = 0; k <= 11; k++) { const el = document.getElementById('tl'+k); if (el) el.className = 'tl'; }
+      document.getElementById('vp-right').textContent = 'right = —';  document.getElementById('vp-right').className = 'var-pill teal';
+      document.getElementById('vp-left').textContent  = 'left = 0';   document.getElementById('vp-left').className  = 'var-pill red';
+      document.getElementById('vp-len').textContent   = 'length = —'; document.getElementById('vp-len').className   = 'var-pill teal';
+      document.getElementById('vp-max').textContent   = 'max_sum = 0';document.getElementById('vp-max').className   = 'var-pill amber';
+      document.getElementById('vp-act').textContent   = 'action = —'; document.getElementById('vp-act').className   = 'var-pill';
+      document.getElementById('btn-prev').disabled = true;
+      document.getElementById('btn-next').disabled = true;
+      // reset cell colours
+      const n = traceStr.length;
+      for (let i = 0; i < n; i++) {
+        const el = document.getElementById('str-cells-v'+i);
+        if (el) el.className = 'cell-val';
+      }
+    }
+
+    // colour mapping per action
+    const actLabel = { init:'🔧 init', loop:'➡ expand right', dup:'⚠ duplicate!', remove:'🗑 remove left', shrink:'⬅ shrink left', 'no-dup':'✅ no duplicate', add:'➕ add to set', measure:'📏 measure window', newmax:'★ new max_sum', nomax:'— no change', done:'✅ done' };
+    const actClass = { init:'', loop:'teal', dup:'red', remove:'red', shrink:'red', 'no-dup':'teal', add:'teal', measure:'teal', newmax:'amber', nomax:'', done:'amber' };
+    const lineClass = { 0:'active-teal',1:'active-teal',2:'active-teal',3:'active-red',4:'active-red',5:'active-red',6:'active-teal',7:'active-teal',8:'active-teal',9:'active-amber',10:'active-teal',11:'active-amber' };
+
+    function applyStep(s) {
+      const n = traceStr.length;
+
+      // colour cells: left..right in window, right = amber, left = red pointer
+      for (let i = 0; i < n; i++) {
+        const el = document.getElementById('str-cells-v'+i);
+        if (!el) continue;
+        if (s.right !== null && i === s.right)       el.className = 'cell-val amber';
+        else if (s.right !== null && i >= s.left && i < s.right) el.className = 'cell-val teal';
+        else el.className = 'cell-val';
+      }
+
+      // set display
+      const setArr = [...s.set];
+      document.getElementById('set-display').textContent = setArr.length ? `{ ${setArr.join(', ')} }` : '{ }';
+
+      // pills
+      document.getElementById('vp-right').textContent = s.right !== null ? `right = ${s.right}` : 'right = —';
+      document.getElementById('vp-left').textContent  = `left = ${s.left}`;
+      document.getElementById('vp-len').textContent   = s.length !== null ? `length = ${s.length}` : 'length = —';
+      document.getElementById('vp-max').textContent   = `max_sum = ${s.max_sum}`;
+      const ac = s.act;
+      document.getElementById('vp-act').textContent   = `action = ${actLabel[ac] || ac}`;
+      document.getElementById('vp-act').className     = 'var-pill ' + (actClass[ac] || '');
+
+      // code line
+      for (let k = 0; k <= 11; k++) {
+        const el = document.getElementById('tl'+k);
+        if (!el) continue;
+        el.className = 'tl' + (k === s.line ? ' ' + (lineClass[k] || 'active-teal') : '');
+      }
+
+      // log
+      const isDone = s.log.startsWith('✅');
+      const isErr  = s.act === 'dup' || s.act === 'remove' || s.act === 'shrink';
+      document.getElementById('trace-log').style.color = isDone ? 'var(--amber)' : isErr ? 'var(--red)' : 'var(--teal)';
+      document.getElementById('trace-log').textContent = s.log;
+
+      document.getElementById('step-counter').textContent = `Step ${cur} / ${steps.length - 1}`;
+      document.getElementById('btn-prev').disabled = cur === 0;
+      document.getElementById('btn-next').disabled = cur === steps.length - 1;
+    }
+
+    function nextStep() { if (cur < steps.length-1) { cur++; applyStep(steps[cur]); } }
+    function prevStep() { if (cur > 0) { cur--; applyStep(steps[cur]); } }
+
+    window.addEventListener('DOMContentLoaded', () => { buildWalkthrough(); buildTrace(); });
+</script>
+</body>
+</html>
