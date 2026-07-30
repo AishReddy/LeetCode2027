@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>226. Invert Binary Tree</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg:#0c0c0e;--surface:#13131a;--surface2:#1a1a24;
+          --border:#252535;--border2:#32324a;
+          --indigo:#818cf8;--indigo-dim:#818cf818;--indigo-mid:#818cf844;
+          --orange:#fb923c;--orange-dim:#fb923c18;--orange-mid:#fb923c44;
+          --teal:#2dd4b0;--teal-dim:#2dd4b018;
+          --rose:#fb7185;--rose-dim:#fb718518;
+          --green:#4ade80;--green-dim:#4ade8018;
+          --amber:#fbbf24;--amber-dim:#fbbf2418;
+          --text:#ede9e1;--muted:#6b6880;--muted2:#9997b0;
+          --mono:'IBM Plex Mono',monospace;
+          --serif:'Fraunces',Georgia,serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:2.5rem 1.5rem 5rem}
+        .page{max-width:1000px;margin:0 auto}
+
+        .header{margin-bottom:3rem}
+        .header-tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);border:1px solid var(--indigo);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:1rem}
+        .header h1{font-family:var(--serif);font-size:2.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+        .header p{font-size:.8rem;color:var(--muted2);margin-top:.6rem;line-height:1.8}
+        .badges{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+        .badge{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.06em}
+        .badge.easy  {background:var(--green-dim);  color:var(--green);  border-color:var(--green)}
+        .badge.time  {background:var(--indigo-dim); color:var(--indigo); border-color:var(--indigo)}
+        .badge.space {background:var(--orange-dim); color:var(--orange); border-color:var(--orange)}
+
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.5rem}
+        .card-title{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+
+        .callout{border-radius:6px;padding:.85rem 1rem;font-size:.78rem;line-height:1.7;margin-top:1rem}
+        .callout.indigo{background:var(--indigo-dim);border-left:3px solid var(--indigo);color:#b0b0e0}
+        .callout.orange{background:var(--orange-dim);border-left:3px solid var(--orange);color:#d4b49a}
+        .callout.teal  {background:var(--teal-dim);  border-left:3px solid var(--teal);  color:#9ad4c8}
+        .callout.green {background:var(--green-dim); border-left:3px solid var(--green); color:#9ad4ae}
+
+        .phase-grid{display:grid;gap:1rem}
+        .phase{display:flex;gap:1.2rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+        .phase-badge{min-width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;flex-shrink:0}
+        .phase-badge.p1{background:var(--indigo-dim);color:var(--indigo);border:1px solid var(--indigo)}
+        .phase-badge.p2{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange)}
+        .phase-badge.p3{background:var(--teal-dim);  color:var(--teal);  border:1px solid var(--teal)}
+        .phase-body{font-size:.8rem;line-height:1.7;color:var(--muted2);padding-top:5px}
+        .phase-body strong{color:var(--text);font-weight:600}
+
+        /* ── Side-by-side tracer layout ── */
+        .tracer-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          margin: 1rem 0;
+        }
+        .tracer-pane {
+          background: #070710;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+        }
+        .tracer-pane-label {
+          font-size: .63rem;
+          text-transform: uppercase;
+          letter-spacing: .12em;
+          color: var(--muted);
+          margin-bottom: .6rem;
+        }
+        .tracer-pane svg { display: block; margin: 0 auto; }
+
+        /* code pane */
+        .code-pane {
+          background: #070710;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 1rem 1.2rem;
+          font-family: var(--mono);
+          font-size: .76rem;
+          line-height: 2;
+          overflow-x: auto;
+        }
+        .code-line { display: block; border-radius: 3px; padding: 0 6px; transition: background .25s, color .25s; color: var(--muted2); }
+        .code-line.active { background: #818cf820; color: var(--text); }
+        .code-line.active-swap { background: #fb923c20; color: var(--orange); }
+        .code-line.active-base { background: #fb718520; color: var(--rose); }
+        .code-line.active-done { background: #4ade8020; color: var(--green); }
+
+        /* call stack */
+        .stack-wrap{font-size:.73rem;margin:.6rem 0;min-height:40px}
+        .stack-frame{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:5px;margin-bottom:3px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .stack-frame.active{background:var(--indigo-dim);border-color:var(--indigo);color:var(--indigo);font-weight:600}
+
+        .pills{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+        .pill{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);transition:all .2s}
+        .pill.indigo{background:var(--indigo-dim);color:var(--indigo);border-color:var(--indigo)}
+        .pill.orange{background:var(--orange-dim);color:var(--orange);border-color:var(--orange)}
+        .pill.teal  {background:var(--teal-dim);  color:var(--teal);  border-color:var(--teal)}
+        .pill.green {background:var(--green-dim); color:var(--green); border-color:var(--green)}
+        .pill.amber {background:var(--amber-dim); color:var(--amber); border-color:var(--amber)}
+        .pill.rose  {background:var(--rose-dim);  color:var(--rose);  border-color:var(--rose)}
+
+        .step-log{background:#070710;border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-size:.76rem;line-height:1.7;min-height:44px;margin:.6rem 0;transition:color .2s}
+        .step-log.indigo{color:var(--indigo)}.step-log.orange{color:var(--orange)}
+        .step-log.teal{color:var(--teal)}.step-log.green{color:var(--green)}.step-log.rose{color:var(--rose)}
+
+        .btn-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+        button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:9px 18px;border-radius:6px;border:1px solid;cursor:pointer;transition:opacity .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        button:disabled{opacity:.35;cursor:not-allowed}
+        .btn-primary  {background:var(--indigo-dim);border-color:var(--indigo);color:var(--indigo)}
+        .btn-primary:hover:not(:disabled){background:var(--indigo-mid)}
+        .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted2)}
+        .btn-secondary:hover:not(:disabled){border-color:var(--indigo);color:var(--indigo)}
+        .btn-reset{background:transparent;border-color:var(--border);color:var(--muted)}
+        .btn-reset:hover{color:var(--rose);border-color:var(--rose)}
+        .step-counter{font-size:.7rem;color:var(--muted)}
+        .phase-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.2rem}
+        .phase-badge-label{font-size:.68rem;padding:3px 10px;border-radius:3px;border:1px solid;transition:all .3s}
+
+        /* illustration */
+        .illus-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center}
+        .illus-arrow{font-size:2rem;color:var(--orange);text-align:center;padding:0 .5rem}
+        .illus-pane{background:#070710;border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center}
+        .illus-label{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem}
+
+        pre{background:#070710;border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.95}
+        .kw{color:#a78bfa}.fn{color:#60a5fa}.cm{color:#3f3f60;font-style:italic}.num{color:var(--amber)}
+
+        .cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .cx-card{border-radius:8px;padding:1.2rem;border:1px solid}
+        .cx-card.time {background:var(--indigo-dim);border-color:var(--indigo)}
+        .cx-card.space{background:var(--orange-dim);border-color:var(--orange)}
+        .cx-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+        .cx-card.time  .cx-label{color:var(--indigo)}
+        .cx-card.space .cx-label{color:var(--orange)}
+        .cx-big{font-size:1.5rem;font-weight:600;line-height:1;margin-bottom:.4rem}
+        .cx-card.time  .cx-big{color:var(--indigo)}
+        .cx-card.space .cx-big{color:var(--orange)}
+        .cx-desc{font-size:.73rem;color:var(--muted2);line-height:1.55}
+
+        @media(max-width:660px){
+          .tracer-grid{grid-template-columns:1fr}
+          .illus-grid{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+          .illus-arrow{transform:rotate(90deg)}
+          .cx-grid{grid-template-columns:1fr}
+          .header h1{font-size:2rem}
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- header -->
+    <div class="header">
+        <div class="header-tag">LeetCode 226</div>
+        <h1>Invert Binary Tree</h1>
+        <p>Recursive pre-order DFS — swap children at every node</p>
+        <div class="badges">
+            <span class="badge easy">easy</span>
+            <span class="badge time">O(n) time</span>
+            <span class="badge space">O(h) space</span>
+        </div>
+    </div>
+
+    <!-- problem -->
+    <div class="card">
+        <div class="card-title">Problem</div>
+        <p style="font-size:.82rem;line-height:1.8;color:var(--muted2)">
+            Given the <code style="color:var(--indigo)">root</code> of a binary tree, invert it in-place and return its root.
+            Inverting means every node's <strong style="color:var(--text)">left and right children are swapped</strong>, applied recursively at every level.
+        </p>
+        <div class="callout indigo">
+            ⚡ Key insight: inverting a tree = swapping left ↔ right at <em>every</em> node. The problem is self-similar — the same one-line swap applies at every level. Recurse into both children after the swap.
+        </div>
+    </div>
+
+    <!-- approach -->
+    <div class="card">
+        <div class="card-title">3-step recursive approach</div>
+        <div class="phase-grid">
+            <div class="phase">
+                <div class="phase-badge p1">1</div>
+                <div class="phase-body"><strong>Base case</strong> — if <code style="color:var(--rose)">root == null</code>, return null immediately. Handles empty trees and leaf children.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge p2">2</div>
+                <div class="phase-body"><strong>Swap</strong> — save <code style="color:var(--orange)">root.left</code> in temp, assign <code>root.left = root.right</code>, then <code>root.right = temp</code>. Current node is now inverted.</div>
+            </div>
+            <div class="phase">
+                <div class="phase-badge p3">3</div>
+                <div class="phase-body"><strong>Recurse</strong> — call <code style="color:var(--teal)">invertTree(root.left)</code> and <code style="color:var(--teal)">invertTree(root.right)</code> to invert both subtrees. Return <code>root</code>.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ INTERACTIVE TRACER — code + tree side by side ═══ -->
+    <div class="card">
+        <div class="card-title">Interactive trace — code &amp; tree side by side</div>
+
+        <div class="phase-header">
+            <div style="font-size:.9rem;font-weight:600;color:var(--text)" id="step-title">Ready</div>
+            <div class="phase-badge-label" id="step-badge" style="background:var(--surface2);color:var(--muted2);border-color:var(--border2)">—</div>
+        </div>
+
+        <div class="tracer-grid">
+            <!-- LEFT: code pane -->
+            <div class="tracer-pane">
+                <div class="tracer-pane-label">Code — active line highlighted</div>
+                <div class="code-pane" id="code-pane">
+                    <span class="code-line" id="cl0"><span class="kw">public</span> TreeNode <span class="fn">invertTree</span>(TreeNode root) {</span>
+                    <span class="code-line" id="cl1">&nbsp;&nbsp;<span class="kw">if</span> (root == <span class="kw">null</span>) {</span>
+                    <span class="code-line" id="cl2">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return null</span>;</span>
+                    <span class="code-line" id="cl3">&nbsp;&nbsp;}</span>
+                    <span class="code-line" id="cl4">&nbsp;&nbsp;<span class="cm">// swap left and right</span></span>
+                    <span class="code-line" id="cl5">&nbsp;&nbsp;TreeNode swap = root.left;</span>
+                    <span class="code-line" id="cl6">&nbsp;&nbsp;root.left = root.right;</span>
+                    <span class="code-line" id="cl7">&nbsp;&nbsp;root.right = swap;</span>
+                    <span class="code-line" id="cl8">&nbsp;</span>
+                    <span class="code-line" id="cl9">&nbsp;&nbsp;<span class="fn">invertTree</span>(root.left);</span>
+                    <span class="code-line" id="cl10">&nbsp;&nbsp;<span class="fn">invertTree</span>(root.right);</span>
+                    <span class="code-line" id="cl11">&nbsp;</span>
+                    <span class="code-line" id="cl12">&nbsp;&nbsp;<span class="kw">return</span> root;</span>
+                    <span class="code-line" id="cl13">}</span>
+                </div>
+                <!-- call stack below code -->
+                <div style="font-size:.63rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-top:1rem;margin-bottom:.3rem">Call stack</div>
+                <div class="stack-wrap" id="call-stack"></div>
+            </div>
+
+            <!-- RIGHT: tree pane -->
+            <div class="tracer-pane">
+                <div class="tracer-pane-label">Live tree state</div>
+                <svg id="trace-svg" width="100%" viewBox="0 0 300 190" style="max-width:300px;flex:1"></svg>
+                <!-- pills -->
+                <div class="pills" style="margin-top:.8rem">
+                    <div class="pill indigo" id="pill-node">node = —</div>
+                    <div class="pill"        id="pill-left">left = —</div>
+                    <div class="pill"        id="pill-right">right = —</div>
+                    <div class="pill amber"  id="pill-action">action = —</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-log indigo" id="step-log">Press "Next step" to begin the recursive trace on [4, 2, 7, 1, 3, 6, 9].</div>
+
+        <div class="btn-row">
+            <button class="btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Prev</button>
+            <button class="btn-primary"   id="btn-next" onclick="nextStep()">Next step →</button>
+            <button class="btn-reset"     onclick="resetTrace()">↺ Reset</button>
+            <span class="step-counter" id="step-counter">step 0 / 0</span>
+        </div>
+    </div>
+
+    <!-- walkthrough table -->
+    <div class="card">
+        <div class="card-title">Recursion call order</div>
+        <div style="overflow-x:auto">
+            <table style="border-collapse:collapse;font-family:var(--mono);font-size:.74rem;width:100%">
+                <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">call</th>
+                    <th style="padding:6px 10px;color:var(--indigo);font-weight:500">node</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">action</th>
+                    <th style="padding:6px 10px;color:var(--muted);font-weight:400;text-align:left">then recurse</th>
+                </tr>
+                </thead>
+                <tbody id="wt-tbody"></tbody>
+            </table>
+        </div>
+        <div class="callout teal" style="margin-top:1rem">
+            Pre-order: swap current node <em>before</em> recursing. Post-order (swap after) also works — the final result is identical. Pre-order is more intuitive.
+        </div>
+    </div>
+
+    <!-- full code card -->
+    <div class="card">
+        <div class="card-title">Full Java solution</div>
+        <pre><span class="kw">class</span> <span class="fn">Solution</span> {
+    <span class="kw">public</span> <span class="fn">TreeNode</span> <span class="fn">invertTree</span>(<span class="fn">TreeNode</span> root) {
+        <span class="kw">if</span> (root == <span class="kw">null</span>) {
+            <span class="kw">return null</span>;                    <span class="cm">// base case — leaf child or empty</span>
+        }
+        <span class="cm">// swap left and right children</span>
+        <span class="fn">TreeNode</span> swap = root.left;
+        root.left  = root.right;
+        root.right = swap;
+
+        invertTree(root.left);              <span class="cm">// invert left subtree</span>
+        invertTree(root.right);             <span class="cm">// invert right subtree</span>
+
+        <span class="kw">return</span> root;
+    }
+}</pre>
+        <div style="margin-top:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--indigo);font-weight:600;margin-bottom:.4rem">Why pre-order?</div>
+                <div style="color:var(--muted2)">Swap the current node first, then recurse into children. Post-order (recurse first, then swap) is equally valid — the final tree is the same either way.</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;font-size:.76rem;line-height:1.9">
+                <div style="color:var(--orange);font-weight:600;margin-bottom:.4rem">Iterative BFS alternative</div>
+                <div style="color:var(--muted2)">Use a queue: enqueue root → dequeue node → swap children → enqueue non-null children. Same O(n)/O(w) — avoids deep call stacks on skewed trees.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- complexity -->
+    <div class="card">
+        <div class="card-title">Complexity</div>
+        <div class="cx-grid">
+            <div class="cx-card time">
+                <div class="cx-label">Time</div>
+                <div class="cx-big">O(n)</div>
+                <div class="cx-desc">Every node visited exactly once. Each visit does O(1) work (one swap + two recursive calls).</div>
+            </div>
+            <div class="cx-card space">
+                <div class="cx-label">Space</div>
+                <div class="cx-big">O(h)</div>
+                <div class="cx-desc">Call stack depth = tree height h. Balanced tree → O(log n). Skewed tree (worst case) → O(n).</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ILLUSTRATION — moved to last ═══ -->
+    <div class="card">
+        <div class="card-title">Illustration — before &amp; after inversion</div>
+        <div class="illus-grid">
+            <div class="illus-pane">
+                <div class="illus-label" style="color:var(--muted)">Original tree</div>
+                <svg id="before-svg" width="100%" viewBox="0 0 260 170" style="max-width:260px;display:block;margin:0 auto"></svg>
+            </div>
+            <div class="illus-arrow">⟶</div>
+            <div class="illus-pane">
+                <div class="illus-label" style="color:var(--teal)">Inverted tree</div>
+                <svg id="after-svg"  width="100%" viewBox="0 0 260 170" style="max-width:260px;display:block;margin:0 auto"></svg>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:.78rem;color:var(--muted2);line-height:1.9;text-align:center">
+            Every <span style="color:var(--orange)">left↔right</span> pair at every level is swapped. Root (4) stays in place — only its subtrees mirror.
+        </div>
+
+        <!-- per-level swap callout -->
+        <div style="margin-top:1rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;font-size:.74rem;text-align:center">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--indigo);font-weight:600;margin-bottom:.3rem">Level 0 (root)</div>
+                <div style="color:var(--muted2)">4 → no change<br><span style="color:var(--muted)">left↔right pointer flipped</span></div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--orange);font-weight:600;margin-bottom:.3rem">Level 1</div>
+                <div style="color:var(--muted2)">2 ↔ 7<br><span style="color:var(--muted)">whole subtrees swap sides</span></div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+                <div style="color:var(--teal);font-weight:600;margin-bottom:.3rem">Level 2 (leaves)</div>
+                <div style="color:var(--muted2)">1↔3 and 6↔9<br><span style="color:var(--muted)">within each subtree</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- related -->
+    <div class="card">
+        <div class="card-title">Related problems</div>
+        <div style="font-size:.78rem;line-height:2.4;color:var(--muted2)">
+            • <strong style="color:var(--text)">Symmetric Tree (101)</strong> — check if a tree is its own mirror (compare, not swap)<br>
+            • <strong style="color:var(--text)">Maximum Depth of Binary Tree (104)</strong> — same DFS recursion skeleton<br>
+            • <strong style="color:var(--text)">Same Tree (100)</strong> — parallel DFS on two trees simultaneously<br>
+            • <strong style="color:var(--text)">Flip Equivalent Binary Trees (951)</strong> — generalized inversion with value constraints
+        </div>
+    </div>
+
+</div><!-- .page -->
+<script>
+    const INDIGO='#818cf8',ORANGE='#fb923c',TEAL='#2dd4b0',GREEN='#4ade80',ROSE='#fb7185',AMBER='#fbbf24',MUTED_E='#32324a';
+    const R=20;
+
+    // ── Static before/after trees ──────────────────────────────────────────
+    function staticPos(w){ // returns positions scaled to width w, height ~160
+      const cx=w/2;
+      return [
+        {x:cx,   y:28},   // 0: root
+        {x:cx-70,y:88},   // 1: L
+        {x:cx+70,y:88},   // 2: R
+        {x:cx-105,y:152}, // 3: LL
+        {x:cx-35, y:152}, // 4: LR
+        {x:cx+35, y:152}, // 5: RL
+        {x:cx+105,y:152}, // 6: RR
+      ];
+    }
+    const EDGES=[[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]];
+
+    function drawStatic(svgId, vals, accent){
+      const svg=document.getElementById(svgId);
+      const pos=staticPos(260);
+      let h='';
+      for(const [a,b] of EDGES)
+        h+=`<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="${MUTED_E}" stroke-width="1.5"/>`;
+      for(let i=0;i<7;i++){
+        const {x,y}=pos[i];
+        h+=`<circle cx="${x}" cy="${y}" r="${R}" fill="#0d0d18" stroke="${accent}" stroke-width="1.5"/>`;
+        h+=`<text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="14" font-weight="600" fill="${accent}">${vals[i]}</text>`;
+      }
+      svg.innerHTML=h;
+    }
+
+    // ── Trace tree ─────────────────────────────────────────────────────────
+    function tracePos(){
+      return [
+        {x:152,y:28},   // 0 root
+        {x:88, y:90},   // 1 L
+        {x:216,y:90},   // 2 R
+        {x:52, y:155},  // 3 LL
+        {x:124,y:155},  // 4 LR
+        {x:188,y:155},  // 5 RL
+        {x:260,y:155},  // 6 RR
+      ];
+    }
+
+    function renderTrace(state){
+      const svg=document.getElementById('trace-svg');
+      const pos=tracePos();
+      let h='';
+      for(const [a,b] of EDGES)
+        h+=`<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="${MUTED_E}" stroke-width="1.5"/>`;
+      for(let i=0;i<7;i++){
+        const {x,y}=pos[i];
+        const val=state.vals[i];
+        let fill='#0d0d18',stroke=MUTED_E,tc='#5a5a88',sw='1.5';
+        if(state.done?.includes(i)){fill='#0a1a10';stroke=GREEN;tc=GREEN;}
+        if(state.swapped?.includes(i)){fill='#1a0e06';stroke=ORANGE;tc=ORANGE;sw='2';}
+        if(state.active===i){fill='#14122a';stroke=INDIGO;tc=INDIGO;sw='2.5';}
+        if(state.active===i && state.swapped?.includes(i)){fill='#1a0e06';stroke=ORANGE;tc=ORANGE;sw='2.5';}
+        if(state.allDone){fill='#0a1a10';stroke=GREEN;tc=GREEN;sw='1.5';}
+        h+=`<circle cx="${x}" cy="${y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+        h+=`<text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="600" fill="${tc}">${val}</text>`;
+      }
+      svg.innerHTML=h;
+    }
+
+    // ── Build steps ────────────────────────────────────────────────────────
+    function buildSteps(){
+      const steps=[];
+      let vals={0:4,1:2,2:7,3:1,4:3,5:6,6:9};
+      let done=[],swapped=[];
+
+      function snap(active,sw,dn,stack,allDone,
+          title,badge,badgeStyle,log,logColor,pills,activeLines,lineClass){
+        steps.push({
+          vals:{...vals},active,swapped:[...sw],done:[...dn],stack:[...stack],allDone,
+          title,badge,badgeStyle,log,logColor,pills,activeLines,lineClass:lineClass||'active'
+        });
+      }
+
+      // Step 0 init
+      snap(-1,[],[],[],false,'Initial tree','—','surface',
+        'invertTree(4) called. Tree: [4, 2, 7, 1, 3, 6, 9]. Starting DFS from root.','indigo',
+        {node:'4',left:'2',right:'7',action:'entering'},[0]);
+
+      // ── root = 4 ──
+      snap(0,[],[],['invertTree(4)'],false,'root=4 — not null, skip base case','enter','indigo',
+        'root=4 ≠ null → skip base case. Save swap = root.left = 2.','indigo',
+        {node:'4',left:'2',right:'7',action:'save swap=2'},[1,5]);
+
+      vals={0:4,1:7,2:2,3:1,4:3,5:6,6:9};
+      snap(0,[0],[],['invertTree(4)'],false,'Swap at node 4 — left↔right','swap','orange',
+        'root.left = root.right = 7; root.right = swap = 2. Node 4 children swapped!','orange',
+        {node:'4',left:'7',right:'2',action:'swapped ✓'},[6,7],'active-swap');
+
+      // ── recurse left → node 7 ──
+      snap(1,[0],[],['invertTree(4)','invertTree(7)'],false,'Recurse left → invertTree(7)','recurse','indigo',
+        'invertTree(root.left=7) called. root=7 ≠ null. Save swap = root.left = 6.','indigo',
+        {node:'7',left:'6',right:'9',action:'save swap=6'},[9,5]);
+
+      vals={0:4,1:7,2:2,3:1,4:3,5:9,6:6};
+      snap(1,[1],[],['invertTree(4)','invertTree(7)'],false,'Swap at node 7 — left↔right','swap','orange',
+        'root.left = 9; root.right = 6. Node 7 children swapped!','orange',
+        {node:'7',left:'9',right:'6',action:'swapped ✓'},[6,7],'active-swap');
+
+      // ── recurse left of 7 → node 9 (leaf) ──
+      snap(6,[1],[],['invertTree(4)','invertTree(7)','invertTree(9)'],false,'Recurse → invertTree(9) — leaf','leaf','rose',
+        'invertTree(9): root.left=null, root.right=null → base case hit, return null × 2. Return 9.','teal',
+        {node:'9',left:'null',right:'null',action:'leaf → return'},[1,2],'active-base');
+
+      done=[6];
+      snap(1,[1],[6],['invertTree(4)','invertTree(7)'],false,'Back at node 7 — now recurse right','back','teal',
+        'invertTree(9) returned ✓. Now invertTree(root.right=6).','teal',
+        {node:'7',left:'9',right:'6',action:'recurse right'},[10]);
+
+      // ── recurse right of 7 → node 6 (leaf) ──
+      snap(5,[1],[6],['invertTree(4)','invertTree(7)','invertTree(6)'],false,'Recurse → invertTree(6) — leaf','leaf','rose',
+        'invertTree(6): leaf node, return null × 2. Return 6.','teal',
+        {node:'6',left:'null',right:'null',action:'leaf → return'},[1,2],'active-base');
+
+      done=[6,5,1];
+      snap(0,[0],[6,5,1],['invertTree(4)'],false,'Back at node 4 — left subtree done','back','teal',
+        'invertTree(7) returned ✓. Subtree of 7 fully inverted. Now recurse right → invertTree(2).','teal',
+        {node:'4',left:'7✓',right:'2',action:'recurse right'},[10]);
+
+      // ── recurse right → node 2 ──
+      snap(2,[0],[6,5,1],['invertTree(4)','invertTree(2)'],false,'Recurse right → invertTree(2)','recurse','indigo',
+        'invertTree(2): root=2 ≠ null. Save swap = root.left = 3.','indigo',
+        {node:'2',left:'3',right:'1',action:'save swap=3'},[9,5]);
+
+      vals={0:4,1:7,2:2,3:9,4:6,5:1,6:3};
+      snap(2,[2],[6,5,1],['invertTree(4)','invertTree(2)'],false,'Swap at node 2 — left↔right','swap','orange',
+        'root.left = 1; root.right = 3. Node 2 children swapped!','orange',
+        {node:'2',left:'1',right:'3',action:'swapped ✓'},[6,7],'active-swap');
+
+      // ── recurse left of 2 → node 1 (leaf) ──
+      snap(3,[2],[6,5,1],['invertTree(4)','invertTree(2)','invertTree(1)'],false,'Recurse → invertTree(1) — leaf','leaf','rose',
+        'invertTree(1): leaf, return null × 2. Return 1.','teal',
+        {node:'1',left:'null',right:'null',action:'leaf → return'},[1,2],'active-base');
+
+      done=[6,5,1,3];
+      snap(2,[2],[6,5,1,3],['invertTree(4)','invertTree(2)'],false,'Back at node 2 — recurse right','back','teal',
+        'invertTree(1) returned ✓. Now invertTree(root.right=3).','teal',
+        {node:'2',left:'1',right:'3',action:'recurse right'},[10]);
+
+      // ── recurse right of 2 → node 3 (leaf) ──
+      snap(4,[2],[6,5,1,3],['invertTree(4)','invertTree(2)','invertTree(3)'],false,'Recurse → invertTree(3) — leaf','leaf','rose',
+        'invertTree(3): leaf, return null × 2. Return 3.','teal',
+        {node:'3',left:'null',right:'null',action:'leaf → return'},[1,2],'active-base');
+
+      // all done
+      done=[0,1,2,3,4,5,6];
+      snap(-1,[],[],[], true,'Done! Tree fully inverted ✓','✓ done','green',
+        'All calls returned. Result: [4,7,2,9,6,3,1]. Every node\'s children are swapped!','green',
+        {node:'—',left:'—',right:'—',action:'return root'},[12],'active-done');
+
+      return steps;
+    }
+
+    const BADGE_STYLES={
+      surface:'background:var(--surface2);color:var(--muted2);border-color:var(--border2)',
+      indigo: 'background:var(--indigo-dim);color:var(--indigo);border-color:var(--indigo)',
+      orange: 'background:var(--orange-dim);color:var(--orange);border-color:var(--orange)',
+      teal:   'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      green:  'background:var(--green-dim);color:var(--green);border-color:var(--green)',
+      rose:   'background:var(--rose-dim);color:var(--rose);border-color:var(--rose)',
+      enter:  'background:var(--indigo-dim);color:var(--indigo);border-color:var(--indigo)',
+      swap:   'background:var(--orange-dim);color:var(--orange);border-color:var(--orange)',
+      recurse:'background:var(--indigo-dim);color:var(--indigo);border-color:var(--indigo)',
+      back:   'background:var(--teal-dim);color:var(--teal);border-color:var(--teal)',
+      leaf:   'background:var(--rose-dim);color:var(--rose);border-color:var(--rose)',
+      '✓ done':'background:var(--green-dim);color:var(--green);border-color:var(--green)',
+    };
+
+    const NUM_CODE_LINES=14;
+
+    function applyStep(idx){
+      const s=steps[idx];
+      renderTrace({vals:s.vals,active:s.active,swapped:s.swapped,done:s.done,allDone:s.allDone});
+
+      // call stack
+      const stackEl=document.getElementById('call-stack');
+      if(!s.stack.length){
+        stackEl.innerHTML='<span style="color:var(--muted);font-size:.72rem">— empty —</span>';
+      } else {
+        stackEl.innerHTML=[...s.stack].reverse().map((f,i)=>
+          `<div class="stack-frame${i===0?' active':''}">${i===0?'→ ':'\u00a0\u00a0'}${f}</div>`
+        ).join('');
+      }
+
+      // title + badge
+      document.getElementById('step-title').textContent=s.title;
+      const badge=document.getElementById('step-badge');
+      badge.textContent=s.badge;
+      badge.setAttribute('style',BADGE_STYLES[s.badgeStyle]||BADGE_STYLES[s.badge]||BADGE_STYLES.surface);
+
+      // highlight code lines
+      for(let i=0;i<NUM_CODE_LINES;i++){
+        const el=document.getElementById('cl'+i);
+        if(el) el.className='code-line'+(s.activeLines.includes(i)?' '+s.lineClass:'');
+      }
+
+      // log
+      const log=document.getElementById('step-log');
+      log.textContent=s.log; log.className='step-log '+s.logColor;
+
+      // pills
+      const pillDefs=[
+        {id:'pill-node',  label:'node',  val:s.pills.node,   col:'indigo'},
+        {id:'pill-left',  label:'left',  val:s.pills.left,   col:s.pills.left.includes('null')||s.pills.left==='—'?'':'teal'},
+        {id:'pill-right', label:'right', val:s.pills.right,  col:s.pills.right.includes('null')||s.pills.right==='—'?'':'orange'},
+        {id:'pill-action',label:'action',val:s.pills.action,
+          col:s.pills.action.includes('swap')?'orange':s.pills.action.includes('return')||s.pills.action.includes('done')||s.pills.action.includes('✓')?'green':'amber'},
+      ];
+      for(const d of pillDefs){
+        const el=document.getElementById(d.id);
+        el.textContent=d.label+' = '+d.val;
+        el.className='pill '+(d.col||'');
+      }
+
+      document.getElementById('step-counter').textContent=`step ${idx} / ${steps.length-1}`;
+      document.getElementById('btn-prev').disabled=idx===0;
+      document.getElementById('btn-next').disabled=idx===steps.length-1;
+    }
+
+    function nextStep(){if(cur<steps.length-1){cur++;applyStep(cur);}}
+    function prevStep(){if(cur>0){cur--;applyStep(cur);}}
+    function resetTrace(){cur=0;applyStep(0);}
+
+    function buildWT(){
+      const tbody=document.getElementById('wt-tbody');
+      tbody.innerHTML='';
+      const rows=[
+        [1,'4 (root)','swap: left=2↔right=7 → left=7, right=2','invertTree(7), then invertTree(2)'],
+        [2,'7 (L child)','swap: left=6↔right=9 → left=9, right=6','invertTree(9), then invertTree(6)'],
+        [3,'9 (leaf)','root.left=null → base case, return null','return 9'],
+        [4,'6 (leaf)','root.left=null → base case, return null','return 6'],
+        [5,'2 (R child)','swap: left=3↔right=1 → left=1, right=3','invertTree(1), then invertTree(3)'],
+        [6,'1 (leaf)','root.left=null → base case, return null','return 1'],
+        [7,'3 (leaf)','root.left=null → base case, return null','return 3'],
+      ];
+      rows.forEach(([call,node,action,next],i)=>{
+        const tr=document.createElement('tr');
+        if(i%2===1)tr.style.background='#ffffff04';
+        const isLeaf=action.includes('base');
+        tr.innerHTML=`
+          <td style="padding:5px 10px;color:var(--muted)">${call}</td>
+          <td style="padding:5px 10px;color:var(--indigo);font-weight:600">${node}</td>
+          <td style="padding:5px 10px;color:${isLeaf?'var(--teal)':'var(--orange)'};font-size:.72rem">${action}</td>
+          <td style="padding:5px 10px;color:var(--muted2);font-size:.72rem">${next}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // init
+    drawStatic('before-svg',[4,2,7,1,3,6,9],INDIGO);
+    drawStatic('after-svg', [4,7,2,9,6,3,1],TEAL);
+    let steps=[],cur=0;
+    steps=buildSteps();
+    resetTrace();
+    buildWT();
+</script>
+</body>
+</html>
